@@ -14,6 +14,7 @@ int segmento=0;
 
 //bools
 bool skinswitch = true;
+bool gridswitch = true;
 
 bool mouseDown = false;
 
@@ -36,6 +37,8 @@ capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rh
 chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
 
 typedef struct treenode{
+    float x1, y1, z1, x2, y2, z2;
+    float radio;
     GLfloat m[16];
     void (*f)();
     struct treenode *sibling;
@@ -98,6 +101,24 @@ void initMesh(){
      glutSetWindowTitle(mensaje);
 }
 
+void drawCapsule(float x1,float y1,float z1,float x2,float y2,float z2,float r){
+     glColor3f(1,0,1);
+     //glutSolidSphere(r,10,10);
+     //glLineWidth(5);
+//     glBegin(GL_LINES);
+//         glVertex3f(x1,y1,z1);
+//         glVertex3f(x2,y2,z2);
+//     glEnd();
+     glPushMatrix();
+         glTranslatef(x1,y1,z1);
+         glutSolidSphere(r,10,10);
+     glPopMatrix();
+     glPushMatrix();
+         glTranslatef(x2,y2,z2);
+         glutSolidSphere(r,10,10);
+     glPopMatrix();
+}
+
 void drawGrid(){
     float i,j;
     glBegin(GL_LINES);
@@ -115,6 +136,7 @@ void drawGrid(){
 //            glVertex3f(0,8,i/10);
 //        }
 //    }
+
     for(i=-8;i<8;i++){
         for(j=-8;j<8;j++){
             glColor3f(1,1,0);
@@ -132,304 +154,256 @@ void drawGrid(){
     glEnd();
 }
 
-void initCapsules(){
-     ///headc
-     headc.x1 = 0;
-     headc.y1 = 3.3;
-     headc.z1 = 0;
-     headc.x2 = 0;
-     headc.y2 = 2.8;
-     headc.z2 = 0;
-     headc.radio = 0.3;
-     ///neckc
-     neckc.x1 = 0;
-     neckc.y1 = 2.6;
-     neckc.z1 = 0;
-     neckc.x2 = 0;
-     neckc.y2 = 2.4;
-     neckc.z2 = 0;
-     neckc.radio = 0.2;
-     ///rshoulderc
-     rshoulderc.x1 = -0.2;
-     rshoulderc.y1 = 2.2;
-     rshoulderc.z1 = 0;
-     rshoulderc.x2 = -1.2;
-     rshoulderc.y2 = 1.8;
-     rshoulderc.z2 = 0;
-     rshoulderc.radio = 0.4;
-     ///lshoulderc
-     lshoulderc.x1 = 0.2;
-     lshoulderc.y1 = 2.2;
-     lshoulderc.z1 = 0;
-     lshoulderc.x2 = 1.2;
-     lshoulderc.y2 = 1.8;
-     lshoulderc.z2 = 0;
-     lshoulderc.radio = 0.4;
-     ///ruarmc
-     ruarmc.x1 = -1.25;
-     ruarmc.y1 = 1.5;
-     ruarmc.z1 = 0;
-     ruarmc.x2 = -1.3;
-     ruarmc.y2 = 0.5;
-     ruarmc.z2 = 0;
-     ruarmc.radio = 0.4;
-     ///luarmc
-     luarmc.x1 = 1.25;
-     luarmc.y1 = 1.5;
-     luarmc.z1 = 0;
-     luarmc.x2 = 1.3;
-     luarmc.y2 = 0.5;
-     luarmc.z2 = 0;
-     luarmc.radio = 0.4;
-     ///rlarmc
-     rlarmc.x1 = -1.3;
-     rlarmc.y1 = 0.1;
-     rlarmc.z1 = 0;
-     rlarmc.x2 = -1.3;
-     rlarmc.y2 = -0.9;
-     rlarmc.z2 = 0;
-     rlarmc.radio = 0.3;
-     ///llarmc
-     llarmc.x1 = 1.3;
-     llarmc.y1 = 0.1;
-     llarmc.z1 = 0;
-     llarmc.x2 = -1.3;
-     llarmc.y2 = -0.9;
-     llarmc.z2 = 0;
-     llarmc.radio = 0.3;
-     ///rhandc
-     rhandc.x1 = -1.25;
-     rhandc.y1 = -1.1;
-     rhandc.z1 = 0;
-     rhandc.x2 = -1.25;
-     rhandc.y2 = -1.5;
-     rhandc.z2 = 0;
-     rhandc.radio = 0.2;
-     ///lhandc
-     lhandc.x1 = 1.25;
-     lhandc.y1 = -1.1;
-     lhandc.z1 = 0;
-     lhandc.x2 = 1.25;
-     lhandc.y2 = -1.5;
-     lhandc.z2 = 0;
-     lhandc.radio = 0.2;
-     ///chestc
-     chestc.x1 = -0.6;
-     chestc.y1 = 1.1;
-     chestc.z1 = 0;
-     chestc.x2 = 0.6;
-     chestc.y2 = 1.1;
-     chestc.z2 = 0;
-     chestc.radio = 0.7;
-     ///waistc
-     waistc.x1 = -0.5;
-     waistc.y1 = -0.1;
-     waistc.z1 = 0;
-     waistc.x2 = 0.5;
-     waistc.y2 = -0.1;
-     waistc.z2 = 0;
-     waistc.radio = 0.6;
-     ///rulegc
-     rulegc.x1 = -0.5;
-     rulegc.y1 = -0.8;
-     rulegc.z1 = 0;
-     rulegc.x2 = -0.5;
-     rulegc.y2 = -2.2;
-     rulegc.z2 = 0.1;
-     rulegc.radio = 0.4;
-     ///lulegc
-     lulegc.x1 = 0.5;
-     lulegc.y1 = -0.8;
-     lulegc.z1 = 0;
-     lulegc.x2 = -0.5;
-     lulegc.y2 = -2.2;
-     lulegc.z2 = 0.1;
-     lulegc.radio = 0.4;
-     ///rllegc
-     rllegc.x1 = -0.4;
-     rllegc.y1 = -2.5;
-     rllegc.z1 = 0.1;
-     rllegc.x2 = -0.4;
-     rllegc.y2 = -4;
-     rllegc.z2 = 0;
-     rllegc.radio = 0.3;
-     ///lllegc
-     lllegc.x1 = 0.4;
-     lllegc.y1 = -2.5;
-     lllegc.z1 = 0.1;
-     lllegc.x2 = 0.4;
-     lllegc.y2 = -4;
-     lllegc.z2 = 0;
-     lllegc.radio = 0.3;
-     ///rfootc
-     rfootc.x1 = -0.4;
-     rfootc.y1 = -4.4;
-     rfootc.z1 = 0;
-     rfootc.x2 = -0.4;
-     rfootc.y2 = -4.4;
-     rfootc.z2 = 0.6;
-     rfootc.radio = 0.15;
-     ///lfootc
-     lfootc.x1 = 0.4;
-     lfootc.y1 = -4.4;
-     lfootc.z1 = 0;
-     lfootc.x2 = 0.4;
-     lfootc.y2 = -4.4;
-     lfootc.z2 = 0.6;
-     lfootc.radio = 0.15;
-
-}
-
 void initNodes(){
     //waist
-    glPushMatrix();
-        glLoadIdentity();
-        glTranslatef(0.0,0.0,0.0);
-        glGetFloatv(GL_MODELVIEW_MATRIX, waistn.m);
-    glPopMatrix();
-    waistn.f = torsof;
+    glLoadIdentity();
+    glTranslatef(0.0,0.0,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, waistn.m);
+    waistn.x1 = -0.5;
+    waistn.y1 = 0;
+    waistn.z1 = 0;
+    waistn.x2 = 0.5;
+    waistn.y2 = 0;
+    waistn.z2 = 0;
+    waistn.radio = 0.45;
     waistn.sibling = NULL;
     waistn.child = &chestn;
     
     //chest
-    glPushMatrix();
-        glLoadIdentity();
-        glTranslatef(0,1.6,0.0);
-        glGetFloatv(GL_MODELVIEW_MATRIX, chestn.m);
-    glPopMatrix();
-    chestn.f = torsof;
+    glLoadIdentity();
+    glTranslatef(0,1.6,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, chestn.m);
+    chestn.x1 = -0.6;
+    chestn.y1 = 0;
+    chestn.z1 = 0;
+    chestn.x2 = 0.6;
+    chestn.y2 = 0;
+    chestn.z2 = 0;
+    chestn.radio = 0.45;
     chestn.sibling = &rulegn;
     chestn.child = &neckn;
     
     //Neck
-    glPushMatrix();
-        glLoadIdentity();
-        glTranslatef(0.0,2.5,0.0);
-        glGetFloatv(GL_MODELVIEW_MATRIX, neckn.m);
-    glPopMatrix();
-    neckn.f = neckf;
+    glLoadIdentity();
+    glTranslatef(0.0,0.5,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, neckn.m);
+    neckn.x1 = 0;
+    neckn.y1 = 0;
+    neckn.z1 = 0;
+    neckn.x2 = 0;
+    neckn.y2 = 0.15;
+    neckn.z2 = 0;
+    neckn.radio = 0.2;
     neckn.sibling = &rshouldern;
     neckn.child = &headn;
     
     //HEAD
-    glPushMatrix();
-        glLoadIdentity();
-        glTranslatef(0.0,3,0.0);
-        glGetFloatv(GL_MODELVIEW_MATRIX, headn.m);
-    glPopMatrix();
-    headn.f = headf;
+    glLoadIdentity();
+    glTranslatef(0.0,0.2,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, headn.m);
+    headn.x1 = 0;
+    headn.y1 = 0;
+    headn.z1 = 0;
+    headn.x2 = 0;
+    headn.y2 = 0.7;
+    headn.z2 = 0;
+    headn.radio = 0.3;
     headn.sibling = NULL;
     headn.child = NULL;
 
     //rshoulder
     glLoadIdentity();
-    glTranslatef(-0.8,2,0.0);
+    glTranslatef(-0.4,0.5,0.0);
     glGetFloatv(GL_MODELVIEW_MATRIX, rshouldern.m);
-    rshouldern.f = upper;
+    rshouldern.x1 = 0;
+    rshouldern.y1 = 0;
+    rshouldern.z1 = 0;
+    rshouldern.x2 = -0.8;
+    rshouldern.y2 = -0.3;
+    rshouldern.z2 = 0;
+    rshouldern.radio = 0.4;
     rshouldern.sibling = &lshouldern;
     rshouldern.child = &ruarmn;
     
     //RIGHT UPPER ARM
     glLoadIdentity();
-    glTranslatef(-1.2,1,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, ruarmn.m); 
-    ruarmn.f = upper;
+    glTranslatef(-0.8,-0.4,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, ruarmn.m);
+    ruarmn.x1 = 0;
+    ruarmn.y1 = 0;
+    ruarmn.z1 = 0;
+    ruarmn.x2 = -0.05;
+    ruarmn.y2 = -1.4;
+    ruarmn.z2 = -0.1;
+    ruarmn.radio = 0.25;
     ruarmn.sibling = NULL;
     ruarmn.child = &rlarmn;
     
     //RIGHT LOWER ARM
     glLoadIdentity();
-    glTranslatef(-1.1,-0.3,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rlarmn.m); 
-    rlarmn.f = lower;                           
+    glTranslatef(-0.05,-1.6,-0.1);
+    glGetFloatv(GL_MODELVIEW_MATRIX, rlarmn.m);
+    rlarmn.x1 = 0;
+    rlarmn.y1 = 0;
+    rlarmn.z1 = 0;
+    rlarmn.x2 = 0.05;
+    rlarmn.y2 = -0.9;
+    rlarmn.z2 = 0.1;
+    rlarmn.radio = 0.2;                      
     rlarmn.sibling = NULL;        
     rlarmn.child = &rhandn;
     
     //rhand
     glLoadIdentity();
-    glTranslatef(-1.2,-1.2,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rhandn.m); 
-    rhandn.f = lower;                           
+    glTranslatef(0,-1,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, rhandn.m);
+    rhandn.x1 = 0;
+    rhandn.y1 = 0;
+    rhandn.z1 = 0;
+    rhandn.x2 = 0.05;
+    rhandn.y2 = -0.5;
+    rhandn.z2 = 0;
+    rhandn.radio = 0.15;                     
     rhandn.sibling = NULL;        
     rhandn.child = NULL;
     
     //lshoulder
     glLoadIdentity();
-    glTranslatef(0.8,2,0.0);
+    glTranslatef(0.4,0.5,0.0);
     glGetFloatv(GL_MODELVIEW_MATRIX, lshouldern.m);
-    lshouldern.f = upper;
+    lshouldern.x1 = 0;
+    lshouldern.y1 = 0;
+    lshouldern.z1 = 0;
+    lshouldern.x2 = 0.8;
+    lshouldern.y2 = -0.3;
+    lshouldern.z2 = 0;
+    lshouldern.radio = 0.4;
     lshouldern.sibling = NULL;
     lshouldern.child = &luarmn;
     
     //LEFT UPPER ARM
     glLoadIdentity();
-    glTranslatef(1.2,1,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, luarmn.m); 
-    luarmn.f = upper;                           
+    glTranslatef(0.8,-0.4,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, luarmn.m);
+    luarmn.x1 = 0;
+    luarmn.y1 = 0;
+    luarmn.z1 = 0;
+    luarmn.x2 = 0.05;
+    luarmn.y2 = -1.4;
+    luarmn.z2 = -0.1;
+    luarmn.radio = 0.25;                
     luarmn.sibling = NULL;        
     luarmn.child = &llarmn;                       
     
     //LEFT LOWER ARM
     glLoadIdentity();
-    glTranslatef(1.1,-0.3,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, llarmn.m); 
-    llarmn.f = lower;                           
+    glTranslatef(0.05,-1.6,-0.1);
+    glGetFloatv(GL_MODELVIEW_MATRIX, llarmn.m);
+    llarmn.x1 = 0;
+    llarmn.y1 = 0;
+    llarmn.z1 = 0;
+    llarmn.x2 = -0.05;
+    llarmn.y2 = -0.9;
+    llarmn.z2 = 0.1;
+    llarmn.radio = 0.2;                
     llarmn.sibling = NULL;        
     llarmn.child = &lhandn;    
   
     //lhand
     glLoadIdentity();
-    glTranslatef(1.2,-1.2,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lhandn.m); 
-    lhandn.f = lower;                           
+    glTranslatef(0,-1,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, lhandn.m);
+    lhandn.x1 = 0;
+    lhandn.y1 = 0;
+    lhandn.z1 = 0;
+    lhandn.x2 = -0.05;
+    lhandn.y2 = -0.5;
+    lhandn.z2 = 0;
+    lhandn.radio = 0.15;
     lhandn.sibling = NULL;        
     lhandn.child = NULL; 
     
     //RIGHT UPPER LEG
     glLoadIdentity();
-    glTranslatef(-0.4,-1.3,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m); 
-    rulegn.f = upper;                           
+    glTranslatef(-0.5,-1,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m);
+    rulegn.x1 = 0;
+    rulegn.y1 = 0;
+    rulegn.z1 = 0;
+    rulegn.x2 = 0;
+    rulegn.y2 = -1.4;
+    rulegn.z2 = 0.1;
+    rulegn.radio = 0.4;
     rulegn.sibling = &lulegn;       
     rulegn.child = &rllegn; 
     
     //RIGHT LOWER LEG
     glLoadIdentity();
-    glTranslatef(-0.3,-3.2,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rllegn.m); 
-    rllegn.f = lower;                           
+    glTranslatef(0,-1.6,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, rllegn.m);
+    rllegn.x1 = 0;
+    rllegn.y1 = 0;
+    rllegn.z1 = 0;
+    rllegn.x2 = 0;
+    rllegn.y2 = -1.5;
+    rllegn.z2 = -0.1;
+    rllegn.radio = 0.3;
     rllegn.sibling = NULL;
     rllegn.child = &rfootn;
     
     //rfoot
     glLoadIdentity();
-    glTranslatef(-0.3,-4.3,0.3);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m); 
-    rfootn.f = lower;                           
+    glTranslatef(-0.1,-1.7,0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m);
+    rfootn.x1 = 0;
+    rfootn.y1 = 0;
+    rfootn.z1 = 0;
+    rfootn.x2 = -0.1;
+    rfootn.y2 = 0;
+    rfootn.z2 = 0.6;
+    rfootn.radio = 0.15;
     rfootn.sibling = NULL;
     rfootn.child = NULL;
     
     //LEFT UPPER LEG
     glLoadIdentity();
-    glTranslatef(0.4,-1.3,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lulegn.m); 
-    lulegn.f = upper;                           
+    glTranslatef(0.5,-1,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, lulegn.m);
+    lulegn.x1 = 0;
+    lulegn.y1 = 0;
+    lulegn.z1 = 0;
+    lulegn.x2 = 0;
+    lulegn.y2 = -1.4;
+    lulegn.z2 = 0.1;
+    lulegn.radio = 0.4;
     lulegn.sibling = NULL;       
     lulegn.child = &lllegn;                      
     
     //LEFT LOWER LEG
     glLoadIdentity();
-    glTranslatef(0.3,-3.2,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lllegn.m); 
-    lllegn.f = lower;                           
+    glTranslatef(0,-1.6,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, lllegn.m);
+    lllegn.x1 = 0;
+    lllegn.y1 = 0;
+    lllegn.z1 = 0;
+    lllegn.x2 = 0;
+    lllegn.y2 = -1.5;
+    lllegn.z2 = -0.1;
+    lllegn.radio = 0.3;
     lllegn.sibling = NULL;        
     lllegn.child = &lfootn;
     
     //lfoot
     glLoadIdentity();
-    glTranslatef(0.3,-4.3,0.3);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m); 
-    lfootn.f = lower;                           
+    glTranslatef(0.1,-1.7,0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m);
+    lfootn.x1 = 0;
+    lfootn.y1 = 0;
+    lfootn.z1 = 0;
+    lfootn.x2 = 0.1;
+    lfootn.y2 = 0;
+    lfootn.z2 = 0.6;
+    lfootn.radio = 0.15;
     lfootn.sibling = NULL;        
     lfootn.child = NULL;
 }
@@ -451,7 +425,10 @@ void traverse (treenode *node){
         glMultMatrixf(node->m);
     
         // dibujar el nodo
-        node->f();
+        //node->f();
+        glColor3f(1,1,1);
+        drawCapsule(node -> x1, node -> y1, node -> z1, 
+                    node -> x2, node -> y2, node -> z2, node -> radio);
         
         // primer recorrer los hijos (si hay)
         if (node->child != NULL)
@@ -518,16 +495,14 @@ void display(){
     glRotatef(xrot, 1.0f, 0.0f, 0.0f);
     glRotatef(yrot, 0.0f, 1.0f, 0.0f);
     
-	drawGrid();
+    if(gridswitch)
+   	    drawGrid();
 	
     traverse(&waistn);
     
     if(skinswitch)
         dibujarCaras();
-    glBegin(GL_LINES);
-    glVertex3f(0,0,0);
-    glVertex3f(0.3,-4.3,0.3);
-    glEnd();
+
 //    dibujarVertices();
 
    	glutSwapBuffers();
@@ -561,6 +536,10 @@ void key(unsigned char c, int x, int y){
                 skinswitch = !skinswitch;
                 glutPostRedisplay();
      }
+     if(c=='g'){
+                gridswitch = !gridswitch;
+                glutPostRedisplay();
+     }
 }
 
 void mouseMotion(int x, int y){
@@ -589,7 +568,6 @@ int main(int argc, char **argv)
   init();
   initMesh();                                       // Inicialización general
   initNodes();
-  initCapsules();
   glutMainLoop();                               // Pasar el control a GLUT.
   return 0;                                     // Regresar 0 por cortesía.
 }
