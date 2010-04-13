@@ -58,7 +58,7 @@ ProductVersion=
 AutoIncBuildNr=0
 
 [Unit2]
-FileName=..\..\..\..\..\Escritorio\Actividad_ModeladoPoligonal\archivosModeladoPoligonal\mesh.h
+FileName=..\..\Proyecto part1\mesh.h
 CompileCpp=1
 Folder=importarObjeto
 Compile=1
@@ -68,7 +68,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit3]
-FileName=..\..\..\..\..\Escritorio\Actividad_ModeladoPoligonal\archivosModeladoPoligonal\mesh.cpp
+FileName=..\..\Proyecto part1\mesh.cpp
 CompileCpp=1
 Folder=importarObjeto
 Compile=1
