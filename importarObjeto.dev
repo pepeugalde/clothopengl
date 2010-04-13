@@ -1,24 +1,24 @@
 [Project]
-FileName=ProyectoFinal.dev
-Name=ProyectoFinal
+FileName=importarObjeto.dev
+Name=importarObjeto
 UnitCount=3
 Type=0
 Ver=1
 ObjFiles=
-Includes=
+Includes="C:\Documents and Settings\Alejandro Jesús\Escritorio\Actividad_ModeladoPoligonal\archivosModeladoPoligonal\box"
 Libs=
 PrivateResource=
 ResourceIncludes=
 MakeIncludes=
 Compiler=
 CppCompiler=
-Linker=-lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32
+Linker=-lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32_@@_
 IsCpp=1
 Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=
+OverrideOutputName=importarObjeto.exe
 HostApplication=
 Folders=
 CommandLine=
@@ -27,7 +27,7 @@ CustomMakefile=
 IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
-CompilerSettings=
+CompilerSettings=0000000000000000000000
 
 [Unit1]
 FileName=main.cpp
@@ -58,9 +58,9 @@ ProductVersion=
 AutoIncBuildNr=0
 
 [Unit2]
-FileName=mesh.h
+FileName=..\..\..\..\..\Escritorio\Actividad_ModeladoPoligonal\archivosModeladoPoligonal\mesh.h
 CompileCpp=1
-Folder=ProyectoFinal
+Folder=importarObjeto
 Compile=1
 Link=1
 Priority=1000
@@ -68,9 +68,9 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit3]
-FileName=mesh.cpp
+FileName=..\..\..\..\..\Escritorio\Actividad_ModeladoPoligonal\archivosModeladoPoligonal\mesh.cpp
 CompileCpp=1
-Folder=ProyectoFinal
+Folder=importarObjeto
 Compile=1
 Link=1
 Priority=1000

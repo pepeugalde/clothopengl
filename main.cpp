@@ -1,9 +1,16 @@
-#include <stdio.h>
+/*****************************************
+ *Equipo
+ *
+ *Monito Final
+*******************************************/
+
 #include <mesh.h>
 #include <GL/glut.h>
+#include <stdlib.h>
 
-//#include <stdlib.h> //si usan dev hay que descomentar esta linea
-//#include <iostream.h> 
+
+GLfloat angulos[10]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+int segmento=0;
 
 bool mouseDown = false;
 
@@ -16,11 +23,6 @@ float ydiff = 0.0f;
 float zoom = 5.0;
 
 mesh *object;
-
-
-GLfloat angulos[10]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-int segmento=0;
-GLUquadric* q = gluNewQuadric();
 
 typedef struct treenode
 {
@@ -46,7 +48,7 @@ void head(){
          glTranslatef(0.0f, 0.5f, 0.0f);
          glScalef(0.5,0.5,0.5);
          glutSolidCube(1);
-		 gluCylinder(q, 10, 10, 10, 10, 10);
+		 //gluCylinder(q, 10, 10, 10, 10, 10);
      glPopMatrix();    
 }
 
@@ -73,34 +75,6 @@ void initMesh(){
      char mensaje[64];
      sprintf(mensaje, "Total de caras %d", object->fTotal);
      glutSetWindowTitle(mensaje);
-}
-
-
-
-//void myReshape // clipping planes a 500
-
-
-void dibujarVertices(){
-     glColor3d(1,0,0);
-     glPointSize(10);
-     
-     glBegin(GL_POINTS);
-     for(int i=0; i<object->vTotal; i++)
-             glVertex3fv(object->vList[i].ptr);
-     glEnd();
-}
-
-void dibujarCaras(){
-     glColor3d(1,1,1);
-     
-     glBegin(GL_TRIANGLES);
-     for(int i = 0; i<object->fTotal; i++){
-             for(int j=0; j<3; j++){
-//                     glVertex3fv(object->vList[i][object->faceList[i][j].v].ptr);
-                       glVertex3fv(object->vList[object->faceList[i][j].v].ptr);
-             }
-     }
-     glEnd();            
 }
 
 void init(){
@@ -192,7 +166,6 @@ void init(){
   
 }
 
-// recorrido a profundidad: primero los hijos, luego los hermanos
 void traverse (treenode *node)
 {
     // guardar la matriz actual porque las transformaciones a realizarse 
@@ -215,29 +188,6 @@ void traverse (treenode *node)
     	traverse(node->sibling);
 }
 
-void display(void)
-{
-	glClearColor(1.0f, 1.0f, 1.0f, 0.0f) ;             // fondo blanco
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);  // borrar el buffer de color y de profundidad.
-	
-	glMatrixMode(GL_MODELVIEW) ;
-	glLoadIdentity() ;
-
-	gluLookAt(
-    0.0f, 5.0f, zoom,
-    0.0f, 5.0f, 0.0f,
-    0.0f, 1.0f, 0.0f);
-    
-    glRotatef(xrot, 1.0f, 0.0f, 0.0f);
-    glRotatef(yrot, 0.0f, 1.0f, 0.0f);
-	gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0) ;            // para ver de lado el cubo y desde un poco más arriba
-	 
-	traverse(&torso_node);
-	dibujarCaras();
-	
-	glutSwapBuffers();                                // intercambiar el buffer de dibujado por el buffer de despliegue.
-}
-
 void reshape(int w, int h)
 {
    glViewport (0, 0, (GLsizei) w, (GLsizei) h);
@@ -252,75 +202,54 @@ void specialKey(int c, int x, int y){
 		glutPostRedisplay();
 	}
 }
-/*
-void mouse(int btn, int state, int x, int y){
-   if(btn==GLUT_RIGHT_BUTTON && state==GLUT_DOWN){
-        angulos[segmento]=5.0;
-   }   
-   if(btn==GLUT_LEFT_BUTTON && state==GLUT_DOWN){
-        angulos[segmento]=-5.0;                    
-   }    
-   
-   glPushMatrix();
-   glLoadIdentity();
-   
-       switch(segmento){      
-          case 0:
-              glMultMatrixf(torso_node.m);
-              glRotatef(angulos[segmento],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, torso_node.m);
-              break;
-          case 1:
-              glMultMatrixf(leftUpperArm_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, leftUpperArm_node.m);
-              break;
-          case 2:
-              glMultMatrixf(leftLowerArm_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, leftLowerArm_node.m);
-              break;
-          case 3:
-              glMultMatrixf(rightUpperArm_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rightUpperArm_node.m);
-              break;
-          case 4:
-              glMultMatrixf(rightLowerArm_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rightLowerArm_node.m);
-              break;
-          case 5:
-              glMultMatrixf(leftUpperLeg_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, leftUpperLeg_node.m);
-              break;
-          case 6:
-              glMultMatrixf(leftLowerLeg_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, leftLowerLeg_node.m);
-              break;
-          case 7:
-              glMultMatrixf(rightUpperLeg_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rightUpperLeg_node.m);
-              break;
-          case 8:
-              glMultMatrixf(rightLowerLeg_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rightLowerLeg_node.m);
-              break;
-          case 9:
-              glMultMatrixf(head_node.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, head_node.m);
-              break;
-              
-       }
-       
-   glPopMatrix();
-   glutPostRedisplay(); 
-}*/
+
+
+//void myReshape // clipping planes a 500
+
+
+void dibujarVertices(){
+     glColor3d(1,0,0);
+     glPointSize(10);
+     
+     glBegin(GL_POINTS);
+     for(int i=0; i<object->vTotal; i++)
+             glVertex3fv(object->vList[i].ptr);
+     glEnd();
+}
+
+void dibujarCaras(){
+     glColor3d(1,1,1);
+     
+     glBegin(GL_TRIANGLES);
+     for(int i = 0; i<object->fTotal; i++){
+             for(int j=0; j<3; j++){
+//                     glVertex3fv(object->vList[i][object->faceList[i][j].v].ptr);
+                       glVertex3fv(object->vList[object->faceList[i][j].v].ptr);
+             }
+     }
+     glEnd();            
+}
+
+void display(){
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f) ;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	
+    gluLookAt(
+    0.0f, 5.0f, zoom,
+    0.0f, 5.0f, 0.0f,
+    0.0f, 1.0f, 0.0f);
+    
+    glRotatef(xrot, 1.0f, 0.0f, 0.0f);
+    glRotatef(yrot, 0.0f, 1.0f, 0.0f);
+	
+    dibujarCaras();
+    traverse(&torso_node);
+//    dibujarVertices();
+
+   	glutSwapBuffers();
+}
 
 
 
@@ -335,7 +264,19 @@ void mouse(int button, int state, int x, int y)
     }
     else
         mouseDown = false;
-    glutPostRedisplay();
+}
+
+void key(unsigned char c, int x, int y){
+     if(c=='q')
+               exit(0);
+     if(c=='+'){
+                zoom=zoom+1;
+                glutPostRedisplay();
+     }
+     if(c=='-'){
+                zoom=zoom-1;
+                glutPostRedisplay();
+     }
 }
 
 void mouseMotion(int x, int y)
@@ -349,23 +290,22 @@ void mouseMotion(int x, int y)
     }
 }
 
-
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-    glutInit(&argc, argv);
-    glutInitWindowSize(640,480);
-    glutInitWindowPosition(10,10);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-    glutCreateWindow("Monito Final");
-    glutReshapeFunc(reshape);
-    glutDisplayFunc(display);
-    glutMouseFunc(mouse);
-    glutMotionFunc(mouseMotion);
-    glutSpecialFunc(specialKey);
-    init();
-    initMesh();
-    glutMainLoop();
-    return 0;
+  int mode = GLUT_RGB|GLUT_DOUBLE|GLUT_DEPTH;   // Modo de despliegue: Colores RGB, Doble buffer para despliegue
+  glutInitDisplayMode(mode);                    // Inicializar modo de despliegue.
+  glutInitWindowSize(500,500);                  // Inicializar tamaño de la ventana
+  glutInit(&argc, argv);                        // Inicializar GLUT
+  glutCreateWindow("Skin");                   // Crear una ventana con el título indicado.
+  glutDisplayFunc(display);                     // Indicar la función para desplegar.
+  glutReshapeFunc(reshape);                     // Indicar la función en caso de cambio de tamaño de la ventana
+  glutMouseFunc(mouse);
+  glutMotionFunc(mouseMotion);
+  glutKeyboardFunc(key);
+  //glutSpecialFunc(special);
+  //glutKeyboardFunc(key);
+  init();
+  initMesh();                                       // Inicialización general
+  glutMainLoop();                               // Pasar el control a GLUT.
+  return 0;                                     // Regresar 0 por cortesía.
 }
-
-
