@@ -7,14 +7,15 @@
 #include "mesh.h"
 #include <GL/glut.h>
 #include <stdlib.h>
+#include <math.h>
 
 
 GLfloat angulos[10]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 int segmento=0;
-
+GLUquadric* q = gluNewQuadric();
 //bools
 bool skinswitch = true;
-bool gridswitch = true;
+bool gridswitch = false;
 
 bool mouseDown = false;
 
@@ -40,7 +41,6 @@ typedef struct treenode{
     float x1, y1, z1, x2, y2, z2;
     float radio;
     GLfloat m[16];
-    void (*f)();
     struct treenode *sibling;
     struct treenode *child;
     
@@ -49,74 +49,57 @@ typedef struct treenode{
 treenode headn, neckn, rshouldern, lshouldern, ruarmn, luarmn, rlarmn, llarmn, rhandn, lhandn,
 chestn, waistn, rulegn, lulegn, rllegn, lllegn, rfootn, lfootn;
 
-void headf(){
-     glPushMatrix();
-         glTranslatef(0.0f, 0.5f, 0.0f);
-         glScalef(0.5,0.5,0.5);
-         //glutSolidCube(1);
-         glutSolidSphere(0.5,5,5);
-		 //gluCylinder(q, 10, 10, 10, 10, 10);
-     glPopMatrix();    
-}
-
-void neckf(){
-     glPushMatrix();
-         //glScalef(1.0,1.5,1.0);
-         //glutSolidCube(1);
-         glutSolidSphere(0.5,5,5);
-     glPopMatrix();   
-}
-
-void torsof(){
-     glPushMatrix();
-         //glScalef(1.0,1.5,1.0);
-         //glutSolidCube(1);
-         glutSolidSphere(0.5,5,5);
-     glPopMatrix();   
-}
-
-void upper(){
-      glPushMatrix();
-         //glTranslatef(0.0f, -0.5f, 0.0f);
-         //glScalef(0.3,1.0,0.3);
-         //glutSolidCube(1);
-         glutSolidSphere(0.5,5,5); 
-     glPopMatrix();       
-}
-
-void lower(){
-      glPushMatrix();
-         //glTranslatef(0.0f, -0.35f, 0.0f);
-         //glScalef(0.3,0.7,0.3);
-         //glutSolidCube(1);
-         glutSolidSphere(0.5,5,5);
-     glPopMatrix();       
-}
-
 void initMesh(){
-     object = new mesh("cuerpob.obj");
+     object = new mesh("camisab.obj");
      
      char mensaje[64];
      sprintf(mensaje, "Total de caras %d", object->fTotal);
      glutSetWindowTitle(mensaje);
 }
 
+float distance3d(float x1,float y1,float z1,float x2,float y2,float z2){
+    return sqrt(pow((x1-x2),2) + pow((y1-y2),2) + pow((z1-z2),2));
+}
+
+float distance2d(float x1,float y1,float x2,float y2){
+    return sqrt(pow((x1-x2),2) + pow((y1-y2),2));
+}
+
 void drawCapsule(float x1,float y1,float z1,float x2,float y2,float z2,float r){
-     glColor3f(1,0,1);
+     glColor3f(1,0,0);
      //glutSolidSphere(r,10,10);
      //glLineWidth(5);
 //     glBegin(GL_LINES);
 //         glVertex3f(x1,y1,z1);
 //         glVertex3f(x2,y2,z2);
 //     glEnd();
-     glPushMatrix();
-         glTranslatef(x1,y1,z1);
-         glutSolidSphere(r,10,10);
-     glPopMatrix();
+
+     float d = distance3d(x1,y1,z1,x2,y2,z2);
+     float dxz, dxy, angxz, angyz;
+     if(x1-x2 == 0){
+         angxz = 0;
+     }else{
+         angxz = 90 + atan((z1-z2)/(x1-x2));
+     }
+     if(z1-z2 == 0){
+         angyz = 0;
+     }else{
+         angyz = 90 + atan((y1-y2)/(z1-z2));
+     }
+     
      glPushMatrix();
          glTranslatef(x2,y2,z2);
          glutSolidSphere(r,10,10);
      glPopMatrix();
+     glPushMatrix();
+         glTranslatef(x1,y1,z1);
+         glutSolidSphere(r,10,10);
+         glRotatef(angxz, 0,1,0);
+         glRotatef(angyz, 1,0,0);
+         glColor3f(0,0,1);
+         gluCylinder(q, r, r, d, 20, 10);
+     glPopMatrix();
+     
 }
 
 void drawGrid(){
