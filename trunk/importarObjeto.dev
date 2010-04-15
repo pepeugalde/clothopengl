@@ -58,7 +58,7 @@ ProductVersion=
 AutoIncBuildNr=0
 
 [Unit2]
-FileName=..\..\Proyecto part1\mesh.h
+FileName=mesh.cpp
 CompileCpp=1
 Folder=importarObjeto
 Compile=1
@@ -68,7 +68,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit3]
-FileName=..\..\Proyecto part1\mesh.cpp
+FileName=mesh.h
 CompileCpp=1
 Folder=importarObjeto
 Compile=1

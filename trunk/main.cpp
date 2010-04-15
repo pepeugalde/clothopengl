@@ -1,7 +1,10 @@
 /*****************************************
- *Equipo
- *
- *Monito Final
+ *Equipo 
+ *Enrique Peña 1162110
+ *Jorge Dorantes 1011377
+ *José Ugalde 1161507
+ *Alejandro Morales 1161376
+ *Monito Final Parte 1
 *******************************************/
 
 #include "mesh.h"
@@ -9,8 +12,33 @@
 #include <stdlib.h>
 #include <math.h>
 
+//materiales
+int smoothOn =1;
 
-GLfloat angulos[10]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+GLfloat lightPosition[] = { 10.0, 10.0, 10.0, 1.0 };
+
+// a material that is all zeros
+GLfloat zeroMaterial[]	= { 0.0, 0.0, 0.0, 1.0 };
+// a red ambient material
+GLfloat redAmbient[]	= { 0.83, 0.0, 0.0, 1.0 };
+// a blue diffuse material
+GLfloat blueDiffuse[]	= { 0.1, 0.5, 0.8, 1.0 };
+// a red diffuse material
+GLfloat redDiffuse[]	= { 1.0, 0.0, 0.0, 1.0 };
+//a white diffuse material
+GLfloat whiteDiffuse[]	= { 1.0, 1.0, 1.0, 1.0 };
+//a pink diffuse material
+GLfloat pinkDiffuse[]	= { 1.0, 0.7, 0.8, 1.0 };
+// a white specular material
+GLfloat whiteSpecular[]	= { 1.0, 1.0, 1.0, 1.0 };
+
+// the degrees of shinnines (size of the specular highlight, bigger number means smaller highlight)
+GLfloat noShininess	    =  0.0;
+GLfloat highShininess	= 50.0;
+
+
+GLfloat angulos[18]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
+                     0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
 int segmento=0;
 float jointsize = 0.3;
 GLUquadric* q = gluNewQuadric();
@@ -415,6 +443,34 @@ void init(){
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+        // define the light color and intensity
+    GLfloat ambientLight[]	= { 0.0, 0.0, 0.0, 1.0 };
+    GLfloat diffuseLight[]	= { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat specularLight[]	= { 1.0, 1.0, 1.0, 1.0 };
+
+	//  the global ambient light level
+    GLfloat globalAmbientLight[] = { 0.4, 0.4, 0.4, 1.0 };
+
+	// set the global ambient light level
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbientLight);
+
+	// define the color and intensity for light 0
+    glLightfv(GL_LIGHT0, GL_AMBIENT,   ambientLight);
+    glLightfv(GL_LIGHT0, GL_SPECULAR,  diffuseLight);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE,   specularLight);
+
+	// enable lighting 
+    glEnable(GL_LIGHTING);
+	// enable light 0
+    glEnable(GL_LIGHT0);
+
+
+	// turn on depth testing so that polygons are drawn in the correct order
+	glEnable(GL_DEPTH_TEST);
+
+	// make sure the normals are unit vectors
+	glEnable(GL_NORMALIZE);
 }
 
 void traverse (treenode *node){
@@ -477,6 +533,12 @@ void drawSkin(){
      glColor4f(1, 0.7, 0.8, alphaswitch);
      
      glBegin(GL_TRIANGLES);
+     
+     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+	 glMaterialfv(GL_FRONT, GL_DIFFUSE,   pinkDiffuse);
+	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+     
      for(int i = 0; i<skinobject->fTotal; i++){
              for(int j=0; j<3; j++){
                        glVertex3fv(skinobject->vList[skinobject->faceList[i][j].v].ptr);
@@ -486,9 +548,15 @@ void drawSkin(){
 }
 
 void drawShirt(){
-     glColor4f(0.5, 0.5, 1, alphaswitch);
+     glColor4f(1, 1, 1, alphaswitch);
      
      glBegin(GL_TRIANGLES);
+     
+     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+	 glMaterialfv(GL_FRONT, GL_DIFFUSE,   blueDiffuse);
+	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+	 
      for(int i = 0; i<shirtobject->fTotal; i++){
              for(int j=0; j<3; j++){
                        glVertex3fv(shirtobject->vList[shirtobject->faceList[i][j].v].ptr);
@@ -498,6 +566,10 @@ void drawShirt(){
 }
 
 void display(){
+    if (smoothOn)
+		glShadeModel(GL_SMOOTH); 
+	else
+		glShadeModel(GL_FLAT); 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f) ;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
@@ -513,6 +585,11 @@ void display(){
     
     if(gridswitch)
    	    drawGrid();
+   	    
+     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+	 glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuse);
+	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
 	
     traverse(&waistn);
     
@@ -539,8 +616,8 @@ void mouse(int button, int state, int x, int y){
 }
 
 void key(unsigned char c, int x, int y){
-     if(c=='q')
-               exit(0);
+     //if(c=='q')
+               //exit(0);
      if(c=='+'){
                 zoom -= 1;
                 glutPostRedisplay();
@@ -581,6 +658,186 @@ void key(unsigned char c, int x, int y){
                 gridswitch = !gridswitch;
                 glutPostRedisplay();
      }
+     if(c == '0'){
+          segmento=0;     
+     }
+     if(c == '1'){
+          segmento=1;     
+     }
+     if(c == '2'){
+          segmento=2;     
+     }
+     if(c == '3'){
+          segmento=3;     
+     }
+     if(c == '4'){
+          segmento=4;     
+     }
+     if(c == '5'){
+          segmento=5;     
+     }
+     if(c == '6'){
+          segmento=6;     
+     }
+     if(c == '7'){
+          segmento=7;     
+     }
+     if(c == '8'){
+          segmento=8;     
+     }
+     if(c == '9'){
+          segmento=9;     
+     }
+     if(c == 'p'){
+          segmento=10;     
+     }
+     if(c == 'q'){
+          segmento=11;     
+     }
+     if(c == 'w'){
+          segmento=12;     
+     }
+     if(c == 'e'){
+          segmento=13;     
+     }
+     if(c == 'r'){
+          segmento=14;     
+     }
+     if(c == 't'){
+          segmento=15;     
+     }
+     if(c == 'y'){
+          segmento=16;     
+     }
+     if(c == 'u'){
+          segmento=17;     
+     }
+     if(c == 'i'){
+          segmento=18;     
+     }
+     
+     glutPostRedisplay();
+
+     /*if(c == '5'){
+              angulos[5]=5;
+              
+              glPushMatrix();
+              glLoadIdentity();
+              
+              glMultMatrixf(rulegn.m);
+              glRotatef(angulos[5],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m);     
+              
+              glPopMatrix();
+              glutPostRedisplay();
+     }*/
+}
+
+void special(int c, int x, int y){
+     if(c==GLUT_KEY_UP){
+         angulos[segmento]=5;
+     }
+     if(c==GLUT_KEY_DOWN){
+         angulos[segmento]=-5;
+     }
+     
+     glPushMatrix();
+     glLoadIdentity();
+     
+     switch(segmento){
+         case 0:
+              glMultMatrixf(headn.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, headn.m);                
+              break;
+         case 1:
+              glMultMatrixf(neckn.m);
+              glRotatef(angulos[segmento],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, neckn.m);                
+              break;
+         case 2:
+              glMultMatrixf(rshouldern.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rshouldern.m);                
+              break;
+         case 3:
+              glMultMatrixf(lshouldern.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lshouldern.m);                
+              break;
+         case 4:
+              glMultMatrixf(ruarmn.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, ruarmn.m);                
+              break;
+         case 5:
+              glMultMatrixf(luarmn.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, luarmn.m);                
+              break;
+         case 6:
+              glMultMatrixf(rlarmn.m);
+              glRotatef(angulos[segmento],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rlarmn.m);                
+              break;
+         case 7:
+              glMultMatrixf(llarmn.m);
+              glRotatef(angulos[segmento],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, llarmn.m);                
+              break;
+         case 8:
+              glMultMatrixf(rhandn.m);
+              glRotatef(angulos[segmento],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rhandn.m);                
+              break;
+         case 9:
+              glMultMatrixf(lhandn.m);
+              glRotatef(angulos[segmento],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lhandn.m);                
+              break;
+         case 10:
+              glMultMatrixf(chestn.m);
+              glRotatef(angulos[segmento],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, chestn.m);                
+              break;
+         case 11:
+              glMultMatrixf(waistn.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, waistn.m);                
+              break;
+         case 12:
+              glMultMatrixf(rulegn.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m);                
+              break;
+         case 13:
+              glMultMatrixf(lulegn.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lulegn.m);                
+              break;
+         case 14:
+              glMultMatrixf(rllegn.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rllegn.m);                
+              break;
+         case 15:
+              glMultMatrixf(lllegn.m);
+              glRotatef(angulos[segmento],1.0,0.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lllegn.m);                
+              break;
+         case 16:
+              glMultMatrixf(rfootn.m);
+              glRotatef(angulos[segmento],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m);                
+              break;
+         case 17:
+              glMultMatrixf(lfootn.m);
+              glRotatef(angulos[segmento],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m);                
+              break;
+     }
+     glPopMatrix();
+     glutPostRedisplay();
 }
 
 void mouseMotion(int x, int y){
@@ -604,7 +861,7 @@ int main(int argc, char **argv)
   glutMouseFunc(mouse);
   glutMotionFunc(mouseMotion);
   glutKeyboardFunc(key);
-  //glutSpecialFunc(special);
+  glutSpecialFunc(special);
   init();
   initSkin();
   initShirt();
