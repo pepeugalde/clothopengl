@@ -1,9 +1,11 @@
 /*****************************************
- *Equipo 
+ ***Equipo***
+ *
  *Enrique Peña 1162110
  *Jorge Dorantes 1011377
  *José Ugalde 1161507
  *Alejandro Morales 1161376
+ *
  *Monito Final Parte 1
 *******************************************/
 
@@ -14,6 +16,7 @@
 
 //materiales
 int smoothOn =1;
+GLfloat alphavalue = 0.5;
 
 GLfloat lightPosition[] = { 10.0, 10.0, 10.0, 1.0 };
 
@@ -21,20 +24,35 @@ GLfloat lightPosition[] = { 10.0, 10.0, 10.0, 1.0 };
 GLfloat zeroMaterial[]	= { 0.0, 0.0, 0.0, 1.0 };
 // a red ambient material
 GLfloat redAmbient[]	= { 0.83, 0.0, 0.0, 1.0 };
+
 // a blue diffuse material
 GLfloat blueDiffuse[]	= { 0.1, 0.5, 0.8, 1.0 };
+// a blue diffuse material w alpha
+GLfloat blueDiffuseAlpha[]	= { 0.1, 0.5, 0.8, alphavalue };
+// a yellow diffuse material
+GLfloat yellowDiffuse[]	= { 1.0, 1.0, 0.0, 1.0 };
+// a yellow diffuse material w alpha
+GLfloat yellowDiffuseAlpha[]= { 1.0, 1.0, 0.0, alphavalue };
 // a red diffuse material
 GLfloat redDiffuse[]	= { 1.0, 0.0, 0.0, 1.0 };
+// a red diffuse material w alpha
+GLfloat redDiffuseAlpha[]	= { 1.0, 0.0, 0.0, alphavalue };
 //a white diffuse material
 GLfloat whiteDiffuse[]	= { 1.0, 1.0, 1.0, 1.0 };
+//a white diffuse material w alpha
+GLfloat whiteDiffuseAlpha[]	= { 1.0, 1.0, 1.0, alphavalue };
 //a pink diffuse material
 GLfloat pinkDiffuse[]	= { 1.0, 0.7, 0.8, 1.0 };
+//a pink diffuse material w alpha
+GLfloat pinkDiffuseAlpha[]	= { 1.0, 0.7, 0.8, alphavalue };
+
 // a white specular material
 GLfloat whiteSpecular[]	= { 1.0, 1.0, 1.0, 1.0 };
 
 // the degrees of shinnines (size of the specular highlight, bigger number means smaller highlight)
 GLfloat noShininess	    =  0.0;
 GLfloat highShininess	= 50.0;
+
 
 int angdelta = 5;
 GLfloat anglesx[15]={0.0,0.0,0.0,0.0,0.0,
@@ -43,18 +61,18 @@ GLfloat anglesx[15]={0.0,0.0,0.0,0.0,0.0,
 GLfloat anglesy[15]={0.0,0.0,0.0,0.0,0.0,
                      0.0,0.0,0.0,0.0,0.0,
                      0.0,0.0,0.0,0.0,0.0};
-int segselect = 1;
+int segselect = 0;
 float jointsize = 0.3;
 GLUquadric* q = gluNewQuadric();
 
 //SWITCHES
 bool capsuleswitch   = true;
-bool skinswitch      = false;//true;
+bool skinswitch      = true;
 bool shirtswitch     = false;//true;
 bool gridswitch      = false;
 bool vertswitch      = false;
 bool jointswitch     = true;
-float alphaswitch    = 0.7;
+bool alphaswitch     = true;
 
 bool mouseDown = false;
 
@@ -106,22 +124,33 @@ float distance2d(float x1,float y1,float x2,float y2){
     return sqrt(pow((x1-x2),2) + pow((y1-y2),2));
 }
 
+void drawJoint(int id){
+     if(id == segselect){
+         glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+    	 if(alphaswitch)
+             glMaterialfv(GL_FRONT, GL_DIFFUSE,   yellowDiffuseAlpha);
+         else
+             glMaterialfv(GL_FRONT, GL_DIFFUSE,   yellowDiffuse);
+    	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+    	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+     }else{
+         glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+         if(alphaswitch)
+    	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuseAlpha);
+   	     else
+   	         glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuse);
+    	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+    	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+     }
+     glutSolidSphere(jointsize,10,10);
+}
 void drawCapsule(float x1,float y1,float z1,float x2,float y2,float z2,float r, int id){
      
-     glColor3f(0.3,0.3,0.3);
      glLineWidth(5);
      glBegin(GL_LINES);
          glVertex3f(x1,y1,z1);
          glVertex3f(x2,y2,z2);
      glEnd();
-     
-     if(jointswitch){
-         if(id == segselect)
-             glColor4f(1,1,0,1);
-         else
-             glColor4f(1,1,0,1);
-         glutSolidSphere(jointsize,10,10);
-     }
 
      float d = distance3d(x1,y1,z1,x2,y2,z2);
      
@@ -139,8 +168,14 @@ void drawCapsule(float x1,float y1,float z1,float x2,float y2,float z2,float r, 
      float rx = -vy*vz;
      float ry = vx*vz;
      
-     glColor4f(0,0,1,alphaswitch);//rojo
-     //glColor4f(1,0,0,alphaswitch);//rojo
+     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+     if(alphaswitch)
+   	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuseAlpha);
+     else
+   	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuse);
+  	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+  	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+  	 
      glPushMatrix();
          glTranslatef(x2,y2,z2);
          glutSolidSphere(r,10,10);
@@ -150,7 +185,7 @@ void drawCapsule(float x1,float y1,float z1,float x2,float y2,float z2,float r, 
          glutSolidSphere(r,10,10);
          glRotatef(ax, rx, ry, 0.0);
          //glColor4f(0,0,1,alphaswitch);//azul
-         gluCylinder(q, r, r, d, 20, 10);
+         gluCylinder(q, r, r, d, 20, 1);
      glPopMatrix();
      
 }
@@ -175,12 +210,29 @@ void drawGrid(){
 
     for(i=-8;i<8;i++){
         for(j=-8;j<8;j++){
-            glColor3f(1,1,0);
+            //glColor3f(1,1,0);
+            glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+      	    if(alphaswitch)
+                glMaterialfv(GL_FRONT, GL_DIFFUSE,   pinkDiffuseAlpha);
+            else
+                glMaterialfv(GL_FRONT, GL_DIFFUSE,   pinkDiffuse);
+        	glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+        	glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+        	
             glVertex3f(-8,i,0.01);//x
             glVertex3f(8,i,0.01);
             glVertex3f(i,-8,0.01);//y
             glVertex3f(i,8,0.01);
-            glColor3f(0,1,1);
+            
+            //glColor3f(0,1,1);
+            glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+    	    if(alphaswitch)
+                glMaterialfv(GL_FRONT, GL_DIFFUSE,   pinkDiffuseAlpha);
+            else
+                glMaterialfv(GL_FRONT, GL_DIFFUSE,   pinkDiffuse);
+    	    glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+    	    glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+            
             glVertex3f(0.01,i,-8);//zx
             glVertex3f(0.01,i,8);
             glVertex3f(0.01,-8,i);//zy
@@ -191,39 +243,39 @@ void drawGrid(){
 }
 
 void initNodes(){
+    //chest
+    glLoadIdentity();
+    glTranslatef(0,0.6,0.0);
+    glGetFloatv(GL_MODELVIEW_MATRIX, chestn.m);
+    chestn.x1 = -0.5;
+    chestn.y1 = 0.6;
+    chestn.z1 = 0;
+    chestn.x2 = 0.5;
+    chestn.y2 = 0.6;
+    chestn.z2 = 0;
+    chestn.radio = 0.4;
+    chestn.id = 0;
+    chestn.sibling = NULL;
+    chestn.child = &waistn;
+    
     //waist
     glLoadIdentity();
-    glTranslatef(0.0,0.0,0.0);
+    glTranslatef(0.0,-0.8,0.0);
     glGetFloatv(GL_MODELVIEW_MATRIX, waistn.m);
     waistn.x1 = -0.5;
-    waistn.y1 = 0;
+    waistn.y1 = 0.5;
     waistn.z1 = 0;
     waistn.x2 = 0.5;
-    waistn.y2 = 0;
+    waistn.y2 = 0.5;
     waistn.z2 = 0;
     waistn.radio = 0.35;
     waistn.id = 1;
-    waistn.sibling = NULL;
-    waistn.child = &chestn;
-    
-    //chest
-    glLoadIdentity();
-    glTranslatef(0,1.6,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, chestn.m);
-    chestn.x1 = -0.5;
-    chestn.y1 = -0.5;
-    chestn.z1 = 0;
-    chestn.x2 = 0.5;
-    chestn.y2 = -0.5;
-    chestn.z2 = 0;
-    chestn.radio = 0.4;
-    chestn.id = 16;
-    chestn.sibling = &rulegn;
-    chestn.child = &neckn;
+    waistn.sibling = &rulegn;
+    waistn.child = &neckn;
     
     //Neck
     glLoadIdentity();
-    glTranslatef(0.0,0.8,0.0);
+    glTranslatef(0.0,2.6,0.0);
     glGetFloatv(GL_MODELVIEW_MATRIX, neckn.m);
     neckn.x1 = 0;
     neckn.y1 = 0;
@@ -253,7 +305,7 @@ void initNodes(){
 
     //rshoulder
     glLoadIdentity();
-    glTranslatef(-0.4,0.45,0.0);
+    glTranslatef(-0.4,2.2,0.0);
     glGetFloatv(GL_MODELVIEW_MATRIX, rshouldern.m);
     rshouldern.x1 = 0;
     rshouldern.y1 = 0;
@@ -262,7 +314,7 @@ void initNodes(){
     rshouldern.y2 = -0.3;
     rshouldern.z2 = 0;
     rshouldern.radio = 0.3;
-    rshouldern.id = 17;
+    rshouldern.id = 16;
     rshouldern.sibling = &lshouldern;
     rshouldern.child = &ruarmn;
     
@@ -283,7 +335,7 @@ void initNodes(){
     
     //RIGHT LOWER ARM
     glLoadIdentity();
-    glTranslatef(-0.05,-1.6,-0.1);
+    glTranslatef(-0.05,-1.6,-0.05);
     glGetFloatv(GL_MODELVIEW_MATRIX, rlarmn.m);
     rlarmn.x1 = 0;
     rlarmn.y1 = 0;
@@ -298,7 +350,7 @@ void initNodes(){
     
     //rhand
     glLoadIdentity();
-    glTranslatef(0.05,-1,0.1);
+    glTranslatef(0.05,-1,0.05);
     glGetFloatv(GL_MODELVIEW_MATRIX, rhandn.m);
     rhandn.x1 = 0;
     rhandn.y1 = 0;
@@ -313,7 +365,7 @@ void initNodes(){
     
     //lshoulder
     glLoadIdentity();
-    glTranslatef(0.4,0.45,0.0);
+    glTranslatef(0.4,2.2,0.0);
     glGetFloatv(GL_MODELVIEW_MATRIX, lshouldern.m);
     lshouldern.x1 = 0;
     lshouldern.y1 = 0;
@@ -322,7 +374,7 @@ void initNodes(){
     lshouldern.y2 = -0.3;
     lshouldern.z2 = 0;
     lshouldern.radio = 0.3;
-    lshouldern.id = 18;
+    lshouldern.id = 17;
     lshouldern.sibling = NULL;
     lshouldern.child = &luarmn;
     
@@ -343,7 +395,7 @@ void initNodes(){
     
     //LEFT LOWER ARM
     glLoadIdentity();
-    glTranslatef(0.05,-1.6,-0.1);
+    glTranslatef(0.05,-1.6,-0.05);
     glGetFloatv(GL_MODELVIEW_MATRIX, llarmn.m);
     llarmn.x1 = 0;
     llarmn.y1 = 0;
@@ -358,7 +410,7 @@ void initNodes(){
   
     //lhand
     glLoadIdentity();
-    glTranslatef(-0.05,-1,0.1);
+    glTranslatef(-0.05,-1,0.05);
     glGetFloatv(GL_MODELVIEW_MATRIX, lhandn.m);
     lhandn.x1 = 0;
     lhandn.y1 = 0;
@@ -379,7 +431,7 @@ void initNodes(){
     rulegn.y1 = 0;
     rulegn.z1 = 0;
     rulegn.x2 = 0.05;
-    rulegn.y2 = -1.4;
+    rulegn.y2 = -2;
     rulegn.z2 = 0.05;
     rulegn.radio = 0.3;
     rulegn.id = 10;
@@ -388,13 +440,13 @@ void initNodes(){
     
     //RIGHT LOWER LEG
     glLoadIdentity();
-    glTranslatef(0.05,-1.6,0.0);
+    glTranslatef(0.05,-2,0.0);
     glGetFloatv(GL_MODELVIEW_MATRIX, rllegn.m);
     rllegn.x1 = 0;
     rllegn.y1 = 0;
     rllegn.z1 = 0;
     rllegn.x2 = 0;
-    rllegn.y2 = -1.5;
+    rllegn.y2 = -1.7;
     rllegn.z2 = -0.05;
     rllegn.radio = 0.2;
     rllegn.id = 11;
@@ -403,14 +455,14 @@ void initNodes(){
     
     //rfoot
     glLoadIdentity();
-    glTranslatef(-0.05,-1.75,0);
+    glTranslatef(0,-2,0);
     glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m);
     rfootn.x1 = 0;
     rfootn.y1 = 0;
     rfootn.z1 = 0;
     rfootn.x2 = 0;
     rfootn.y2 = 0;
-    rfootn.z2 = 0.6;
+    rfootn.z2 = 0.7;
     rfootn.radio = 0.1;
     rfootn.id = 12;
     rfootn.sibling = NULL;
@@ -424,7 +476,7 @@ void initNodes(){
     lulegn.y1 = 0;
     lulegn.z1 = 0;
     lulegn.x2 = -0.05;
-    lulegn.y2 = -1.4;
+    lulegn.y2 = -2;
     lulegn.z2 = 0.05;
     lulegn.radio = 0.3;
     lulegn.id = 13;
@@ -433,13 +485,13 @@ void initNodes(){
     
     //LEFT LOWER LEG
     glLoadIdentity();
-    glTranslatef(-0.05,-1.6,0.0);
+    glTranslatef(-0.05,-2,0.0);
     glGetFloatv(GL_MODELVIEW_MATRIX, lllegn.m);
     lllegn.x1 = 0;
     lllegn.y1 = 0;
     lllegn.z1 = 0;
     lllegn.x2 = 0;
-    lllegn.y2 = -1.5;
+    lllegn.y2 = -1.7;
     lllegn.z2 = -0.05;
     lllegn.radio = 0.2;
     lllegn.id = 14;
@@ -448,14 +500,14 @@ void initNodes(){
     
     //lfoot
     glLoadIdentity();
-    glTranslatef(0.05,-1.75,0);
+    glTranslatef(0,-2,0);
     glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m);
     lfootn.x1 = 0;
     lfootn.y1 = 0;
     lfootn.z1 = 0;
     lfootn.x2 = 0;
     lfootn.y2 = 0;
-    lfootn.z2 = 0.6;
+    lfootn.z2 = 0.7;
     lfootn.radio = 0.1;
     lfootn.id = 15;
     lfootn.sibling = NULL;        
@@ -463,12 +515,11 @@ void initNodes(){
 }
 
 void init(){
-	glColor3f(1.0, 0.0, 0.0);
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-        // define the light color and intensity
+    // define the light color and intensity
     GLfloat ambientLight[]	= { 0.0, 0.0, 0.0, 1.0 };
     GLfloat diffuseLight[]	= { 1.0, 1.0, 1.0, 1.0 };
     GLfloat specularLight[]	= { 1.0, 1.0, 1.0, 1.0 };
@@ -507,8 +558,12 @@ void traverse (treenode *node){
     
         // dibujar el nodo
         //node->f();
+        
+        if(jointswitch){
+            drawJoint(node -> id);
+        }
+        
         if(capsuleswitch){
-             glColor3f(1,1,1);
              drawCapsule(node -> x1, node -> y1, node -> z1, 
                          node -> x2, node -> y2, node -> z2, 
                          node -> radio, node -> id);
@@ -532,7 +587,7 @@ void reshape(int w, int h){
 }
 
 void drawVert(){
-     glColor3d(1,0,0);
+     //glColor3d(1,0,0);
      glPointSize(10);
      int i;
      glBegin(GL_POINTS);
@@ -543,39 +598,38 @@ void drawVert(){
      glEnd();
 }
 
-void drawSkin(){
-     glColor4f(1, 0.7, 0.8, alphaswitch);
-     
+void drawMesh(mesh *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
+     glMaterialfv(GL_FRONT, GL_AMBIENT,   ambient);
+     glMaterialfv(GL_FRONT, GL_DIFFUSE,   diffuse);
+     glMaterialfv(GL_FRONT, GL_SPECULAR,  specular);
+     glMaterialf(GL_FRONT,  GL_SHININESS, shininess);
+    	 
      glBegin(GL_TRIANGLES);
-     
-     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
-	 glMaterialfv(GL_FRONT, GL_DIFFUSE,   pinkDiffuse);
-	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
-	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
-     
-     for(int i = 0; i<skinobject->fTotal; i++){
-             for(int j=0; j<3; j++){
-                       glVertex3fv(skinobject->vList[skinobject->faceList[i][j].v].ptr);
+         GLfloat normals[3];
+         float ax, ay, az, bx, by, bz, nx, ny, nz, n;
+         for(int i = 0; i < object->fTotal; i++){
+             ax = object->vList[object->faceList[i][1].v].ptr[0] - object->vList[object->faceList[i][0].v].ptr[0];
+             ay = object->vList[object->faceList[i][1].v].ptr[1] - object->vList[object->faceList[i][0].v].ptr[1];
+             az = object->vList[object->faceList[i][1].v].ptr[2] - object->vList[object->faceList[i][0].v].ptr[2];
+             bx = object->vList[object->faceList[i][2].v].ptr[0] - object->vList[object->faceList[i][0].v].ptr[0];
+             by = object->vList[object->faceList[i][2].v].ptr[1] - object->vList[object->faceList[i][0].v].ptr[1];
+             bz = object->vList[object->faceList[i][2].v].ptr[2] - object->vList[object->faceList[i][0].v].ptr[2];
+             nx = ay*bz - az*by;
+             ny = az*bx - ax*bz;
+             nz = ax*by - ay*bx;
+             n = sqrt(nx*nx+ny*ny+nz*nz);
+             if (n != 0.0) {
+                n = 1.0/n;
+            	nx *= n; ny *= n; nz *= n;
              }
-     }
-     glEnd();            
-}
-
-void drawShirt(){
-     glColor4f(1, 1, 1, alphaswitch);
-     
-     glBegin(GL_TRIANGLES);
-     
-     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
-	 glMaterialfv(GL_FRONT, GL_DIFFUSE,   blueDiffuse);
-	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
-	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
-	 
-     for(int i = 0; i<shirtobject->fTotal; i++){
+             normals[0] = nx;
+             normals[1] = ny;
+             normals[2] = nz;
              for(int j=0; j<3; j++){
-                       glVertex3fv(shirtobject->vList[shirtobject->faceList[i][j].v].ptr);
+                  glNormal3fv(normals);
+                  glVertex3fv(object->vList[object->faceList[i][j].v].ptr);
              }
-     }
+         }
      glEnd();            
 }
 
@@ -599,18 +653,21 @@ void display(){
     
     if(gridswitch)
    	    drawGrid();
-   	    
-     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
-	 glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuse);
-	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
-	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
 	
-    traverse(&waistn);
+    traverse(&chestn);
     
     if(skinswitch)
-        drawSkin();
+        if(alphaswitch)
+            drawMesh(skinobject, zeroMaterial, pinkDiffuseAlpha, zeroMaterial, noShininess);
+        else
+            drawMesh(skinobject, zeroMaterial, pinkDiffuse, zeroMaterial, noShininess);
+            
     if(shirtswitch)
-        drawShirt();
+        if(alphaswitch)
+            drawMesh(shirtobject, zeroMaterial, blueDiffuseAlpha, zeroMaterial, noShininess);
+        else
+            drawMesh(shirtobject, zeroMaterial, blueDiffuse, zeroMaterial, noShininess);
+            
     if(vertswitch)
         drawVert();
 
@@ -659,11 +716,7 @@ void key(unsigned char c, int x, int y){
                 glutPostRedisplay();
      }
      if(c=='a'){
-                if(alphaswitch == 1){
-                    alphaswitch = 0.7; 
-                }else{
-                    alphaswitch = 1;
-                }
+                alphaswitch = !alphaswitch;
                 glutPostRedisplay();
      }
      if(c=='j'){
@@ -675,50 +728,53 @@ void key(unsigned char c, int x, int y){
                 glutPostRedisplay();
      }
      //SELECTS
+     if(c == '0'){
+          segselect=0;
+     }
      if(c == '1'){
-          segselect=1;     
+          segselect=1;
      }
      if(c == '2'){
-          segselect=2;     
+          segselect=2;
      }
      if(c == '3'){
-          segselect=3;     
+          segselect=3;
      }
      if(c == '4'){
-          segselect=4;     
+          segselect=4;
      }
      if(c == '5'){
-          segselect=5;     
+          segselect=5;
      }
      if(c == '6'){
-          segselect=6;     
+          segselect=6;
      }
      if(c == '7'){
-          segselect=7;     
+          segselect=7;
      }
      if(c == '8'){
-          segselect=8;     
+          segselect=8;
      }
      if(c == '9'){
-          segselect=9;     
+          segselect=9;
      }
      if(c == 'q'){
-          segselect=10;     
+          segselect=10;
      }
      if(c == 'w'){
-          segselect=11;     
+          segselect=11;
      }
      if(c == 'e'){
-          segselect=12;     
+          segselect=12;
      }
      if(c == 'r'){
-          segselect=13;     
+          segselect=13;
      }
      if(c == 't'){
-          segselect=14;     
+          segselect=14;
      }
      if(c == 'y'){
-          segselect=15;     
+          segselect=15;
      }
      
      glutPostRedisplay();
@@ -750,6 +806,12 @@ void special(int c, int x, int y){
      glLoadIdentity();
      
      switch(segselect){
+         case 0:
+              glMultMatrixf(chestn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, chestn.m);
+              break;
          case 1:
               glMultMatrixf(waistn.m);
               glRotatef(anglesx[segselect],1.0,0.0,0.0);
