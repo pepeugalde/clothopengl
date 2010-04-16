@@ -342,7 +342,7 @@ void initNodes(){
     rlarmn.z1 = 0;
     rlarmn.x2 = 0.05;
     rlarmn.y2 = -0.9;
-    rlarmn.z2 = 0.1;
+    rlarmn.z2 = 0.05;
     rlarmn.radio = 0.15;
     rlarmn.id = 5;
     rlarmn.sibling = NULL;        
@@ -355,7 +355,7 @@ void initNodes(){
     rhandn.x1 = 0;
     rhandn.y1 = 0;
     rhandn.z1 = 0;
-    rhandn.x2 = 0.05;
+    rhandn.x2 = 0;
     rhandn.y2 = -0.5;
     rhandn.z2 = 0;
     rhandn.radio = 0.1;
@@ -402,7 +402,7 @@ void initNodes(){
     llarmn.z1 = 0;
     llarmn.x2 = -0.05;
     llarmn.y2 = -0.9;
-    llarmn.z2 = 0.1;
+    llarmn.z2 = 0.05;
     llarmn.radio = 0.15;
     llarmn.id = 8;
     llarmn.sibling = NULL;        
@@ -415,7 +415,7 @@ void initNodes(){
     lhandn.x1 = 0;
     lhandn.y1 = 0;
     lhandn.z1 = 0;
-    lhandn.x2 = -0.05;
+    lhandn.x2 = 0;
     lhandn.y2 = -0.5;
     lhandn.z2 = 0;
     lhandn.radio = 0.1;
