@@ -5,6 +5,7 @@
  *Jorge Dorantes 1011377
  *José Ugalde 1161507
  *Alejandro Morales 1161376
+ *=D!
  *
  *Monito Final Parte 1
 *******************************************/
@@ -546,6 +547,50 @@ void init(){
 
 	// make sure the normals are unit vectors
 	glEnable(GL_NORMALIZE);
+}
+
+void colDetect(float x1, float y1, float z1, float x2, float y2, float z2, float r, float xh, float yh, float zh){
+       
+    float D[3];
+    D[0]=xh-x1;
+    D[1]=yh-y1;
+    D[2]=zh-z1;
+
+    float C[3];
+    C[0]=(x1+x2)/2;
+    C[1]=(y1+y2)/2;
+    C[2]=(z1+z2)/2;
+    
+    float A[3];
+    A[0]=(x2-x1)/(sqrt((x2-x1)*(x2-x1) + (y2-y1) * (y2-y1) + (z2-z1) * (z2-z1)));
+    A[1]=(y2-y1)/(sqrt((x2-x1)*(x2-x1) + (y2-y1) * (y2-y1) + (z2-z1) * (z2-z1)));
+    A[2]=(z2-z1)/(sqrt((x2-x1)*(x2-x1) + (y2-y1) * (y2-y1) + (z2-z1) * (z2-z1)));
+
+    float d = D[0] * A[0] + D[1] * A[1] + D[2] * A[2];
+    
+    float R[3];
+    R[0]= x1 + (A[0] * d);
+    R[1]= y1 + (A[1] * d);
+    R[2]= z1 + (A[2] * d);
+    float b = distance3d(xh,yh,zh, R[0],R[1],R[2]);
+
+Distance from point on axis to circle:
+
+b = ||H-R||
+
+ 
+
+You should now recognise this as the circle vs circle test above. The test for intersection is therefore:
+
+||H-R|| < (r1+r2)
+
+We can find the measure of penetration in the same way as before:
+
+p = ||H-R|| - (r1+r2)
+
+The circle and capsule penetrate by p metres and we can find the contact normal:
+
+N = (H-R) / ||H-R||
 }
 
 void traverse (treenode *node){
