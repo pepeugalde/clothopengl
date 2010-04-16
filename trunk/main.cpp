@@ -36,20 +36,25 @@ GLfloat whiteSpecular[]	= { 1.0, 1.0, 1.0, 1.0 };
 GLfloat noShininess	    =  0.0;
 GLfloat highShininess	= 50.0;
 
-
-GLfloat angulos[18]={0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,
-                     0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-int segmento=0;
+int angdelta = 5;
+GLfloat anglesx[15]={0.0,0.0,0.0,0.0,0.0,
+                     0.0,0.0,0.0,0.0,0.0,
+                     0.0,0.0,0.0,0.0,0.0};
+GLfloat anglesy[15]={0.0,0.0,0.0,0.0,0.0,
+                     0.0,0.0,0.0,0.0,0.0,
+                     0.0,0.0,0.0,0.0,0.0};
+int segselect = 1;
 float jointsize = 0.3;
 GLUquadric* q = gluNewQuadric();
-//bools
-bool capsuleswitch = true;
-bool skinswitch = true;
-bool gridswitch = false;
-bool shirtswitch = true;
-bool vertswitch = false;
-bool jointswitch = true;
-float alphaswitch = 0.7;
+
+//SWITCHES
+bool capsuleswitch   = true;
+bool skinswitch      = false;//true;
+bool shirtswitch     = false;//true;
+bool gridswitch      = false;
+bool vertswitch      = false;
+bool jointswitch     = true;
+float alphaswitch    = 0.7;
 
 bool mouseDown = false;
 
@@ -64,17 +69,18 @@ float zoom = 12.0;
 mesh *skinobject;
 mesh *shirtobject;
 
-typedef struct capsule{
-    float x1, y1, z1, x2, y2, z2;
-    float radio;
-} capsule;
+//typedef struct capsule{
+//    float x1, y1, z1, x2, y2, z2;
+//    float radio;
+//} capsule;
 
-capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
-chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
+//capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
+//chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
 
 typedef struct treenode{
     float x1, y1, z1, x2, y2, z2;
     float radio;
+    int id;
     GLfloat m[16];
     struct treenode *sibling;
     struct treenode *child;
@@ -100,7 +106,7 @@ float distance2d(float x1,float y1,float x2,float y2){
     return sqrt(pow((x1-x2),2) + pow((y1-y2),2));
 }
 
-void drawCapsule(float x1,float y1,float z1,float x2,float y2,float z2,float r){
+void drawCapsule(float x1,float y1,float z1,float x2,float y2,float z2,float r, int id){
      
      glColor3f(0.3,0.3,0.3);
      glLineWidth(5);
@@ -110,7 +116,10 @@ void drawCapsule(float x1,float y1,float z1,float x2,float y2,float z2,float r){
      glEnd();
      
      if(jointswitch){
-         glColor4f(1,1,0,1);
+         if(id == segselect)
+             glColor4f(1,1,0,1);
+         else
+             glColor4f(1,1,0,1);
          glutSolidSphere(jointsize,10,10);
      }
 
@@ -193,6 +202,7 @@ void initNodes(){
     waistn.y2 = 0;
     waistn.z2 = 0;
     waistn.radio = 0.35;
+    waistn.id = 1;
     waistn.sibling = NULL;
     waistn.child = &chestn;
     
@@ -207,6 +217,7 @@ void initNodes(){
     chestn.y2 = -0.5;
     chestn.z2 = 0;
     chestn.radio = 0.4;
+    chestn.id = 16;
     chestn.sibling = &rulegn;
     chestn.child = &neckn;
     
@@ -221,6 +232,7 @@ void initNodes(){
     neckn.y2 = 0.1;
     neckn.z2 = 0;
     neckn.radio = 0.25;
+    neckn.id = 2;
     neckn.sibling = &rshouldern;
     neckn.child = &headn;
     
@@ -235,6 +247,7 @@ void initNodes(){
     headn.y2 = 0.4;
     headn.z2 = 0;
     headn.radio = 0.4;
+    headn.id = 3;
     headn.sibling = NULL;
     headn.child = NULL;
 
@@ -249,6 +262,7 @@ void initNodes(){
     rshouldern.y2 = -0.3;
     rshouldern.z2 = 0;
     rshouldern.radio = 0.3;
+    rshouldern.id = 17;
     rshouldern.sibling = &lshouldern;
     rshouldern.child = &ruarmn;
     
@@ -263,6 +277,7 @@ void initNodes(){
     ruarmn.y2 = -1.4;
     ruarmn.z2 = -0.05;
     ruarmn.radio = 0.2;
+    ruarmn.id = 4;
     ruarmn.sibling = NULL;
     ruarmn.child = &rlarmn;
     
@@ -276,7 +291,8 @@ void initNodes(){
     rlarmn.x2 = 0.05;
     rlarmn.y2 = -0.9;
     rlarmn.z2 = 0.1;
-    rlarmn.radio = 0.15;                      
+    rlarmn.radio = 0.15;
+    rlarmn.id = 5;
     rlarmn.sibling = NULL;        
     rlarmn.child = &rhandn;
     
@@ -290,7 +306,8 @@ void initNodes(){
     rhandn.x2 = 0.05;
     rhandn.y2 = -0.5;
     rhandn.z2 = 0;
-    rhandn.radio = 0.1;                     
+    rhandn.radio = 0.1;
+    rhandn.id = 6;
     rhandn.sibling = NULL;        
     rhandn.child = NULL;
     
@@ -305,6 +322,7 @@ void initNodes(){
     lshouldern.y2 = -0.3;
     lshouldern.z2 = 0;
     lshouldern.radio = 0.3;
+    lshouldern.id = 18;
     lshouldern.sibling = NULL;
     lshouldern.child = &luarmn;
     
@@ -318,12 +336,10 @@ void initNodes(){
     luarmn.x2 = 0.05;
     luarmn.y2 = -1.4;
     luarmn.z2 = -0.05;
-    luarmn.radio = 0.2;                
+    luarmn.radio = 0.2;
+    luarmn.id = 7;
     luarmn.sibling = NULL;        
     luarmn.child = &llarmn;                       
-    
-    
-
     
     //LEFT LOWER ARM
     glLoadIdentity();
@@ -335,7 +351,8 @@ void initNodes(){
     llarmn.x2 = -0.05;
     llarmn.y2 = -0.9;
     llarmn.z2 = 0.1;
-    llarmn.radio = 0.15;                
+    llarmn.radio = 0.15;
+    llarmn.id = 8;
     llarmn.sibling = NULL;        
     llarmn.child = &lhandn;    
   
@@ -350,6 +367,7 @@ void initNodes(){
     lhandn.y2 = -0.5;
     lhandn.z2 = 0;
     lhandn.radio = 0.1;
+    lhandn.id = 9;
     lhandn.sibling = NULL;        
     lhandn.child = NULL; 
     
@@ -364,6 +382,7 @@ void initNodes(){
     rulegn.y2 = -1.4;
     rulegn.z2 = 0.05;
     rulegn.radio = 0.3;
+    rulegn.id = 10;
     rulegn.sibling = &lulegn;       
     rulegn.child = &rllegn; 
     
@@ -378,12 +397,13 @@ void initNodes(){
     rllegn.y2 = -1.5;
     rllegn.z2 = -0.05;
     rllegn.radio = 0.2;
+    rllegn.id = 11;
     rllegn.sibling = NULL;
     rllegn.child = &rfootn;
     
     //rfoot
     glLoadIdentity();
-    glTranslatef(-0.1,-1.75,0);
+    glTranslatef(-0.05,-1.75,0);
     glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m);
     rfootn.x1 = 0;
     rfootn.y1 = 0;
@@ -392,6 +412,7 @@ void initNodes(){
     rfootn.y2 = 0;
     rfootn.z2 = 0.6;
     rfootn.radio = 0.1;
+    rfootn.id = 12;
     rfootn.sibling = NULL;
     rfootn.child = NULL;
     
@@ -406,6 +427,7 @@ void initNodes(){
     lulegn.y2 = -1.4;
     lulegn.z2 = 0.05;
     lulegn.radio = 0.3;
+    lulegn.id = 13;
     lulegn.sibling = NULL;       
     lulegn.child = &lllegn;                      
     
@@ -420,12 +442,13 @@ void initNodes(){
     lllegn.y2 = -1.5;
     lllegn.z2 = -0.05;
     lllegn.radio = 0.2;
+    lllegn.id = 14;
     lllegn.sibling = NULL;        
     lllegn.child = &lfootn;
     
     //lfoot
     glLoadIdentity();
-    glTranslatef(0.1,-1.75,0);
+    glTranslatef(0.05,-1.75,0);
     glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m);
     lfootn.x1 = 0;
     lfootn.y1 = 0;
@@ -434,6 +457,7 @@ void initNodes(){
     lfootn.y2 = 0;
     lfootn.z2 = 0.6;
     lfootn.radio = 0.1;
+    lfootn.id = 15;
     lfootn.sibling = NULL;        
     lfootn.child = NULL;
 }
@@ -486,7 +510,8 @@ void traverse (treenode *node){
         if(capsuleswitch){
              glColor3f(1,1,1);
              drawCapsule(node -> x1, node -> y1, node -> z1, 
-                    node -> x2, node -> y2, node -> z2, node -> radio);
+                         node -> x2, node -> y2, node -> z2, 
+                         node -> radio, node -> id);
         }
         
         // primer recorrer los hijos (si hay)
@@ -505,17 +530,6 @@ void reshape(int w, int h){
    glLoadIdentity();
    gluPerspective(45.0, (GLdouble)w/(GLdouble)h, 1.0, 100.0) ;
 }
-
-void specialKey(int c, int x, int y){
-	if(c == GLUT_KEY_RIGHT) {
-		segmento=(segmento+1)%10;
-		glutPostRedisplay();
-	}
-}
-
-
-//void myReshape // clipping planes a 500
-
 
 void drawVert(){
      glColor3d(1,0,0);
@@ -616,8 +630,9 @@ void mouse(int button, int state, int x, int y){
 }
 
 void key(unsigned char c, int x, int y){
-     //if(c=='q')
-               //exit(0);
+     if(c==27)//esc
+                exit(0);
+     //ZOOM
      if(c=='+'){
                 zoom -= 1;
                 glutPostRedisplay();
@@ -626,6 +641,7 @@ void key(unsigned char c, int x, int y){
                 zoom += 1;
                 glutPostRedisplay();
      }
+     //SWITCHES
      if(c=='s'){
                 skinswitch = !skinswitch;
                 glutPostRedisplay();
@@ -658,185 +674,175 @@ void key(unsigned char c, int x, int y){
                 gridswitch = !gridswitch;
                 glutPostRedisplay();
      }
-     if(c == '0'){
-          segmento=0;     
-     }
+     //SELECTS
      if(c == '1'){
-          segmento=1;     
+          segselect=1;     
      }
      if(c == '2'){
-          segmento=2;     
+          segselect=2;     
      }
      if(c == '3'){
-          segmento=3;     
+          segselect=3;     
      }
      if(c == '4'){
-          segmento=4;     
+          segselect=4;     
      }
      if(c == '5'){
-          segmento=5;     
+          segselect=5;     
      }
      if(c == '6'){
-          segmento=6;     
+          segselect=6;     
      }
      if(c == '7'){
-          segmento=7;     
+          segselect=7;     
      }
      if(c == '8'){
-          segmento=8;     
+          segselect=8;     
      }
      if(c == '9'){
-          segmento=9;     
-     }
-     if(c == 'p'){
-          segmento=10;     
+          segselect=9;     
      }
      if(c == 'q'){
-          segmento=11;     
+          segselect=10;     
      }
      if(c == 'w'){
-          segmento=12;     
+          segselect=11;     
      }
      if(c == 'e'){
-          segmento=13;     
+          segselect=12;     
      }
      if(c == 'r'){
-          segmento=14;     
+          segselect=13;     
      }
      if(c == 't'){
-          segmento=15;     
+          segselect=14;     
      }
      if(c == 'y'){
-          segmento=16;     
-     }
-     if(c == 'u'){
-          segmento=17;     
-     }
-     if(c == 'i'){
-          segmento=18;     
+          segselect=15;     
      }
      
      glutPostRedisplay();
 
-     /*if(c == '5'){
-              angulos[5]=5;
-              
-              glPushMatrix();
-              glLoadIdentity();
-              
-              glMultMatrixf(rulegn.m);
-              glRotatef(angulos[5],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m);     
-              
-              glPopMatrix();
-              glutPostRedisplay();
-     }*/
+}
+
+void resetAngles(){
+     for(int i=0;i<15;i++){
+         anglesx[i] = 0.0;
+         anglesy[i] = 0.0;
+     }
 }
 
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
-         angulos[segmento]=5;
+         anglesx[segselect] = -angdelta;
      }
      if(c==GLUT_KEY_DOWN){
-         angulos[segmento]=-5;
+         anglesx[segselect] = angdelta;
+     }
+     if(c==GLUT_KEY_RIGHT){
+         anglesy[segselect] = angdelta;
+     }
+     if(c==GLUT_KEY_LEFT){
+         anglesy[segselect] = -angdelta;
      }
      
      glPushMatrix();
      glLoadIdentity();
      
-     switch(segmento){
-         case 0:
-              glMultMatrixf(headn.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, headn.m);                
-              break;
+     switch(segselect){
          case 1:
-              glMultMatrixf(neckn.m);
-              glRotatef(angulos[segmento],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, neckn.m);                
+              glMultMatrixf(waistn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, waistn.m);
               break;
          case 2:
-              glMultMatrixf(rshouldern.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rshouldern.m);                
+              glMultMatrixf(neckn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,-1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, neckn.m);
               break;
          case 3:
-              glMultMatrixf(lshouldern.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lshouldern.m);                
+              glMultMatrixf(headn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, headn.m);
               break;
          case 4:
               glMultMatrixf(ruarmn.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, ruarmn.m);                
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, ruarmn.m);
               break;
          case 5:
-              glMultMatrixf(luarmn.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, luarmn.m);                
+              glMultMatrixf(rlarmn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rlarmn.m);
               break;
          case 6:
-              glMultMatrixf(rlarmn.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rlarmn.m);                
+              glMultMatrixf(rhandn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rhandn.m);
               break;
          case 7:
-              glMultMatrixf(llarmn.m);
-              glRotatef(angulos[segmento],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, llarmn.m);                
+              glMultMatrixf(luarmn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, luarmn.m);
               break;
          case 8:
-              glMultMatrixf(rhandn.m);
-              glRotatef(angulos[segmento],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rhandn.m);                
+              glMultMatrixf(llarmn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, llarmn.m);
               break;
          case 9:
               glMultMatrixf(lhandn.m);
-              glRotatef(angulos[segmento],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lhandn.m);                
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lhandn.m);
               break;
          case 10:
-              glMultMatrixf(chestn.m);
-              glRotatef(angulos[segmento],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, chestn.m);                
+              glMultMatrixf(rulegn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m);
               break;
          case 11:
-              glMultMatrixf(waistn.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, waistn.m);                
+              glMultMatrixf(rllegn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rllegn.m);
               break;
          case 12:
-              glMultMatrixf(rulegn.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m);                
+              glMultMatrixf(rfootn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m);
               break;
          case 13:
               glMultMatrixf(lulegn.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lulegn.m);                
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lulegn.m);
               break;
          case 14:
-              glMultMatrixf(rllegn.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rllegn.m);                
+              glMultMatrixf(lllegn.m);
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,0.0,1.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lllegn.m);
               break;
          case 15:
-              glMultMatrixf(lllegn.m);
-              glRotatef(angulos[segmento],1.0,0.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lllegn.m);                
-              break;
-         case 16:
-              glMultMatrixf(rfootn.m);
-              glRotatef(angulos[segmento],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m);                
-              break;
-         case 17:
               glMultMatrixf(lfootn.m);
-              glRotatef(angulos[segmento],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m);                
+              glRotatef(anglesx[segselect],1.0,0.0,0.0);
+              glRotatef(anglesy[segselect],0.0,1.0,0.0);
+              glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m);
               break;
      }
      glPopMatrix();
+     resetAngles();
      glutPostRedisplay();
 }
 
@@ -862,10 +868,12 @@ int main(int argc, char **argv)
   glutMotionFunc(mouseMotion);
   glutKeyboardFunc(key);
   glutSpecialFunc(special);
+  
   init();
   initSkin();
   initShirt();
   initNodes();
+  
   glutMainLoop();                               // Pasar el control a GLUT.
   return 0;                                     // Regresar 0 por cortesía.
 }
