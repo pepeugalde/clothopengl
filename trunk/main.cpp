@@ -18,6 +18,8 @@ float testx = 0;
 float testy = 0;
 float testz = 1.5;
 
+char title[60];
+
 //materiales
 int smoothOn =1;
 GLfloat alphavalue = 0.5;
@@ -70,12 +72,12 @@ float jointsize = 0.3;
 GLUquadric* q = gluNewQuadric();
 
 //SWITCHES
-bool capsuleswitch   = true;
-bool skinswitch      = true;
+bool capsuleswitch   = false;//true;
+bool skinswitch      = false;//true;
 bool shirtswitch     = false;//true;
 bool gridswitch      = false;
 bool vertswitch      = false;
-bool jointswitch     = true;
+bool jointswitch     = false;//true;
 bool alphaswitch     = true;
 
 bool mouseDown = false;
@@ -114,7 +116,17 @@ chestn, waistn, rulegn, lulegn, rllegn, lllegn, rfootn, lfootn;
 
 GLfloat bodypos[16];
 
+capsule testcap;
+
 void initSkin(){
+     testcap.x1 = 0;
+     testcap.y1 = 0;
+     testcap.z1 = 0;
+     testcap.x2 = 0;
+     testcap.y2 = 3;
+     testcap.z2 = 0;
+     testcap.r = 1;
+     
      skinobject = new mesh("cuerpob.obj");
 }
 
@@ -723,12 +735,15 @@ void display(){
    	    drawGrid();
 	
 	// 
+	drawCapsule(testcap);
     glPushMatrix();
         glTranslatef(testx, testy, testz);
         glutSolidSphere(0.1,10,10);
     glPopMatrix();  
-    if(colDetect(chestn.cap, testx,testy,testz) > 0)
-      vertswitch = true;    
+    sprintf(title, "Object Pos: %g", colDetect(testcap, testx,testy,testz));
+    glutSetWindowTitle(title);
+    if(colDetect(testcap, testx,testy,testz) < 0)
+      jointswitch = true;    
     //
 	
 	glPushMatrix();
@@ -871,9 +886,11 @@ void resetAngles(){
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          anglesx[segselect] = -angdelta;
+         testz-=0.1;
      }
      if(c==GLUT_KEY_DOWN){
          anglesx[segselect] = angdelta;
+         testz+=0.1;
      }
      if(c==GLUT_KEY_RIGHT){
          anglesy[segselect] = angdelta;
