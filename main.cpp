@@ -64,7 +64,7 @@ GLfloat noShininess	    =  0.0;
 GLfloat highShininess	= 50.0;
 
 
-float angdelta = 2;
+float angdelta = 6;
 GLfloat anglex = 0;
 GLfloat angley = 0;
 
@@ -711,7 +711,7 @@ void rotVert(vertex *v, vertex *pt, float angx, float angy, float angz){
     v->z = pt->z + (v->z - pt->z) * cos(angy * PI/180) + (v->x - pt->x) * sin(angy * PI/180);
 }
 
-void rotNode(treenode *n, vertex *pt, float angx, float angy, float angz){
+void rotChildNode(treenode *n, vertex *pt, float angx, float angy, float angz){
     if(n->v1->hasmoved == false){
         rotVert(n->v1, pt, angx, angy, angz);
         n->v1->hasmoved = true;
@@ -729,10 +729,31 @@ void rotNode(treenode *n, vertex *pt, float angx, float angy, float angz){
         n->cap->v2->hasmoved = true;
     }
     if(n->child != NULL)
-    	rotNode(n->child, pt, angx, angy, angz);
+    	rotChildNode(n->child, pt, angx, angy, angz);
         
-    //if(n->sibling != NULL)
-    //	rotNode(n->sibling, pt, angx, angy, angz);
+    if(n->sibling != NULL)
+    	rotChildNode(n->sibling, pt, angx, angy, angz);
+}
+
+void rotNode(treenode *n, float angx, float angy, float angz){
+//    if(n->v1->hasmoved == false){
+//        rotVert(n->v1, pt, angx, angy, angz);
+//        n->v1->hasmoved = true;
+//    }
+    if(n->v2->hasmoved == false){
+        rotVert(n->v2, n->v1, angx, angy, angz);
+        n->v2->hasmoved = true;
+    }
+    if(n->cap->v1->hasmoved == false){
+        rotVert(n->cap->v1, n->v1, angx, angy, angz);
+        n->cap->v1->hasmoved = true;
+    }
+    if(n->cap->v2->hasmoved == false){
+        rotVert(n->cap->v2, n->v1, angx, angy, angz);
+        n->cap->v2->hasmoved = true;
+    }
+    if(n->child != NULL)
+    	rotChildNode(n->child, n->v1, angx, angy, angz);
 }
 
 void traverse (treenode *node){
@@ -1039,94 +1060,94 @@ void special(int c, int x, int y){
 //              glGetFloatv(GL_MODELVIEW_MATRIX, bodypos);
               break;
          case 1:
-              rotNode(&waistn, waistn.v1, 0,anglex,0);
+              rotNode(&waistn, 0,anglex,0);
               resetVertFlags();
-              rotNode(&waistn, waistn.v1, angley,0,0);
+              rotNode(&waistn, angley,0,0);
               resetVertFlags();
               break;
 
          case 2:
-              rotNode(&neckn, neckn.v1, 0,0,anglex);
+              rotNode(&neckn, 0,0,anglex);
               resetVertFlags();
-              rotNode(&neckn, neckn.v1, angley,0,0);
+              rotNode(&neckn, angley,0,0);
               resetVertFlags();
               break;
          case 3:
-              rotNode(&headn, headn.v1, 0,anglex,0);
+              rotNode(&headn, 0,anglex,0);
               resetVertFlags();
-              rotNode(&headn, headn.v1, angley,0,0);
+              rotNode(&headn, angley,0,0);
               resetVertFlags();
               break;
          case 4:
-              rotNode(&ruarmn, ruarmn.v1, 0,0,-anglex);
+              rotNode(&ruarmn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&ruarmn, ruarmn.v1, angley,0,0);
+              rotNode(&ruarmn, angley,0,0);
               resetVertFlags();
               break;
          case 5:
-              rotNode(&rlarmn, rlarmn.v1, 0,0,anglex);
+              rotNode(&rlarmn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&rlarmn, rlarmn.v1, angley,0,0);
+              rotNode(&rlarmn, angley,0,0);
               resetVertFlags();
               break;
          case 6:
-              rotNode(&rhandn, rhandn.v1, 0,0,anglex);
+              rotNode(&rhandn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&rhandn, rhandn.v1, angley,0,0);
+              rotNode(&rhandn, angley,0,0);
               resetVertFlags();
               break;
          case 7:
-              rotNode(&luarmn, luarmn.v1, 0,0,-anglex);
+              rotNode(&luarmn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&luarmn, luarmn.v1, angley,0,0);
+              rotNode(&luarmn, angley,0,0);
               resetVertFlags();
               break;
          case 8:
-              rotNode(&llarmn, llarmn.v1, 0,0,anglex);
+              rotNode(&llarmn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&llarmn, llarmn.v1, angley,0,0);
+              rotNode(&llarmn, angley,0,0);
               resetVertFlags();
               break;
          case 9:
-              rotNode(&lhandn, lhandn.v1, 0,0,anglex);
+              rotNode(&lhandn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&lhandn, lhandn.v1, angley,0,0);
+              rotNode(&lhandn, angley,0,0);
               resetVertFlags();
               break;
          case 10:
-              rotNode(&rulegn, rulegn.v1, 0,0,anglex);
+              rotNode(&rulegn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&rulegn, rulegn.v1, angley,0,0);
+              rotNode(&rulegn, angley,0,0);
               resetVertFlags();
               break;
          case 11:
-              rotNode(&rllegn, rllegn.v1, 0,0,anglex);
+              rotNode(&rllegn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&rllegn, rllegn.v1, angley,0,0);
+              rotNode(&rllegn, angley,0,0);
               resetVertFlags();
               break;
          case 12:
-              rotNode(&rfootn, rfootn.v1, 0,0,anglex);
+              rotNode(&rfootn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&rfootn, rfootn.v1, angley,0,0);
+              rotNode(&rfootn, angley,0,0);
               resetVertFlags();
               break;
          case 13:
-              rotNode(&lulegn, lulegn.v1, 0,0,anglex);
+              rotNode(&lulegn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&lulegn, lulegn.v1, angley,0,0);
+              rotNode(&lulegn, angley,0,0);
               resetVertFlags();
               break;
          case 14:
-              rotNode(&lllegn, lllegn.v1, 0,0,anglex);
+              rotNode(&lllegn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&lllegn, lllegn.v1, angley,0,0);
+              rotNode(&lllegn, angley,0,0);
               resetVertFlags();
               break;
          case 15:
-              rotNode(&lfootn, lfootn.v1, 0,0,anglex);
+              rotNode(&lfootn, 0,0,-anglex);
               resetVertFlags();
-              rotNode(&lfootn, lfootn.v1, angley,0,0);
+              rotNode(&lfootn, angley,0,0);
               resetVertFlags();
               break;
      }
