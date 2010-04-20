@@ -14,6 +14,11 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define PI 3.1415926535
+#define NUMVERT 27
+#define NUMCAPS 18
+#
+
 float testx = 0;
 float testy = 0;
 float testz = 1.5;
@@ -21,7 +26,6 @@ float testz = 1.5;
 char title[60];
 
 //materiales
-int smoothOn =1;
 GLfloat alphavalue = 0.5;
 
 GLfloat lightPosition[] = { 10.0, 10.0, 10.0, 1.0 };
@@ -60,25 +64,23 @@ GLfloat noShininess	    =  0.0;
 GLfloat highShininess	= 50.0;
 
 
-int angdelta = 2;
-GLfloat anglesx[15]={0.0,0.0,0.0,0.0,0.0,
-                     0.0,0.0,0.0,0.0,0.0,
-                     0.0,0.0,0.0,0.0,0.0};
-GLfloat anglesy[15]={0.0,0.0,0.0,0.0,0.0,
-                     0.0,0.0,0.0,0.0,0.0,
-                     0.0,0.0,0.0,0.0,0.0};
+float angdelta = 2;
+GLfloat anglex = 0;
+GLfloat angley = 0;
+
 int segselect = 0;
 float jointsize = 0.3;
 GLUquadric* q = gluNewQuadric();
 
 //SWITCHES
-bool capsuleswitch   = false;//true;
+bool smoothswitch    = true;
+bool capsuleswitch   = true;
 bool skinswitch      = false;//true;
 bool shirtswitch     = false;//true;
 bool gridswitch      = false;
 bool vertswitch      = false;
-bool jointswitch     = false;//true;
-bool alphaswitch     = true;
+bool jointswitch     = true;
+bool alphaswitch     = false;//true;
 
 bool mouseDown = false;
 
@@ -93,19 +95,34 @@ float zoom = 12.0;
 mesh *skinobject;
 mesh *shirtobject;
 
+typedef struct vertex{
+    float x, y, z;
+} vertex;
+
+vertex waistv, chestv, neckv, headv, headtopv,
+       rshoulderv, ruarmv, rlarmv, rhandv, rhandtopv, lshoulderv, luarmv, llarmv, lhandv, lhandtopv,
+       rulegv, rllegv, rfootv, rfoottopv, lulegv, lllegv, lfootv, lfoottopv, 
+       waistc1v, waistc2v, chestc1v, chestc2v;
+
+vertex *vertices[NUMVERT];
+
 typedef struct capsule{
-    float x1, y1, z1, x2, y2, z2;
+    vertex *v1;
+    vertex *v2;
     float r;
 } capsule;
 
-capsule caps[18];
-//headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
-//chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
+capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
+        chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
+
+capsule *caps[NUMCAPS];
 
 typedef struct treenode{
-    capsule cap;
+    capsule *cap;
     int id;
-    GLfloat m[16];
+    //GLfloat m[16];
+    vertex *v1;
+    vertex *v2;
     struct treenode *sibling;
     struct treenode *child;
     
@@ -119,14 +136,6 @@ GLfloat bodypos[16];
 capsule testcap;
 
 void initSkin(){
-     testcap.x1 = 0;
-     testcap.y1 = 0;
-     testcap.z1 = 0;
-     testcap.x2 = 0;
-     testcap.y2 = 3;
-     testcap.z2 = 0;
-     testcap.r = 1;
-     
      skinobject = new mesh("cuerpob.obj");
 }
 
@@ -146,7 +155,7 @@ float distance2d(float x1,float y1,float x2,float y2){
     return sqrt(pow((x1-x2),2) + pow((y1-y2),2));
 }
 
-void drawJoint(int id){
+void drawJoint(vertex *v, int id){
      if(id == segselect){
          glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
     	 if(alphaswitch)
@@ -164,25 +173,29 @@ void drawJoint(int id){
     	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
     	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
      }
-     glutSolidSphere(jointsize,10,10);
+     glPushMatrix();
+         glTranslatef(v->x,v->y,v->z);
+         glutSolidSphere(jointsize,10,10);
+     glPopMatrix();
+     
 }
 
-void drawCapsule(capsule cap){
-     glLineWidth(5);
-     glBegin(GL_LINES);
-         glVertex3f(cap.x1,cap.y1,cap.z1);
-         glVertex3f(cap.x2,cap.y2,cap.z2);
-     glEnd();
-
-     float d = distance3d(cap.x1, cap.y1, cap.z1, 
-                          cap.x2, cap.y2, cap.z2);
+void drawCapsule(capsule *cap){
+//     glLineWidth(5);
+//     glBegin(GL_LINES);
+//         glVertex3f(cap->v1->x,cap->v1->y,cap->v1->z);
+//         glVertex3f(cap->v2->x,cap->v2->y,cap->v2->z);
+//     glEnd();
      
-     float vx = cap.x2 - cap.x1;
-     float vy = cap.y2 - cap.y1;
-     float vz = cap.z2 - cap.z1;
+     float d = distance3d(cap->v1->x, cap->v1->y, cap->v1->z, 
+                          cap->v2->x, cap->v2->y, cap->v1->z);
+     
+     float vx = cap->v2->x - cap->v1->x;
+     float vy = cap->v2->y - cap->v1->y;
+     float vz = cap->v2->z - cap->v1->z;
      //handle the degenerate case of z1 == z2 with an approximation
      if(vz == 0)
-          vz = .0001;
+          vz = 0.0001;
     
      float v = sqrt( vx*vx + vy*vy + vz*vz );
      float ax = 57.2957795*acos( vz/v );
@@ -200,14 +213,14 @@ void drawCapsule(capsule cap){
   	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
   	 
      glPushMatrix();
-         glTranslatef(cap.x2, cap.y2, cap.z2);
-         glutSolidSphere(cap.r,10,10);
+         glTranslatef(cap->v2->x, cap->v2->y, cap->v2->z);
+         glutSolidSphere(cap->r,10,10);
      glPopMatrix();
-     glPushMatrix();     
-         glTranslatef(cap.x1, cap.y1, cap.z1);
-         glutSolidSphere(cap.r,10,10);
+     glPushMatrix();
+         glTranslatef(cap->v1->x, cap->v1->y, cap->v1->z);
+         glutSolidSphere(cap->r,10,10);
          glRotatef(ax, rx, ry, 0.0);
-         gluCylinder(q, cap.r, cap.r, d, 20, 1);
+         gluCylinder(q, cap->r, cap->r, d, 20, 1);
      glPopMatrix();
      
 }
@@ -260,6 +273,170 @@ void drawGrid(){
     glEnd();
 }
 
+void initVertices(){
+    waistv.x = 0;
+    waistv.y = -0.4;
+    waistv.z = 0;
+    chestv.x = 0;
+    chestv.y = 0.6;
+    chestv.z = 0;
+    
+    waistc1v.x = -(waistc2v.x = -0.5);
+    waistc1v.y = waistc2v.y   = 0.3;
+    waistc1v.z = waistc2v.z   = 0;
+    chestc1v.x = -(chestc2v.x = -0.5);
+    chestc1v.y = chestc2v.y   = 1.2;
+    chestc1v.z = chestc2v.z   = 0;
+    
+    neckv.x = 0;
+    neckv.y = 2.4;
+    neckv.z = 0;
+    headv.x = 0;
+    headv.y = 2.9;
+    headv.z = 0;
+    headtopv.x = 0;
+    headtopv.y = 3.3;
+    headtopv.z = 0;
+    
+    rshoulderv.x = -(lshoulderv.x = -0.4);
+    rshoulderv.y = lshoulderv.y   = 2.05;
+    rshoulderv.z = lshoulderv.z   = 0;
+    ruarmv.x = -(luarmv.x = -1.15);
+    ruarmv.y = luarmv.y   = 1.7;
+    ruarmv.z = luarmv.z   = 0;
+    rlarmv.x = -(llarmv.x = -1.3);
+    rlarmv.y = llarmv.y   = 0.3;
+    rlarmv.z = llarmv.z   = -0.05;
+    rhandv.x = -(lhandv.x = -1.25);
+    rhandv.y = lhandv.y   = -0.8;
+    rhandv.z = lhandv.z   = 0;
+    rhandtopv.x = -(lhandtopv.x = -1.2);
+    rhandtopv.y = lhandtopv.y   = -1.5;
+    rhandtopv.z = lhandtopv.z   = 0;
+    
+    rulegv.x = -(lulegv.x = -0.5);
+    rulegv.y = lulegv.y   = -0.4;
+    rulegv.z = lulegv.z   = 0;
+    rllegv.x = -(lllegv.x = -0.45);
+    rllegv.y = lllegv.y   = -2.4;
+    rllegv.z = lllegv.z   = 0.05;
+    rfootv.x = -(lfootv.x = -0.45);
+    rfootv.y = lfootv.y   = -4.35;
+    rfootv.z = lfootv.z   = 0;
+    rfoottopv.x = -(lfoottopv.x = -0.45);
+    rfoottopv.y = lfoottopv.y   = -4.35;
+    rfoottopv.z = lfoottopv.z   = 0.7;
+    
+    vertices[0] = &waistv;
+    vertices[1] = &chestv;
+    vertices[2] = &neckv;
+    vertices[3] = &headv;
+    vertices[4] = &headtopv;
+    vertices[5] = &rshoulderv;
+    vertices[6] = &ruarmv;
+    vertices[7] = &rlarmv;
+    vertices[8] = &rhandv;
+    vertices[9] = &rhandtopv;
+    vertices[10] = &lshoulderv;
+    vertices[11] = &luarmv;
+    vertices[12] = &llarmv;
+    vertices[13] = &lhandv;
+    vertices[14] = &lhandtopv;
+    vertices[15] = &rulegv;
+    vertices[16] = &rllegv;
+    vertices[17] = &rfootv;
+    vertices[18] = &rfoottopv;
+    vertices[19] = &lulegv;
+    vertices[20] = &lllegv;
+    vertices[21] = &lfootv;
+    vertices[22] = &lfoottopv;
+    vertices[23] = &waistc1v;
+    vertices[24] = &waistc2v;
+    vertices[25] = &chestc1v;
+    vertices[26] = &chestc2v;
+}
+
+void initCapsules(){
+    waistc.v1 = &waistc1v;
+    waistc.v2 = &waistc2v;
+    waistc.r = 0.35;
+    chestc.v1 = &chestc1v;
+    chestc.v2 = &chestc2v;
+    chestc.r = 0.4;
+    
+    neckc.v1 = &neckv;
+    neckc.v2 = &headv;
+    neckc.r = 0.25;
+    headc.v1 = &headv;
+    headc.v2 = &headtopv;
+    headc.r = 0.4;
+    
+    rshoulderc.v1 = &rshoulderv;
+    rshoulderc.v2 = &ruarmv;
+    rshoulderc.r = 0.3;
+    ruarmc.v1 = &ruarmv;
+    ruarmc.v2 = &rlarmv;
+    ruarmc.r = 0.2;
+    rlarmc.v1 = &rlarmv;
+    rlarmc.v2 = &rhandv;
+    rlarmc.r = 0.15;
+    rhandc.v1 = &rhandv;
+    rhandc.v2 = &rhandtopv;
+    rhandc.r = 0.1;
+    
+    lshoulderc.v1 = &lshoulderv;
+    lshoulderc.v2 = &luarmv;
+    lshoulderc.r = 0.3;
+    luarmc.v1 = &luarmv;
+    luarmc.v2 = &llarmv;
+    luarmc.r = 0.2;
+    llarmc.v1 = &llarmv;
+    llarmc.v2 = &lhandv;
+    llarmc.r = 0.15;
+    lhandc.v1 = &lhandv;
+    lhandc.v2 = &lhandtopv;
+    lhandc.r = 0.1;
+    
+    rulegc.v1 = &rulegv;
+    rulegc.v2 = &rllegv;
+    rulegc.r = 0.3;
+    rllegc.v1 = &rllegv;
+    rllegc.v2 = &rfootv;
+    rllegc.r = 0.2;
+    rfootc.v1 = &rfootv;
+    rfootc.v2 = &rfoottopv;
+    rfootc.r = 0.1;
+    
+    lulegc.v1 = &lulegv;
+    lulegc.v2 = &lllegv;
+    lulegc.r = 0.3;
+    lllegc.v1 = &lllegv;
+    lllegc.v2 = &lfootv;
+    lllegc.r = 0.2;
+    lfootc.v1 = &lfootv;
+    lfootc.v2 = &lfoottopv;
+    lfootc.r = 0.1;
+    
+    caps[0] = &waistc;
+    caps[1] = &chestc;
+    caps[2] = &neckc;
+    caps[3] = &headc;
+    caps[4] = &rshoulderc;
+    caps[5] = &ruarmc;
+    caps[6] = &rlarmc;
+    caps[7] = &rhandc;
+    caps[8] = &lshoulderc;
+    caps[9] = &luarmc;
+    caps[10] = &llarmc;
+    caps[11] = &lhandc;
+    caps[12] = &rulegc;
+    caps[13] = &rllegc;
+    caps[14] = &rfootc;
+    caps[15] = &lulegc;
+    caps[16] = &lllegc;
+    caps[17] = &lfootc;
+}
+
 void initNodes(){
     //body
     glPushMatrix();
@@ -271,14 +448,9 @@ void initNodes(){
     //waist
     glLoadIdentity();
     glTranslatef(0.0,-0.4,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, waistn.m);
-    waistn.cap.x1 = -0.5;
-    waistn.cap.y1 = 0.7;
-    waistn.cap.z1 = 0;
-    waistn.cap.x2 = 0.5;
-    waistn.cap.y2 = 0.7;
-    waistn.cap.z2 = 0;
-    waistn.cap.r = 0.35;
+    waistn.cap = &waistc;
+    waistn.v1 = &waistv;
+    waistn.v2 = &chestv;
     waistn.id = 1;
     waistn.sibling = &rulegn;
     waistn.child = &chestn;
@@ -286,14 +458,9 @@ void initNodes(){
     //chest
     glLoadIdentity();
     glTranslatef(0,1.0,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, chestn.m);
-    chestn.cap.x1 = -0.5;
-    chestn.cap.y1 = 0.6;
-    chestn.cap.z1 = 0;
-    chestn.cap.x2 = 0.5;
-    chestn.cap.y2 = 0.6;
-    chestn.cap.z2 = 0;
-    chestn.cap.r = 0.4;
+    chestn.cap = &chestc;
+    chestn.v1 = &chestv;
+    chestn.v2 = &neckv;
     chestn.id = 16;
     chestn.sibling = NULL;
     chestn.child = &neckn;
@@ -301,14 +468,9 @@ void initNodes(){
     //Neck
     glLoadIdentity();
     glTranslatef(0.0,1.8,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, neckn.m);
-    neckn.cap.x1 = 0;
-    neckn.cap.y1 = 0;
-    neckn.cap.z1 = 0;
-    neckn.cap.x2 = 0;
-    neckn.cap.y2 = 0.1;
-    neckn.cap.z2 = 0;
-    neckn.cap.r = 0.25;
+    neckn.cap = &neckc;
+    neckn.v1 = &neckv;
+    neckn.v2 = &headv;
     neckn.id = 2;
     neckn.sibling = &rshouldern;
     neckn.child = &headn;
@@ -316,14 +478,9 @@ void initNodes(){
     //HEAD
     glLoadIdentity();
     glTranslatef(0.0,0.5,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, headn.m);
-    headn.cap.x1 = 0;
-    headn.cap.y1 = 0;
-    headn.cap.z1 = 0;
-    headn.cap.x2 = 0;
-    headn.cap.y2 = 0.4;
-    headn.cap.z2 = 0;
-    headn.cap.r = 0.4;
+    headn.cap = &headc;
+    headn.v1 = &headv;
+    headn.v2 = &headtopv;
     headn.id = 3;
     headn.sibling = NULL;
     headn.child = NULL;
@@ -331,14 +488,9 @@ void initNodes(){
     //rshoulder
     glLoadIdentity();
     glTranslatef(-0.4,1.45,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rshouldern.m);
-    rshouldern.cap.x1 = 0;
-    rshouldern.cap.y1 = 0;
-    rshouldern.cap.z1 = 0;
-    rshouldern.cap.x2 = -0.7;
-    rshouldern.cap.y2 = -0.3;
-    rshouldern.cap.z2 = 0;
-    rshouldern.cap.r = 0.3;
+    rshouldern.cap = &rshoulderc;
+    rshouldern.v1 = &rshoulderv;
+    rshouldern.v2 = &ruarmv;
     rshouldern.id = 17;
     rshouldern.sibling = &lshouldern;
     rshouldern.child = &ruarmn;
@@ -346,14 +498,9 @@ void initNodes(){
     //RIGHT UPPER ARM
     glLoadIdentity();
     glTranslatef(-0.85,-0.35,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, ruarmn.m);
-    ruarmn.cap.x1 = 0;
-    ruarmn.cap.y1 = 0;
-    ruarmn.cap.z1 = 0;
-    ruarmn.cap.x2 = -0.05;
-    ruarmn.cap.y2 = -1.2;
-    ruarmn.cap.z2 = -0.05;
-    ruarmn.cap.r = 0.2;
+    ruarmn.cap = &ruarmc;
+    ruarmn.v1 = &ruarmv;
+    ruarmn.v2 = &rlarmv;
     ruarmn.id = 4;
     ruarmn.sibling = NULL;
     ruarmn.child = &rlarmn;
@@ -361,14 +508,9 @@ void initNodes(){
     //RIGHT LOWER ARM
     glLoadIdentity();
     glTranslatef(-0.05,-1.3,-0.05);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rlarmn.m);
-    rlarmn.cap.x1 = 0;
-    rlarmn.cap.y1 = 0;
-    rlarmn.cap.z1 = 0;
-    rlarmn.cap.x2 = 0.05;
-    rlarmn.cap.y2 = -1.1;
-    rlarmn.cap.z2 = 0.05;
-    rlarmn.cap.r = 0.15;
+    rlarmn.cap = &rlarmc;
+    rlarmn.v1 = &rlarmv;
+    rlarmn.v2 = &rhandv;
     rlarmn.id = 5;
     rlarmn.sibling = NULL;        
     rlarmn.child = &rhandn;
@@ -376,14 +518,9 @@ void initNodes(){
     //rhand
     glLoadIdentity();
     glTranslatef(0.05,-1.3,0.05);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rhandn.m);
-    rhandn.cap.x1 = 0;
-    rhandn.cap.y1 = 0;
-    rhandn.cap.z1 = 0;
-    rhandn.cap.x2 = 0;
-    rhandn.cap.y2 = -0.5;
-    rhandn.cap.z2 = 0;
-    rhandn.cap.r = 0.1;
+    rhandn.cap = &rhandc;
+    rhandn.v1 = &rhandv;
+    rhandn.v2 = &rhandtopv;
     rhandn.id = 6;
     rhandn.sibling = NULL;        
     rhandn.child = NULL;
@@ -391,14 +528,9 @@ void initNodes(){
     //lshoulder
     glLoadIdentity();
     glTranslatef(0.4,1.45,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lshouldern.m);
-    lshouldern.cap.x1 = 0;
-    lshouldern.cap.y1 = 0;
-    lshouldern.cap.z1 = 0;
-    lshouldern.cap.x2 = 0.7;
-    lshouldern.cap.y2 = -0.3;
-    lshouldern.cap.z2 = 0;
-    lshouldern.cap.r = 0.3;
+    lshouldern.cap = &lshoulderc;
+    lshouldern.v1 = &lshoulderv;
+    lshouldern.v2 = &luarmv;
     lshouldern.id = 17;
     lshouldern.sibling = NULL;
     lshouldern.child = &luarmn;
@@ -406,14 +538,9 @@ void initNodes(){
     //RIGHT UPPER ARM
     glLoadIdentity();
     glTranslatef(0.85,-0.35,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, luarmn.m);
-    luarmn.cap.x1 = 0;
-    luarmn.cap.y1 = 0;
-    luarmn.cap.z1 = 0;
-    luarmn.cap.x2 = 0.05;
-    luarmn.cap.y2 = -1.2;
-    luarmn.cap.z2 = -0.05;
-    luarmn.cap.r = 0.2;
+    luarmn.cap = &luarmc;
+    luarmn.v1 = &luarmv;
+    luarmn.v2 = &llarmv;
     luarmn.id = 7;
     luarmn.sibling = NULL;
     luarmn.child = &llarmn;
@@ -421,14 +548,10 @@ void initNodes(){
     //RIGHT LOWER ARM
     glLoadIdentity();
     glTranslatef(0.05,-1.3,-0.05);
-    glGetFloatv(GL_MODELVIEW_MATRIX, llarmn.m);
-    llarmn.cap.x1 = 0;
-    llarmn.cap.y1 = 0;
-    llarmn.cap.z1 = 0;
-    llarmn.cap.x2 = -0.05;
-    llarmn.cap.y2 = -1.1;
-    llarmn.cap.z2 = 0.05;
-    llarmn.cap.r = 0.15;
+
+    llarmn.cap = &llarmc;
+    llarmn.v1 = &llarmv;
+    llarmn.v2 = &lhandv;
     llarmn.id = 8;
     llarmn.sibling = NULL;        
     llarmn.child = &lhandn;
@@ -436,14 +559,9 @@ void initNodes(){
     //rhand
     glLoadIdentity();
     glTranslatef(-0.05,-1.3,0.05);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lhandn.m);
-    lhandn.cap.x1 = 0;
-    lhandn.cap.y1 = 0;
-    lhandn.cap.z1 = 0;
-    lhandn.cap.x2 = 0;
-    lhandn.cap.y2 = -0.5;
-    lhandn.cap.z2 = 0;
-    lhandn.cap.r = 0.1;
+    lhandn.cap = &lhandc;
+    lhandn.v1 = &lhandv;
+    lhandn.v2 = &lhandtopv;
     lhandn.id = 9;
     lhandn.sibling = NULL;        
     lhandn.child = NULL;
@@ -451,14 +569,9 @@ void initNodes(){
     //RIGHT UPPER LEG
     glLoadIdentity();
     glTranslatef(-0.5,-0.4,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m);
-    rulegn.cap.x1 = 0;
-    rulegn.cap.y1 = 0;
-    rulegn.cap.z1 = 0;
-    rulegn.cap.x2 = 0.05;
-    rulegn.cap.y2 = -2;
-    rulegn.cap.z2 = 0.05;
-    rulegn.cap.r = 0.3;
+    rulegn.cap = &rulegc;
+    rulegn.v1 = &rulegv;
+    rulegn.v2 = &rllegv;
     rulegn.id = 10;
     rulegn.sibling = &lulegn;       
     rulegn.child = &rllegn; 
@@ -466,14 +579,9 @@ void initNodes(){
     //RIGHT LOWER LEG
     glLoadIdentity();
     glTranslatef(0.05,-2,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rllegn.m);
-    rllegn.cap.x1 = 0;
-    rllegn.cap.y1 = 0;
-    rllegn.cap.z1 = 0;
-    rllegn.cap.x2 = 0;
-    rllegn.cap.y2 = -1.7;
-    rllegn.cap.z2 = -0.05;
-    rllegn.cap.r = 0.2;
+    rllegn.cap = &rllegc;
+    rllegn.v1 = &rllegv;
+    rllegn.v2 = &rfootv;
     rllegn.id = 11;
     rllegn.sibling = NULL;
     rllegn.child = &rfootn;
@@ -481,14 +589,9 @@ void initNodes(){
     //rfoot
     glLoadIdentity();
     glTranslatef(0,-2,0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m);
-    rfootn.cap.x1 = 0;
-    rfootn.cap.y1 = 0;
-    rfootn.cap.z1 = 0;
-    rfootn.cap.x2 = 0;
-    rfootn.cap.y2 = 0;
-    rfootn.cap.z2 = 0.7;
-    rfootn.cap.r = 0.1;
+    rfootn.cap = &rfootc;
+    rfootn.v1 = &rfootv;
+    rfootn.v2 = &rfoottopv;
     rfootn.id = 12;
     rfootn.sibling = NULL;
     rfootn.child = NULL;
@@ -496,14 +599,9 @@ void initNodes(){
     //LEFT UPPER LEG
     glLoadIdentity();
     glTranslatef(0.5,-0.4,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lulegn.m);
-    lulegn.cap.x1 = 0;
-    lulegn.cap.y1 = 0;
-    lulegn.cap.z1 = 0;
-    lulegn.cap.x2 = -0.05;
-    lulegn.cap.y2 = -2;
-    lulegn.cap.z2 = 0.05;
-    lulegn.cap.r = 0.3;
+    lulegn.cap = &lulegc;
+    lulegn.v1 = &lulegv;
+    lulegn.v2 = &lllegv;
     lulegn.id = 13;
     lulegn.sibling = NULL;       
     lulegn.child = &lllegn;                      
@@ -511,14 +609,9 @@ void initNodes(){
     //LEFT LOWER LEG
     glLoadIdentity();
     glTranslatef(-0.05,-2,0.0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lllegn.m);
-    lllegn.cap.x1 = 0;
-    lllegn.cap.y1 = 0;
-    lllegn.cap.z1 = 0;
-    lllegn.cap.x2 = 0;
-    lllegn.cap.y2 = -1.7;
-    lllegn.cap.z2 = -0.05;
-    lllegn.cap.r = 0.2;
+    lllegn.cap = &lllegc;
+    lllegn.v1 = &lllegv;
+    lllegn.v2 = &lfootv;
     lllegn.id = 14;
     lllegn.sibling = NULL;        
     lllegn.child = &lfootn;
@@ -526,36 +619,12 @@ void initNodes(){
     //lfoot
     glLoadIdentity();
     glTranslatef(0,-2,0);
-    glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m);
-    lfootn.cap.x1 = 0;
-    lfootn.cap.y1 = 0;
-    lfootn.cap.z1 = 0;
-    lfootn.cap.x2 = 0;
-    lfootn.cap.y2 = 0;
-    lfootn.cap.z2 = 0.7;
-    lfootn.cap.r = 0.1;
+    lfootn.cap = &lfootc;
+    lfootn.v1 = &lfootv;
+    lfootn.v2 = &lfoottopv;
     lfootn.id = 15;
     lfootn.sibling = NULL;        
     lfootn.child = NULL;
-    
-    caps[0] = waistn.cap;
-    caps[1] = chestn.cap;
-    caps[2] = neckn.cap;
-    caps[3] = headn.cap;
-    caps[4] = rshouldern.cap;
-    caps[5] = ruarmn.cap;
-    caps[6] = rlarmn.cap;
-    caps[7] = rhandn.cap;
-    caps[8] = lshouldern.cap;
-    caps[9] = luarmn.cap;
-    caps[10] = llarmn.cap;
-    caps[11] = lhandn.cap;
-    caps[12] = rulegn.cap;
-    caps[13] = rllegn.cap;
-    caps[14] = rfootn.cap;
-    caps[15] = lulegn.cap;
-    caps[16] = lllegn.cap;
-    caps[17] = lfootn.cap;
 }
 
 void init(){
@@ -592,35 +661,35 @@ void init(){
 	glEnable(GL_NORMALIZE);
 }
 
-float colDetect(capsule cap, float xh, float yh, float zh){
+float colDetect(capsule *cap, float xh, float yh, float zh){
        
     float D[3];
-    D[0] = xh - cap.x1;
-    D[1] = yh - cap.y1;
-    D[2] = zh - cap.z1;
+    D[0] = xh - cap->v1->x;
+    D[1] = yh - cap->v1->y;
+    D[2] = zh - cap->v1->z;
 
     float C[3];
-    C[0] = (cap.x1 + cap.x2)/2;
-    C[1] = (cap.y1 + cap.y2)/2;
-    C[2] = (cap.z1 + cap.z2)/2;
+    C[0] = (cap->v1->x + cap->v2->x)/2;
+    C[1] = (cap->v1->y + cap->v2->y)/2;
+    C[2] = (cap->v1->z + cap->v2->z)/2;
     
     float A[3];
-    A[0] = (cap.x2-cap.x1)/(sqrt((cap.x2-cap.x1)*(cap.x2-cap.x1) + (cap.y2-cap.y1) * (cap.y2-cap.y1) + (cap.z2-cap.z1) * (cap.z2-cap.z1)));
-    A[1] = (cap.y2-cap.y1)/(sqrt((cap.x2-cap.x1)*(cap.x2-cap.x1) + (cap.y2-cap.y1) * (cap.y2-cap.y1) + (cap.z2-cap.z1) * (cap.z2-cap.z1)));
-    A[2] = (cap.z2-cap.z1)/(sqrt((cap.x2-cap.x1)*(cap.x2-cap.x1) + (cap.y2-cap.y1) * (cap.y2-cap.y1) + (cap.z2-cap.z1) * (cap.z2-cap.z1)));
+    A[0] = (cap->v2->x-cap->v1->x)/(sqrt((cap->v2->x-cap->v1->x)*(cap->v2->x-cap->v1->x) + (cap->v2->y-cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
+    A[1] = (cap->v2->y-cap->v1->y)/(sqrt((cap->v2->x-cap->v1->x)*(cap->v2->x-cap->v1->x) + (cap->v2->y-cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
+    A[2] = (cap->v2->z-cap->v1->z)/(sqrt((cap->v2->x-cap->v1->x)*(cap->v2->x-cap->v1->x) + (cap->v2->y-cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
 
     float d = D[0] * A[0] + D[1] * A[1] + D[2] * A[2];
     
     float R[3];
-    R[0] = cap.x1 + (A[0] * d);
-    R[1] = cap.y1 + (A[1] * d);
-    R[2] = cap.z1 + (A[2] * d);
+    R[0] = cap->v1->x + (A[0] * d);
+    R[1] = cap->v1->y + (A[1] * d);
+    R[2] = cap->v1->z + (A[2] * d);
     float b = distance3d(xh,yh,zh, R[0],R[1],R[2]);
     
     float penetration = 0;
     
-    if(b < cap.r)
-        penetration = b - cap.r;
+    if(b < cap->r)
+        penetration = b - cap->r;
     
     float N[3];
     N[0] = xh - R[0] / b;
@@ -630,30 +699,58 @@ float colDetect(capsule cap, float xh, float yh, float zh){
     return penetration;
 }
 
+void rotVert(treenode *n, vertex *pt1, float angx, float angy, float angz){
+    n->v2->x = pt1->x + (n->v2->x - pt1->x) * cos(angz * PI/180) - (n->v2->y - pt1->y) * sin(angz * PI/180);
+    n->v2->y = pt1->y + (n->v2->y - pt1->y) * cos(angz * PI/180) + (n->v2->x - pt1->x) * sin(angz * PI/180);
+    
+    n->v2->y = pt1->y + (n->v2->y - pt1->y) * cos(angx * PI/180) - (n->v2->z - pt1->z) * sin(angx * PI/180);
+    n->v2->z = pt1->z + (n->v2->z - pt1->z) * cos(angx * PI/180) + (n->v2->y - pt1->y) * sin(angx * PI/180);
+    
+    n->v2->x = pt1->x + (n->v2->x - pt1->x) * cos(angy * PI/180) - (n->v2->z - pt1->z) * sin(angy * PI/180);
+    n->v2->z = pt1->z + (n->v2->z - pt1->z) * cos(angy * PI/180) + (n->v2->x - pt1->x) * sin(angy * PI/180);
+
+    if(n->child != NULL)
+    	rotVert(n->child, pt1, angx, angy, angz);
+        
+    if(n->sibling != NULL)
+    	rotVert(n->sibling, pt1, angx, angy, angz);
+}
+
+void rotateNode(treenode *n, vertex *v1, float angx, float angy, float angz){
+    //Function RotatePointAroundVector(x#,y#,z#,u#,v#,w#,a#)
+    float ux, uy, uz, vx, vy, vz, wx, wy, wz, sa, ca;
+    ux = v1->x * n->v2->x;
+    uy = v1->x * n->v2->y;
+    uz = v1->x * n->v2->z;
+    vx = v1->y * n->v2->x;
+    vy = v1->y * n->v2->y;
+    vz = v1->y * n->v2->z;
+    wx = v1->z * n->v2->x;
+    wy = v1->z * n->v2->y;
+    wz = v1->z * n->v2->z;
+    sa = sin(angx);
+    ca = cos(angy);
+    n->v2->x = v1->x * (ux+vy+wz)+(n->v2->x * (v1->y * v1->y + v1->z * v1->z) - v1->x * (vy+wz)) * ca+(-wy+vz) * sa;
+    n->v2->y = v1->y * (ux+vy+wz)+(n->v2->y * (v1->x * v1->x + v1->z * v1->z) - v1->y * (ux+wz)) * ca+(wx-uz) * sa;
+    n->v2->z = v1->z * (ux+vy+wz)+(n->v2->z * (v1->x * v1->x + v1->y * v1->y) - v1->z * (ux+vy)) * ca+(-vx+uy) * sa;
+    
+    if(n->child != NULL)
+        rotateNode(n->child, v1, angx, angy, angz);
+}
+
 void traverse (treenode *node){
-    // guardar la matriz actual porque las transformaciones a realizarse 
-    // sólo deben afectarle a él y a sus hijos
-    glPushMatrix();
+    if(jointswitch){
+        drawJoint(node->v1, node->id);
+    }
     
-        // transformar relativo a su padre
-        glMultMatrixf(node->m);
+    if(capsuleswitch){
+         drawCapsule(node->cap);
+    }
     
-        // dibujar el nodo
-        //node->f();
+    // primer recorrer los hijos (si hay)
+    if(node->child != NULL)
+    	traverse(node->child);
         
-        if(jointswitch){
-            drawJoint(node->id);
-        }
-        
-        if(capsuleswitch){
-             drawCapsule(node->cap);
-        }
-        
-        // primer recorrer los hijos (si hay)
-        if (node->child != NULL)
-        	traverse(node->child);
-        
-    glPopMatrix();
     // después recorrer los hermanos (si hay)
     if(node->sibling != NULL)
     	traverse(node->sibling);
@@ -667,7 +764,6 @@ void reshape(int w, int h){
 }
 
 void drawVert(){
-     //glColor3d(1,0,0);
      glPointSize(10);
      int i;
      glBegin(GL_POINTS);
@@ -714,7 +810,7 @@ void drawMesh(mesh *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *specula
 }
 
 void display(){
-    if (smoothOn)
+    if (smoothswitch)
 		glShadeModel(GL_SMOOTH); 
 	else
 		glShadeModel(GL_FLAT); 
@@ -734,18 +830,32 @@ void display(){
     if(gridswitch)
    	    drawGrid();
 	
-	// 
-	drawCapsule(testcap);
+	///////
+	//drawCapsule(testcap);
+	
     glPushMatrix();
         glTranslatef(testx, testy, testz);
         glutSolidSphere(0.1,10,10);
-    glPopMatrix();  
-    sprintf(title, "Object Pos: %g", colDetect(testcap, testx,testy,testz));
+    glPopMatrix();
+    
+    float mincoll = 0;
+    
+    for(int i=0;i<NUMCAPS;i++){
+        if(colDetect(caps[i], testx,testy,testz) < 0){
+            glPushMatrix();
+                glTranslatef(-2,3,0);
+                glutSolidCube(1);
+            glPopMatrix();
+            
+            if(mincoll > colDetect(caps[i], testx,testy,testz))
+                mincoll = colDetect(caps[i], testx,testy,testz);
+        }
+    }
+    sprintf(title, "Collision at: %g", mincoll);
     glutSetWindowTitle(title);
-    if(colDetect(testcap, testx,testy,testz) < 0)
-      jointswitch = true;    
-    //
-	
+    ///////
+
+
 	glPushMatrix();
         glMultMatrixf(bodypos);
         traverse(&waistn);
@@ -765,7 +875,7 @@ void display(){
                 
         if(vertswitch)
             drawVert();
-    
+
    	glutSwapBuffers();
 }
 
@@ -795,10 +905,14 @@ void key(unsigned char c, int x, int y){
      }
      //SWITCHES
      if(c=='s'){
-                skinswitch = !skinswitch;
+                smoothswitch = !smoothswitch;
                 glutPostRedisplay();
      }
      if(c=='d'){
+                skinswitch = !skinswitch;
+                glutPostRedisplay();
+     }
+     if(c=='f'){
                 shirtswitch = !shirtswitch;
                 glutPostRedisplay();
      }
@@ -871,32 +985,44 @@ void key(unsigned char c, int x, int y){
      if(c == 'y'){
           segselect=15;
      }
-     
+     if(c == 'i'){
+          initVertices();
+          initCapsules();
+          initNodes();
+     }
      glutPostRedisplay();
 
 }
 
 void resetAngles(){
-     for(int i=0;i<15;i++){
-         anglesx[i] = 0.0;
-         anglesy[i] = 0.0;
-     }
+     anglex = 0;
+     angley = 0;
 }
 
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
-         anglesx[segselect] = -angdelta;
-         testz-=0.1;
+         angley = -angdelta;
+         if(segselect==0)testz-=0.1;
      }
      if(c==GLUT_KEY_DOWN){
-         anglesx[segselect] = angdelta;
-         testz+=0.1;
+         angley = angdelta;
+         if(segselect==0)testz+=0.1;
      }
      if(c==GLUT_KEY_RIGHT){
-         anglesy[segselect] = angdelta;
+         anglex = -angdelta;
+         if(segselect==0)testx+=0.1;
      }
      if(c==GLUT_KEY_LEFT){
-         anglesy[segselect] = -angdelta;
+         anglex = +angdelta;
+         if(segselect==0)testx-=0.1;
+     }
+     if(c==GLUT_KEY_PAGE_UP){
+         //testcap.r+=0.1;
+         if(segselect==0)testy+=0.1;
+     }
+     if(c==GLUT_KEY_PAGE_DOWN){
+         //testcap.r-=0.1;
+         if(segselect==0)testy-=0.1;
      }
      
      glPushMatrix();
@@ -904,100 +1030,71 @@ void special(int c, int x, int y){
      
      switch(segselect){
          case 0:
-              glMultMatrixf(bodypos);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, bodypos);
+              //glMultMatrixf(bodypos);
+//              glRotatef(anglex,1.0,0.0,0.0);
+//              glRotatef(angley,0.0,1.0,0.0);
+//              glGetFloatv(GL_MODELVIEW_MATRIX, bodypos);
               break;
          case 1:
-              glMultMatrixf(waistn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, waistn.m);
+              rotVert(&waistn, waistn.v1, 0,anglex,0);
+              rotVert(&waistn, waistn.v1, angley,0,0);
               break;
+
          case 2:
-              glMultMatrixf(neckn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,-1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, neckn.m);
+              rotVert(&neckn, neckn.v1, 0,0,anglex);
+              rotVert(&neckn, neckn.v1, angley,0,0);
               break;
          case 3:
-              glMultMatrixf(headn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, headn.m);
+              rotVert(&headn, headn.v1, 0,anglex,0);
+              rotVert(&headn, headn.v1, angley,0,0);
               break;
          case 4:
-              glMultMatrixf(ruarmn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, ruarmn.m);
+              rotVert(&ruarmn, ruarmn.v1, 0,0,anglex);
+              rotVert(&ruarmn, ruarmn.v1, angley,0,0);
               break;
          case 5:
-              glMultMatrixf(rlarmn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rlarmn.m);
+              rotVert(&rlarmn, rlarmn.v1, 0,0,anglex);
+              rotVert(&rlarmn, rlarmn.v1, angley,0,0);
               break;
          case 6:
-              glMultMatrixf(rhandn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rhandn.m);
+              rotVert(&rhandn, rhandn.v1, 0,0,anglex);
+              rotVert(&rhandn, rhandn.v1, angley,0,0);
               break;
          case 7:
-              glMultMatrixf(luarmn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, luarmn.m);
+              rotVert(&luarmn, luarmn.v1, 0,0,anglex);
+              rotVert(&luarmn, luarmn.v1, angley,0,0);
               break;
          case 8:
-              glMultMatrixf(llarmn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, llarmn.m);
+              rotVert(&llarmn, llarmn.v1, 0,0,anglex);
+              rotVert(&llarmn, llarmn.v1, angley,0,0);
               break;
          case 9:
-              glMultMatrixf(lhandn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lhandn.m);
+              rotVert(&lhandn, lhandn.v1, 0,0,anglex);
+              rotVert(&lhandn, lhandn.v1, angley,0,0);
               break;
          case 10:
-              glMultMatrixf(rulegn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rulegn.m);
+              rotVert(&rulegn, rulegn.v1, 0,0,anglex);
+              rotVert(&rulegn, rulegn.v1, angley,0,0);
               break;
          case 11:
-              glMultMatrixf(rllegn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rllegn.m);
+              rotVert(&rllegn, rllegn.v1, 0,0,anglex);
+              rotVert(&rllegn, rllegn.v1, angley,0,0);
               break;
          case 12:
-              glMultMatrixf(rfootn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, rfootn.m);
+              rotVert(&rfootn, rfootn.v1, 0,0,anglex);
+              rotVert(&rfootn, rfootn.v1, angley,0,0);
               break;
          case 13:
-              glMultMatrixf(lulegn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lulegn.m);
+              rotVert(&lulegn, lulegn.v1, 0,0,anglex);
+              rotVert(&lulegn, lulegn.v1, angley,0,0);
               break;
          case 14:
-              glMultMatrixf(lllegn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,0.0,1.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lllegn.m);
+              rotVert(&lllegn, lllegn.v1, 0,0,anglex);
+              rotVert(&lllegn, lllegn.v1, angley,0,0);
               break;
          case 15:
-              glMultMatrixf(lfootn.m);
-              glRotatef(anglesx[segselect],1.0,0.0,0.0);
-              glRotatef(anglesy[segselect],0.0,1.0,0.0);
-              glGetFloatv(GL_MODELVIEW_MATRIX, lfootn.m);
+              rotVert(&lfootn, lfootn.v1, 0,0,anglex);
+              rotVert(&lfootn, lfootn.v1, angley,0,0);
               break;
      }
      glPopMatrix();
@@ -1031,6 +1128,9 @@ int main(int argc, char **argv)
   init();
   initSkin();
   initShirt();
+  //initPants();
+  initVertices();
+  initCapsules();
   initNodes();
   
   glutMainLoop();                               // Pasar el control a GLUT.
