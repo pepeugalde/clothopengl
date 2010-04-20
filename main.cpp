@@ -1,10 +1,10 @@
 /*****************************************
  ***Equipo***
  *
- *Enrique Peña 1162110
- *Jorge Dorantes 1011377
  *José Ugalde 1161507
  *Alejandro Morales 1161376
+ *Jorge Dorantes 1011377
+ *Enrique Peña 1162110
  *
  *Monito Final Parte 1
 *******************************************/
@@ -15,9 +15,9 @@
 #include <math.h>
 
 #define PI 3.1415926535
-#define NUMVERT 27
-#define NUMCAPS 18
-#
+#define NUMVERT  27
+#define NUMCAPS  18
+#define NUMNODES 18
 
 float testx = 0;
 float testy = 0;
@@ -97,6 +97,7 @@ mesh *shirtobject;
 
 typedef struct vertex{
     float x, y, z;
+    bool hasmoved;
 } vertex;
 
 vertex waistv, chestv, neckv, headv, headtopv,
@@ -129,7 +130,7 @@ typedef struct treenode{
 } treenode;
 
 treenode headn, neckn, rshouldern, lshouldern, ruarmn, luarmn, rlarmn, llarmn, rhandn, lhandn,
-chestn, waistn, rulegn, lulegn, rllegn, lllegn, rfootn, lfootn;
+         chestn, waistn, rulegn, lulegn, rllegn, lllegn, rfootn, lfootn;
 
 GLfloat bodypos[16];
 
@@ -699,43 +700,39 @@ float colDetect(capsule *cap, float xh, float yh, float zh){
     return penetration;
 }
 
-void rotVert(treenode *n, vertex *pt1, float angx, float angy, float angz){
-    n->v2->x = pt1->x + (n->v2->x - pt1->x) * cos(angz * PI/180) - (n->v2->y - pt1->y) * sin(angz * PI/180);
-    n->v2->y = pt1->y + (n->v2->y - pt1->y) * cos(angz * PI/180) + (n->v2->x - pt1->x) * sin(angz * PI/180);
+void rotVert(vertex *v, vertex *pt, float angx, float angy, float angz){
+    v->x = pt->x + (v->x - pt->x) * cos(angz * PI/180) - (v->y - pt->y) * sin(angz * PI/180);
+    v->y = pt->y + (v->y - pt->y) * cos(angz * PI/180) + (v->x - pt->x) * sin(angz * PI/180);
     
-    n->v2->y = pt1->y + (n->v2->y - pt1->y) * cos(angx * PI/180) - (n->v2->z - pt1->z) * sin(angx * PI/180);
-    n->v2->z = pt1->z + (n->v2->z - pt1->z) * cos(angx * PI/180) + (n->v2->y - pt1->y) * sin(angx * PI/180);
+    v->y = pt->y + (v->y - pt->y) * cos(angx * PI/180) - (v->z - pt->z) * sin(angx * PI/180);
+    v->z = pt->z + (v->z - pt->z) * cos(angx * PI/180) + (v->y - pt->y) * sin(angx * PI/180);
     
-    n->v2->x = pt1->x + (n->v2->x - pt1->x) * cos(angy * PI/180) - (n->v2->z - pt1->z) * sin(angy * PI/180);
-    n->v2->z = pt1->z + (n->v2->z - pt1->z) * cos(angy * PI/180) + (n->v2->x - pt1->x) * sin(angy * PI/180);
-
-    if(n->child != NULL)
-    	rotVert(n->child, pt1, angx, angy, angz);
-        
-    if(n->sibling != NULL)
-    	rotVert(n->sibling, pt1, angx, angy, angz);
+    v->x = pt->x + (v->x - pt->x) * cos(angy * PI/180) - (v->z - pt->z) * sin(angy * PI/180);
+    v->z = pt->z + (v->z - pt->z) * cos(angy * PI/180) + (v->x - pt->x) * sin(angy * PI/180);
 }
 
-void rotateNode(treenode *n, vertex *v1, float angx, float angy, float angz){
-    //Function RotatePointAroundVector(x#,y#,z#,u#,v#,w#,a#)
-    float ux, uy, uz, vx, vy, vz, wx, wy, wz, sa, ca;
-    ux = v1->x * n->v2->x;
-    uy = v1->x * n->v2->y;
-    uz = v1->x * n->v2->z;
-    vx = v1->y * n->v2->x;
-    vy = v1->y * n->v2->y;
-    vz = v1->y * n->v2->z;
-    wx = v1->z * n->v2->x;
-    wy = v1->z * n->v2->y;
-    wz = v1->z * n->v2->z;
-    sa = sin(angx);
-    ca = cos(angy);
-    n->v2->x = v1->x * (ux+vy+wz)+(n->v2->x * (v1->y * v1->y + v1->z * v1->z) - v1->x * (vy+wz)) * ca+(-wy+vz) * sa;
-    n->v2->y = v1->y * (ux+vy+wz)+(n->v2->y * (v1->x * v1->x + v1->z * v1->z) - v1->y * (ux+wz)) * ca+(wx-uz) * sa;
-    n->v2->z = v1->z * (ux+vy+wz)+(n->v2->z * (v1->x * v1->x + v1->y * v1->y) - v1->z * (ux+vy)) * ca+(-vx+uy) * sa;
-    
+void rotNode(treenode *n, vertex *pt, float angx, float angy, float angz){
+    if(n->v1->hasmoved == false){
+        rotVert(n->v1, pt, angx, angy, angz);
+        n->v1->hasmoved = true;
+    }
+    if(n->v2->hasmoved == false){
+        rotVert(n->v2, pt, angx, angy, angz);
+        n->v2->hasmoved = true;
+    }
+    if(n->cap->v1->hasmoved == false){
+        rotVert(n->cap->v1, pt, angx, angy, angz);
+        n->cap->v1->hasmoved = true;
+    }
+    if(n->cap->v2->hasmoved == false){
+        rotVert(n->cap->v2, pt, angx, angy, angz);
+        n->cap->v2->hasmoved = true;
+    }
     if(n->child != NULL)
-        rotateNode(n->child, v1, angx, angy, angz);
+    	rotNode(n->child, pt, angx, angy, angz);
+        
+    //if(n->sibling != NULL)
+    //	rotNode(n->sibling, pt, angx, angy, angz);
 }
 
 void traverse (treenode *node){
@@ -999,6 +996,12 @@ void resetAngles(){
      angley = 0;
 }
 
+void resetVertFlags(){
+    for(int i=0;i<NUMVERT;i++){
+        vertices[i]->hasmoved = false;
+    }
+}
+
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          angley = -angdelta;
@@ -1036,65 +1039,95 @@ void special(int c, int x, int y){
 //              glGetFloatv(GL_MODELVIEW_MATRIX, bodypos);
               break;
          case 1:
-              rotVert(&waistn, waistn.v1, 0,anglex,0);
-              rotVert(&waistn, waistn.v1, angley,0,0);
+              rotNode(&waistn, waistn.v1, 0,anglex,0);
+              resetVertFlags();
+              rotNode(&waistn, waistn.v1, angley,0,0);
+              resetVertFlags();
               break;
 
          case 2:
-              rotVert(&neckn, neckn.v1, 0,0,anglex);
-              rotVert(&neckn, neckn.v1, angley,0,0);
+              rotNode(&neckn, neckn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&neckn, neckn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 3:
-              rotVert(&headn, headn.v1, 0,anglex,0);
-              rotVert(&headn, headn.v1, angley,0,0);
+              rotNode(&headn, headn.v1, 0,anglex,0);
+              resetVertFlags();
+              rotNode(&headn, headn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 4:
-              rotVert(&ruarmn, ruarmn.v1, 0,0,anglex);
-              rotVert(&ruarmn, ruarmn.v1, angley,0,0);
+              rotNode(&ruarmn, ruarmn.v1, 0,0,-anglex);
+              resetVertFlags();
+              rotNode(&ruarmn, ruarmn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 5:
-              rotVert(&rlarmn, rlarmn.v1, 0,0,anglex);
-              rotVert(&rlarmn, rlarmn.v1, angley,0,0);
+              rotNode(&rlarmn, rlarmn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&rlarmn, rlarmn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 6:
-              rotVert(&rhandn, rhandn.v1, 0,0,anglex);
-              rotVert(&rhandn, rhandn.v1, angley,0,0);
+              rotNode(&rhandn, rhandn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&rhandn, rhandn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 7:
-              rotVert(&luarmn, luarmn.v1, 0,0,anglex);
-              rotVert(&luarmn, luarmn.v1, angley,0,0);
+              rotNode(&luarmn, luarmn.v1, 0,0,-anglex);
+              resetVertFlags();
+              rotNode(&luarmn, luarmn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 8:
-              rotVert(&llarmn, llarmn.v1, 0,0,anglex);
-              rotVert(&llarmn, llarmn.v1, angley,0,0);
+              rotNode(&llarmn, llarmn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&llarmn, llarmn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 9:
-              rotVert(&lhandn, lhandn.v1, 0,0,anglex);
-              rotVert(&lhandn, lhandn.v1, angley,0,0);
+              rotNode(&lhandn, lhandn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&lhandn, lhandn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 10:
-              rotVert(&rulegn, rulegn.v1, 0,0,anglex);
-              rotVert(&rulegn, rulegn.v1, angley,0,0);
+              rotNode(&rulegn, rulegn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&rulegn, rulegn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 11:
-              rotVert(&rllegn, rllegn.v1, 0,0,anglex);
-              rotVert(&rllegn, rllegn.v1, angley,0,0);
+              rotNode(&rllegn, rllegn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&rllegn, rllegn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 12:
-              rotVert(&rfootn, rfootn.v1, 0,0,anglex);
-              rotVert(&rfootn, rfootn.v1, angley,0,0);
+              rotNode(&rfootn, rfootn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&rfootn, rfootn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 13:
-              rotVert(&lulegn, lulegn.v1, 0,0,anglex);
-              rotVert(&lulegn, lulegn.v1, angley,0,0);
+              rotNode(&lulegn, lulegn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&lulegn, lulegn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 14:
-              rotVert(&lllegn, lllegn.v1, 0,0,anglex);
-              rotVert(&lllegn, lllegn.v1, angley,0,0);
+              rotNode(&lllegn, lllegn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&lllegn, lllegn.v1, angley,0,0);
+              resetVertFlags();
               break;
          case 15:
-              rotVert(&lfootn, lfootn.v1, 0,0,anglex);
-              rotVert(&lfootn, lfootn.v1, angley,0,0);
+              rotNode(&lfootn, lfootn.v1, 0,0,anglex);
+              resetVertFlags();
+              rotNode(&lfootn, lfootn.v1, angley,0,0);
+              resetVertFlags();
               break;
      }
      glPopMatrix();
