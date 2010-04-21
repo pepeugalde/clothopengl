@@ -106,11 +106,15 @@ vertex waistv, chestv, neckv, headv, headtopv,
        waistc1v, waistc2v, chestc1v, chestc2v;
 
 vertex *vertices[NUMVERT];
+//
+vertex testvert;
+//
 
 typedef struct capsule{
     vertex *v1;
     vertex *v2;
     float r;
+    char name[16];
 } capsule;
 
 capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
@@ -147,6 +151,10 @@ void initShirt(){
 //void initPants(){
 //     shirtobject = new mesh("pantsb.obj");
 //}
+
+float vertDistance(vertex *v1, vertex *v2){
+    return sqrt(pow((v1->x-v2->x),2) + pow((v1->y-v2->y),2) + pow((v1->z-v2->z),2));
+}
 
 float distance3d(float x1,float y1,float z1,float x2,float y2,float z2){
     return sqrt(pow((x1-x2),2) + pow((y1-y2),2) + pow((z1-z2),2));
@@ -189,11 +197,12 @@ void drawCapsule(capsule *cap){
 //     glEnd();
      
      float d = distance3d(cap->v1->x, cap->v1->y, cap->v1->z, 
-                          cap->v2->x, cap->v2->y, cap->v1->z);
+                          cap->v2->x, cap->v2->y, cap->v2->z);
      
      float vx = cap->v2->x - cap->v1->x;
      float vy = cap->v2->y - cap->v1->y;
      float vz = cap->v2->z - cap->v1->z;
+     
      //handle the degenerate case of z1 == z2 with an approximation
      if(vz == 0)
           vz = 0.0001;
@@ -275,6 +284,12 @@ void drawGrid(){
 }
 
 void initVertices(){
+    //
+    testvert.x = testx;
+    testvert.y = testy;
+    testvert.z = testz;
+    //
+     
     waistv.x = 0;
     waistv.y = -0.4;
     waistv.z = 0;
@@ -364,6 +379,7 @@ void initCapsules(){
     chestc.v1 = &chestc1v;
     chestc.v2 = &chestc2v;
     chestc.r = 0.4;
+    
     
     neckc.v1 = &neckv;
     neckc.v2 = &headv;
@@ -662,12 +678,12 @@ void init(){
 	glEnable(GL_NORMALIZE);
 }
 
-float colDetect(capsule *cap, float xh, float yh, float zh){
+float colDetect(capsule *cap, vertex *h){
        
     float D[3];
-    D[0] = xh - cap->v1->x;
-    D[1] = yh - cap->v1->y;
-    D[2] = zh - cap->v1->z;
+    D[0] = h->x - cap->v1->x;
+    D[1] = h->y - cap->v1->y;
+    D[2] = h->z - cap->v1->z;
 
     float C[3];
     C[0] = (cap->v1->x + cap->v2->x)/2;
@@ -675,17 +691,22 @@ float colDetect(capsule *cap, float xh, float yh, float zh){
     C[2] = (cap->v1->z + cap->v2->z)/2;
     
     float A[3];
-    A[0] = (cap->v2->x-cap->v1->x)/(sqrt((cap->v2->x-cap->v1->x)*(cap->v2->x-cap->v1->x) + (cap->v2->y-cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
-    A[1] = (cap->v2->y-cap->v1->y)/(sqrt((cap->v2->x-cap->v1->x)*(cap->v2->x-cap->v1->x) + (cap->v2->y-cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
-    A[2] = (cap->v2->z-cap->v1->z)/(sqrt((cap->v2->x-cap->v1->x)*(cap->v2->x-cap->v1->x) + (cap->v2->y-cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
+    A[0] = (cap->v2->x - cap->v1->x) / (sqrt((cap->v2->x - cap->v1->x)*(cap->v2->x - cap->v1->x) + (cap->v2->y - cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
+    A[1] = (cap->v2->y - cap->v1->y) / (sqrt((cap->v2->x - cap->v1->x)*(cap->v2->x - cap->v1->x) + (cap->v2->y - cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
+    A[2] = (cap->v2->z - cap->v1->z) / (sqrt((cap->v2->x - cap->v1->x)*(cap->v2->x - cap->v1->x) + (cap->v2->y - cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
 
     float d = D[0] * A[0] + D[1] * A[1] + D[2] * A[2];
+    if(d<0)
+        d = 0;
+    float caplen = vertDistance(cap->v1, cap->v2);
+    if(d>caplen)
+        d = caplen;
     
     float R[3];
     R[0] = cap->v1->x + (A[0] * d);
     R[1] = cap->v1->y + (A[1] * d);
     R[2] = cap->v1->z + (A[2] * d);
-    float b = distance3d(xh,yh,zh, R[0],R[1],R[2]);
+    float b = distance3d(h->x,h->y,h->z, R[0],R[1],R[2]);
     
     float penetration = 0;
     
@@ -693,39 +714,69 @@ float colDetect(capsule *cap, float xh, float yh, float zh){
         penetration = b - cap->r;
     
     float N[3];
-    N[0] = xh - R[0] / b;
-    N[1] = yh - R[1] / b;
-    N[2] = zh - R[2] / b;
+    N[0] = h->x - R[0] / b;
+    N[1] = h->y - R[1] / b;
+    N[2] = h->z - R[2] / b;
     
     return penetration;
 }
 
-void rotVert(vertex *v, vertex *pt, float angx, float angy, float angz){
-    v->x = pt->x + (v->x - pt->x) * cos(angz * PI/180) - (v->y - pt->y) * sin(angz * PI/180);
-    v->y = pt->y + (v->y - pt->y) * cos(angz * PI/180) + (v->x - pt->x) * sin(angz * PI/180);
-    
-    v->y = pt->y + (v->y - pt->y) * cos(angx * PI/180) - (v->z - pt->z) * sin(angx * PI/180);
-    v->z = pt->z + (v->z - pt->z) * cos(angx * PI/180) + (v->y - pt->y) * sin(angx * PI/180);
-    
-    v->x = pt->x + (v->x - pt->x) * cos(angy * PI/180) - (v->z - pt->z) * sin(angy * PI/180);
-    v->z = pt->z + (v->z - pt->z) * cos(angy * PI/180) + (v->x - pt->x) * sin(angy * PI/180);
+void rotVertX(vertex *v, vertex *pt, float angx){
+    float newy = pt->y + (v->y - pt->y) * cosf(angx * M_PI/180) - (v->z - pt->z) * sinf(angx * M_PI/180);
+    float newz = pt->z + (v->z - pt->z) * cosf(angx * M_PI/180) + (v->y - pt->y) * sinf(angx * M_PI/180);
+    v->y = newy;
+    v->z = newz;
+}
+
+void rotVertY(vertex *v, vertex *pt, float angy){
+    float newx = pt->x + (v->x - pt->x) * cosf(angy * M_PI/180) - (v->z - pt->z) * sinf(angy * M_PI/180);
+    float newz = pt->z + (v->z - pt->z) * cosf(angy * M_PI/180) + (v->x - pt->x) * sinf(angy * M_PI/180);
+    v->x = newx;
+    v->z = newz;
+}
+
+void rotVertZ(vertex *v, vertex *pt, float angz){
+    float newx = pt->x + (v->x - pt->x) * cosf(angz * M_PI/180) - (v->y - pt->y) * sinf(angz * M_PI/180);
+    float newy = pt->y + (v->y - pt->y) * cosf(angz * M_PI/180) + (v->x - pt->x) * sinf(angz * M_PI/180);
+    v->x = newx;
+    v->y = newy;
 }
 
 void rotChildNode(treenode *n, vertex *pt, float angx, float angy, float angz){
     if(n->v1->hasmoved == false){
-        rotVert(n->v1, pt, angx, angy, angz);
+        if(angx != 0)
+            rotVertX(n->v1, pt, angx);
+        if(angy != 0)
+            rotVertY(n->v1, pt, angy);
+        if(angz != 0)
+            rotVertZ(n->v1, pt, angz);
         n->v1->hasmoved = true;
     }
     if(n->v2->hasmoved == false){
-        rotVert(n->v2, pt, angx, angy, angz);
+        if(angx != 0)
+            rotVertX(n->v2, pt, angx);
+        if(angy != 0)
+            rotVertY(n->v2, pt, angy);
+        if(angz != 0)
+            rotVertZ(n->v2, pt, angz);
         n->v2->hasmoved = true;
     }
     if(n->cap->v1->hasmoved == false){
-        rotVert(n->cap->v1, pt, angx, angy, angz);
+        if(angx != 0)
+            rotVertX(n->cap->v1, pt, angx);
+        if(angy != 0)
+            rotVertY(n->cap->v1, pt, angy);
+        if(angz != 0)
+            rotVertZ(n->cap->v1, pt, angz);
         n->cap->v1->hasmoved = true;
     }
     if(n->cap->v2->hasmoved == false){
-        rotVert(n->cap->v2, pt, angx, angy, angz);
+        if(angx != 0)
+            rotVertX(n->cap->v2, pt, angx);
+        if(angy != 0)
+            rotVertY(n->cap->v2, pt, angy);
+        if(angz != 0)
+            rotVertZ(n->cap->v2, pt, angz);
         n->cap->v2->hasmoved = true;
     }
     if(n->child != NULL)
@@ -736,20 +787,31 @@ void rotChildNode(treenode *n, vertex *pt, float angx, float angy, float angz){
 }
 
 void rotNode(treenode *n, float angx, float angy, float angz){
-//    if(n->v1->hasmoved == false){
-//        rotVert(n->v1, pt, angx, angy, angz);
-//        n->v1->hasmoved = true;
-//    }
     if(n->v2->hasmoved == false){
-        rotVert(n->v2, n->v1, angx, angy, angz);
+        if(angx != 0)
+            rotVertX(n->v2, n->v1, angx);
+        if(angy != 0)
+            rotVertY(n->v2, n->v1, angy);
+        if(angz != 0)
+            rotVertZ(n->v2, n->v1, angz);
         n->v2->hasmoved = true;
     }
     if(n->cap->v1->hasmoved == false){
-        rotVert(n->cap->v1, n->v1, angx, angy, angz);
+        if(angx != 0)
+            rotVertX(n->cap->v1, n->v1, angx);
+        if(angy != 0)
+            rotVertY(n->cap->v1, n->v1, angy);
+        if(angz != 0)
+            rotVertZ(n->cap->v1, n->v1, angz);
         n->cap->v1->hasmoved = true;
     }
     if(n->cap->v2->hasmoved == false){
-        rotVert(n->cap->v2, n->v1, angx, angy, angz);
+        if(angx != 0)
+            rotVertX(n->cap->v2, n->v1, angx);
+        if(angy != 0)
+            rotVertY(n->cap->v2, n->v1, angy);
+        if(angz != 0)
+            rotVertZ(n->cap->v2, n->v1, angz);
         n->cap->v2->hasmoved = true;
     }
     if(n->child != NULL)
@@ -852,24 +914,26 @@ void display(){
 	//drawCapsule(testcap);
 	
     glPushMatrix();
-        glTranslatef(testx, testy, testz);
+        glTranslatef(testvert.x, testvert.y, testvert.z);
         glutSolidSphere(0.1,10,10);
     glPopMatrix();
     
     float mincoll = 0;
+    int numcap = -1;
     
     for(int i=0;i<NUMCAPS;i++){
-        if(colDetect(caps[i], testx,testy,testz) < 0){
+        if(colDetect(caps[i], &testvert) < 0){
             glPushMatrix();
                 glTranslatef(-2,3,0);
                 glutSolidCube(1);
             glPopMatrix();
             
-            if(mincoll > colDetect(caps[i], testx,testy,testz))
-                mincoll = colDetect(caps[i], testx,testy,testz);
+            if(mincoll > colDetect(caps[i], &testvert))
+                mincoll = colDetect(caps[i], &testvert);
+                numcap = i;
         }
     }
-    sprintf(title, "Collision at: %g", mincoll);
+    sprintf(title, "Collision at: %g, capsule num: %d", mincoll, numcap);
     glutSetWindowTitle(title);
     ///////
 
@@ -1026,27 +1090,27 @@ void resetVertFlags(){
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          angley = -angdelta;
-         if(segselect==0)testz-=0.1;
+         if(segselect==0)testvert.z-=0.1;
      }
      if(c==GLUT_KEY_DOWN){
          angley = angdelta;
-         if(segselect==0)testz+=0.1;
+         if(segselect==0)testvert.z+=0.1;
      }
      if(c==GLUT_KEY_RIGHT){
          anglex = -angdelta;
-         if(segselect==0)testx+=0.1;
+         if(segselect==0)testvert.x+=0.1;
      }
      if(c==GLUT_KEY_LEFT){
          anglex = +angdelta;
-         if(segselect==0)testx-=0.1;
+         if(segselect==0)testvert.x-=0.1;
      }
      if(c==GLUT_KEY_PAGE_UP){
          //testcap.r+=0.1;
-         if(segselect==0)testy+=0.1;
+         if(segselect==0)testvert.y+=0.1;
      }
      if(c==GLUT_KEY_PAGE_DOWN){
          //testcap.r-=0.1;
-         if(segselect==0)testy-=0.1;
+         if(segselect==0)testvert.y-=0.1;
      }
      
      glPushMatrix();
