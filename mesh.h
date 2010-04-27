@@ -26,26 +26,22 @@ public:
 	float Ks[4];
 	float Ns;		// shiness
 
-	material()
-	{ 
+	material(){
 		for (int i=0;i<4;i++)
 			Ka[i] = Kd[i] = Ks[i] = 1;
 		Ns = 0;
 	}
 };
 
-class mesh  
-{
-	class Vertex		// 儲存基本 vertex 的 property
-	{
+class mesh{
+	class Vertex{		// 儲存基本 vertex 的 property
 	public:
 		int v;		// vertex (index of vList)
 		int n;		// normal (index of nList)
 		int t;		// texture (index of tList)
 		int m;		// material (index of material)
 		Vertex() {};
-		Vertex(int v_index, int n_index, int t_index=0, int m_index=0)
-		{
+		Vertex(int v_index, int n_index, int t_index=0, int m_index=0){
 			v = v_index;
 			n = n_index;
 			t = t_index;
@@ -53,33 +49,27 @@ class mesh
 		}
 	};
 
-	class Vec3		// vList, nList, tList 的 structure
-	{
+	class Vec3{		// vList, nList, tList 的 structure
 	public:
 		GLfloat ptr[3];
-		Vec3 (GLfloat *v) 
-		{
+		Vec3 (GLfloat *v) {
 			for (int i=0;i<3;i++)
 				ptr[i] = v[i];
 		}
-		GLfloat& operator[](int index)
-		{
+		GLfloat& operator[](int index){
 			return ptr[index];
 		}
 	};
 
-	class FACE		// faceList 的 structure
-	{
+	class FACE{		// faceList 的 structure
 	public:
 		Vertex v[3];		// 3 vertex for each face
-		FACE (Vertex &v1, Vertex &v2, Vertex &v3) 
-		{
+		FACE (Vertex &v1, Vertex &v2, Vertex &v3) {
 			v[0] = v1; 
 			v[1] = v2;
 			v[2] = v3;
 		}
-		Vertex& operator[](int index)
-		{
+		Vertex& operator[](int index){
 			return v[index];
 		}
 	};

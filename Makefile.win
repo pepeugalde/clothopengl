@@ -5,8 +5,8 @@ CPP  = g++.exe
 CC   = gcc.exe
 WINDRES = windres.exe
 RES  = 
-OBJ  = main.o mesh.o $(RES)
-LINKOBJ  = main.o mesh.o $(RES)
+OBJ  = main.o ../../pruebaobj/obj_parser.o ../../pruebaobj/objLoader.o ../../pruebaobj/string_extra.o ../../pruebaobj/list.o $(RES)
+LINKOBJ  = main.o ../../pruebaobj/obj_parser.o ../../pruebaobj/objLoader.o ../../pruebaobj/string_extra.o ../../pruebaobj/list.o $(RES)
 LIBS =  -L"C:/Dev-Cpp/lib" -mwindows -lglut32 -lglu32 -lopengl32 -lwinmm -lgdi32  
 INCS =  -I"C:/Dev-Cpp/include" 
 CXXINCS =  -I"C:/Dev-Cpp/lib/gcc/mingw32/3.4.2/include"  -I"C:/Dev-Cpp/include/c++/3.4.2/backward"  -I"C:/Dev-Cpp/include/c++/3.4.2/mingw32"  -I"C:/Dev-Cpp/include/c++/3.4.2"  -I"C:/Dev-Cpp/include" 
@@ -29,5 +29,14 @@ $(BIN): $(OBJ)
 main.o: main.cpp
 	$(CPP) -c main.cpp -o main.o $(CXXFLAGS)
 
-mesh.o: mesh.cpp
-	$(CPP) -c mesh.cpp -o mesh.o $(CXXFLAGS)
+../../pruebaobj/obj_parser.o: ../../pruebaobj/obj_parser.cpp
+	$(CPP) -c ../../pruebaobj/obj_parser.cpp -o ../../pruebaobj/obj_parser.o $(CXXFLAGS)
+
+../../pruebaobj/objLoader.o: ../../pruebaobj/objLoader.cpp
+	$(CPP) -c ../../pruebaobj/objLoader.cpp -o ../../pruebaobj/objLoader.o $(CXXFLAGS)
+
+../../pruebaobj/string_extra.o: ../../pruebaobj/string_extra.cpp
+	$(CPP) -c ../../pruebaobj/string_extra.cpp -o ../../pruebaobj/string_extra.o $(CXXFLAGS)
+
+../../pruebaobj/list.o: ../../pruebaobj/list.cpp
+	$(CPP) -c ../../pruebaobj/list.cpp -o ../../pruebaobj/list.o $(CXXFLAGS)
