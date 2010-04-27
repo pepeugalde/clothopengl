@@ -1,0 +1,19 @@
+Escojer joints
+   1-9, q,w,e,r,t,y
+
+Seleccionar esfera que checa colisiones
+   0
+Mover esfera:
+   X: arriba, abajo, 
+   Z: izq, der, 
+   Y: pgup, pgdn
+
+Switches:
+ alpha:    a
+ smooth:   s
+ piel:     d
+ camisa:   f
+ capsulas: c
+ joints:   j
+ 
+Click derecho: menu con todos los switches
