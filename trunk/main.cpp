@@ -9,12 +9,17 @@
  *Monito Final Parte 1
 *******************************************/
 
-#include "mesh.h"
 #include <GL/glut.h>
 #include <stdlib.h>
 #include <math.h>
+//#include <stdio.h>
+//#include <map>
+#include <vector>
+#include <string>
 
-#define PI 3.1415926535
+#include "obj_parser.h"
+#include "objLoader.h"
+
 #define NUMVERT  27
 #define NUMCAPS  18
 #define NUMNODES 18
@@ -73,14 +78,21 @@ float jointsize = 0.3;
 GLUquadric* q = gluNewQuadric();
 
 //SWITCHES
+bool alphaswitch     = false;//true;
 bool smoothswitch    = true;
 bool capsuleswitch   = true;
-bool skinswitch      = false;//true;
-bool shirtswitch     = false;//true;
-bool gridswitch      = false;
-bool vertswitch      = false;
 bool jointswitch     = true;
-bool alphaswitch     = false;//true;
+
+bool skinvisswitch   = false;//true;
+bool skinvertswitch  = false;//true;
+bool shirtvisswitch  = false;//true;
+bool shirtvertswitch = false;//true;
+//bool pantsvisswitch     = true;
+//bool pantsvertswitch     = true;
+bool gridswitch      = false;
+
+
+
 
 bool mouseDown = false;
 
@@ -92,8 +104,11 @@ float ydiff = 0.0f;
 
 float zoom = 12.0;
 
-mesh *skinobject;
-mesh *shirtobject;
+//mesh *skinobject;
+//mesh *shirtobject;
+objLoader *skindata;
+objLoader *shirtdata;
+//objLoader *pantsdata;
 
 typedef struct vertex{
     float x, y, z;
@@ -114,6 +129,7 @@ typedef struct capsule{
     vertex *v1;
     vertex *v2;
     float r;
+    //capsule *sib;
     char name[16];
 } capsule;
 
@@ -141,15 +157,18 @@ GLfloat bodypos[16];
 capsule testcap;
 
 void initSkin(){
-     skinobject = new mesh("cuerpob.obj");
+    skindata = new objLoader();
+    skindata->load("cuerpob.obj");
 }
 
 void initShirt(){
-     shirtobject = new mesh("camisab.obj");
+     shirtdata = new objLoader();
+     shirtdata->load("camisab.obj");
 }
 
 //void initPants(){
-//     shirtobject = new mesh("pantsb.obj");
+//     pantsdata = new objLoader();
+//     pantsdata->load("pantsb.obj");
 //}
 
 float vertDistance(vertex *v1, vertex *v2){
@@ -304,8 +323,18 @@ void initVertices(){
     chestc1v.y = chestc2v.y   = 1.2;
     chestc1v.z = chestc2v.z   = 0;
     
+    //waistl1v.x = -(waistr1v.x = -0.5);
+//    waistl1v.y = waistr1v.y   = 0.3;
+//    waistl1v.z = waistr1v.z   = 0;
+//    waistl2v.x = -(waistr2v.x = -0.5);
+//    waistl2v.y = waistr2v.y   = 0.3;
+//    waistl2v.z = waistr2v.z   = 0;
+//    chestlv.x = -(chestc2v.x = -0.5);
+//    chestlv.y = chestc2v.y   = 1.2;
+//    chestlv.z = chestc2v.z   = 0;
+    
     neckv.x = 0;
-    neckv.y = 2.4;
+    neckv.y = 2.2;
     neckv.z = 0;
     headv.x = 0;
     headv.y = 2.9;
@@ -843,47 +872,53 @@ void reshape(int w, int h){
    gluPerspective(45.0, (GLdouble)w/(GLdouble)h, 1.0, 100.0) ;
 }
 
-void drawVert(){
+void drawVert(objLoader *object){
      glPointSize(10);
      int i;
+     obj_face *o_f;
      glBegin(GL_POINTS);
-     for(i=0; i<skinobject->vTotal; i++)
-             glVertex3fv(skinobject->vList[i].ptr);
-     for(i=0; i<shirtobject->vTotal; i++)
-             glVertex3fv(shirtobject->vList[i].ptr);
+         for(i=0; i<object->faceCount; i++){
+              o_f = object->faceList[i];
+              glNormal3dv(object->normalList[o_f->normal_index[0]]->e);
+              glVertex3dv(object->vertexList[o_f->vertex_index[0]]->e);
+         }
      glEnd();
 }
 
-void drawMesh(mesh *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
+void drawObject(objLoader *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
      glMaterialfv(GL_FRONT, GL_AMBIENT,   ambient);
      glMaterialfv(GL_FRONT, GL_DIFFUSE,   diffuse);
      glMaterialfv(GL_FRONT, GL_SPECULAR,  specular);
      glMaterialf(GL_FRONT,  GL_SHININESS, shininess);
-    	 
+   	 
+   	 obj_face *o_f;
      glBegin(GL_TRIANGLES);
+         ///calculate normals
          GLfloat normals[3];
          float ax, ay, az, bx, by, bz, nx, ny, nz, n;
-         for(int i = 0; i < object->fTotal; i++){
-             ax = object->vList[object->faceList[i][1].v].ptr[0] - object->vList[object->faceList[i][0].v].ptr[0];
-             ay = object->vList[object->faceList[i][1].v].ptr[1] - object->vList[object->faceList[i][0].v].ptr[1];
-             az = object->vList[object->faceList[i][1].v].ptr[2] - object->vList[object->faceList[i][0].v].ptr[2];
-             bx = object->vList[object->faceList[i][2].v].ptr[0] - object->vList[object->faceList[i][0].v].ptr[0];
-             by = object->vList[object->faceList[i][2].v].ptr[1] - object->vList[object->faceList[i][0].v].ptr[1];
-             bz = object->vList[object->faceList[i][2].v].ptr[2] - object->vList[object->faceList[i][0].v].ptr[2];
-             nx = ay*bz - az*by;
-             ny = az*bx - ax*bz;
-             nz = ax*by - ay*bx;
-             n = sqrt(nx*nx+ny*ny+nz*nz);
-             if (n != 0.0) {
-                n = 1.0/n;
-            	nx *= n; ny *= n; nz *= n;
-             }
-             normals[0] = nx;
-             normals[1] = ny;
-             normals[2] = nz;
+         for(int i = 0; i < object->faceCount; i++){
+             //ax = object->vertexList[object->faceList[i][1]].e[0] - object->vertexList[object->faceList[i][0]].e[0];
+//             ay = object->vertexList[object->faceList[i][1]].e[1] - object->vertexList[object->faceList[i][0]].e[1];
+//             az = object->vertexList[object->faceList[i][1]].e[2] - object->vertexList[object->faceList[i][0]].e[2];
+//             bx = object->vertexList[object->faceList[i][2]].e[0] - object->vertexList[object->faceList[i][0]].e[0];
+//             by = object->vertexList[object->faceList[i][2]].e[1] - object->vertexList[object->faceList[i][0]].e[1];
+//             bz = object->vertexList[object->faceList[i][2]].e[2] - object->vertexList[object->faceList[i][0]].e[2];
+//             nx = ay*bz - az*by;
+//             ny = az*bx - ax*bz;
+//             nz = ax*by - ay*bx;
+//             n = sqrt(nx*nx+ny*ny+nz*nz);
+//             if (n != 0.0) {
+//                n = 1.0/n;
+//            	nx *= n; ny *= n; nz *= n;
+//             }
+//             normals[0] = nx;
+//             normals[1] = ny;
+//             normals[2] = nz;
+             ///calc nor
+             o_f = object->faceList[i];
              for(int j=0; j<3; j++){
-                  glNormal3fv(normals);
-                  glVertex3fv(object->vList[object->faceList[i][j].v].ptr);
+                  glNormal3dv(object->normalList[o_f->normal_index[j]]->e);
+                  glVertex3dv(object->vertexList[o_f->vertex_index[j]]->e);
              }
          }
      glEnd();            
@@ -943,21 +978,33 @@ void display(){
         traverse(&waistn);
     glPopMatrix();  
     
-        if(skinswitch)
+        if(skinvisswitch)
             if(alphaswitch)
-                drawMesh(skinobject, zeroMaterial, pinkDiffuseAlpha, zeroMaterial, noShininess);
+                drawObject(skindata, zeroMaterial, pinkDiffuseAlpha, zeroMaterial, noShininess);
             else
-                drawMesh(skinobject, zeroMaterial, pinkDiffuse, zeroMaterial, noShininess);
+                drawObject(skindata, zeroMaterial, pinkDiffuse, zeroMaterial, noShininess);
                 
-        if(shirtswitch)
+        if(shirtvisswitch)
             if(alphaswitch)
-                drawMesh(shirtobject, zeroMaterial, blueDiffuseAlpha, zeroMaterial, noShininess);
+                drawObject(shirtdata, zeroMaterial, blueDiffuseAlpha, zeroMaterial, noShininess);
             else
-                drawMesh(shirtobject, zeroMaterial, blueDiffuse, zeroMaterial, noShininess);
-                
-        if(vertswitch)
-            drawVert();
-
+                drawObject(shirtdata, zeroMaterial, blueDiffuse, zeroMaterial, noShininess);
+        
+//        if(pantsvisswitch)
+//            if(alphaswitch)
+//                drawObject(pantsdata, zeroMaterial, pinkDiffuseAlpha, zeroMaterial, noShininess);
+//            else
+//                drawObject(pantsdata, zeroMaterial, pinkDiffuse, zeroMaterial, noShininess);
+        
+        glDisable(GL_LIGHTING);
+            glColor3f(0.7, 0.7, 0.7);
+            if(skinvertswitch)
+                drawVert(skindata);
+            if(shirtvertswitch)
+                drawVert(shirtdata);
+            //if(vertswitch)
+                //drawVert(pantsdata);
+        glEnable(GL_LIGHTING);
    	glutSwapBuffers();
 }
 
@@ -991,19 +1038,15 @@ void key(unsigned char c, int x, int y){
                 glutPostRedisplay();
      }
      if(c=='d'){
-                skinswitch = !skinswitch;
+                skinvisswitch = !skinvisswitch;
                 glutPostRedisplay();
      }
      if(c=='f'){
-                shirtswitch = !shirtswitch;
+                shirtvisswitch = !shirtvisswitch;
                 glutPostRedisplay();
      }
      if(c=='c'){
                 capsuleswitch = !capsuleswitch;
-                glutPostRedisplay();
-     }
-     if(c=='v'){
-                vertswitch = !vertswitch;
                 glutPostRedisplay();
      }
      if(c=='a'){
@@ -1229,6 +1272,73 @@ void mouseMotion(int x, int y){
     }
 }
 
+void processMenu(int val){
+	switch(val){
+        case 1:
+             alphaswitch = !alphaswitch;
+             break;
+        case 2:
+             smoothswitch = !smoothswitch;
+             break;
+        case 3:
+             capsuleswitch = !capsuleswitch;
+             break;
+        case 4:
+             jointswitch = !jointswitch;
+             break;
+        case 11:
+             skinvisswitch = !skinvisswitch;
+             break;
+        case 12:
+             skinvertswitch = !skinvertswitch;
+             break;
+        case 21:
+             shirtvisswitch = !shirtvisswitch;
+             break;
+        case 22:
+             shirtvertswitch = !shirtvertswitch;
+             break;
+        //case 31:
+//             pantsvisswitch = !pantsvisswitch;
+//             break;
+//        case 32:
+//             pantsvertswitch = !pantsvertswitch;
+//             break;
+        case 0:
+             exit(0);
+    }
+    glutPostRedisplay();
+}
+
+int initMenus(){
+	int mainMenu, skinMenu, shirtMenu;//,pantsMenu;
+	mainMenu = glutCreateMenu(processMenu);
+	skinMenu = glutCreateMenu(processMenu);
+	shirtMenu = glutCreateMenu(processMenu);
+	//pantsMenu = glutCreateMenu(processMenu);
+	glutSetMenu(mainMenu);
+	glutAddSubMenu("Skin", skinMenu);
+	glutAddSubMenu("Shirt", shirtMenu);
+	//glutAddSubMenu("Pants", pantsMenu);
+	glutAddMenuEntry("Toggle Alpha",              1);
+	glutAddMenuEntry("Toggle Smooth",             2);
+	glutAddMenuEntry("Toggle Capsule Visibility", 3);
+	glutAddMenuEntry("Toggle Joint Visibility",   4);
+	glutAddMenuEntry("Quit", 0);
+	glutSetMenu(skinMenu);
+	glutAddMenuEntry("Toggle Visibility",        11);
+	glutAddMenuEntry("Toggle Vertex Visibility", 12);
+	glutSetMenu(shirtMenu);
+	glutAddMenuEntry("Toggle Visibility",        21);
+	glutAddMenuEntry("Toggle Vertex Visibility", 22);
+	//glutSetMenu(pantsMenu);
+//	glutAddMenuEntry("Toggle Visibility",        31);
+//	glutAddMenuEntry("Toggle Vertex Visibility", 32);
+	glutSetMenu(mainMenu);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
 int main(int argc, char **argv)
 {
   int mode = GLUT_RGB|GLUT_DOUBLE|GLUT_DEPTH;   // Modo de despliegue: Colores RGB, Doble buffer para despliegue
@@ -1244,6 +1354,7 @@ int main(int argc, char **argv)
   glutSpecialFunc(special);
   
   init();
+  initMenus();
   initSkin();
   initShirt();
   //initPants();
