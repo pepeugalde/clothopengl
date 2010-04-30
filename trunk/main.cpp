@@ -6,7 +6,7 @@
  *Jorge Dorantes 1011377
  *Enrique Peña 1162110
  *
- *Monito Final Parte 1
+ *Monito Final
 *******************************************/
 
 #include <GL/glut.h>
@@ -19,6 +19,7 @@
 
 #include "obj_parser.h"
 #include "objLoader.h"
+#include "structs.h"
 
 #define NUMVERT  27
 #define NUMCAPS  18
@@ -85,7 +86,7 @@ bool jointswitch     = true;
 
 bool skinvisswitch   = false;//true;
 bool skinvertswitch  = false;//true;
-bool shirtvisswitch  = false;//true;
+bool shirtvisswitch  = true;
 bool shirtvertswitch = false;//true;
 //bool pantsvisswitch     = true;
 //bool pantsvertswitch     = true;
@@ -104,50 +105,20 @@ float ydiff = 0.0f;
 
 float zoom = 12.0;
 
-//mesh *skinobject;
-//mesh *shirtobject;
 objLoader *skindata;
 objLoader *shirtdata;
 //objLoader *pantsdata;
 
-typedef struct vertex{
-    float x, y, z;
-    bool hasmoved;
-} vertex;
-
-vertex waistv, chestv, neckv, headv, headtopv,
-       rshoulderv, ruarmv, rlarmv, rhandv, rhandtopv, lshoulderv, luarmv, llarmv, lhandv, lhandtopv,
-       rulegv, rllegv, rfootv, rfoottopv, lulegv, lllegv, lfootv, lfoottopv, 
-       waistc1v, waistc2v, chestc1v, chestc2v;
-
-vertex *vertices[NUMVERT];
+bodyvertex waistbv, chestbv, neckbv, headbv, headtopbv, 
+       rshoulderbv, ruarmbv, rlarmbv, rhandbv, rhandtopbv, lshoulderbv, luarmbv, llarmbv, lhandbv, lhandtopbv, 
+       rulegbv, rllegbv, rfootbv, rfoottopbv, lulegbv, lllegbv, lfootbv, lfoottopbv, 
+       waistc1bv, waistc2bv, chestc1bv, chestc2bv;
 //
-vertex testvert;
+Vec3 testvert;
 //
-
-typedef struct capsule{
-    vertex *v1;
-    vertex *v2;
-    float r;
-    //capsule *sib;
-    char name[16];
-} capsule;
 
 capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
         chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
-
-capsule *caps[NUMCAPS];
-
-typedef struct treenode{
-    capsule *cap;
-    int id;
-    //GLfloat m[16];
-    vertex *v1;
-    vertex *v2;
-    struct treenode *sibling;
-    struct treenode *child;
-    
-} treenode;
 
 treenode headn, neckn, rshouldern, lshouldern, ruarmn, luarmn, rlarmn, llarmn, rhandn, lhandn,
          chestn, waistn, rulegn, lulegn, rllegn, lllegn, rfootn, lfootn;
@@ -156,23 +127,16 @@ GLfloat bodypos[16];
 
 capsule testcap;
 
-void initSkin(){
-    skindata = new objLoader();
-    skindata->load("cuerpob.obj");
-}
+bodyvertex   *bodyverts[NUMVERT];
+capsule  *caps[NUMCAPS];
+particle *particles;
 
-void initShirt(){
-     shirtdata = new objLoader();
-     shirtdata->load("camisab.obj");
-}
 
-//void initPants(){
-//     pantsdata = new objLoader();
-//     pantsdata->load("pantsb.obj");
-//}
 
-float vertDistance(vertex *v1, vertex *v2){
-    return sqrt(pow((v1->x-v2->x),2) + pow((v1->y-v2->y),2) + pow((v1->z-v2->z),2));
+//----------------------------------------------
+
+float vDistance(Vec3 *v1, Vec3 *v2){
+    return sqrt(pow((v1->f[0]-v2->f[0]),2) + pow((v1->f[1]-v2->f[1]),2) + pow((v1->f[2]-v2->f[2]),2));
 }
 
 float distance3d(float x1,float y1,float z1,float x2,float y2,float z2){
@@ -183,7 +147,7 @@ float distance2d(float x1,float y1,float x2,float y2){
     return sqrt(pow((x1-x2),2) + pow((y1-y2),2));
 }
 
-void drawJoint(vertex *v, int id){
+void drawJoint(Vec3 *v, int id){
      if(id == segselect){
          glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
     	 if(alphaswitch)
@@ -202,7 +166,7 @@ void drawJoint(vertex *v, int id){
     	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
      }
      glPushMatrix();
-         glTranslatef(v->x,v->y,v->z);
+         glTranslatef(v->f[0],v->f[1],v->f[2]);
          glutSolidSphere(jointsize,10,10);
      glPopMatrix();
      
@@ -211,16 +175,16 @@ void drawJoint(vertex *v, int id){
 void drawCapsule(capsule *cap){
 //     glLineWidth(5);
 //     glBegin(GL_LINES);
-//         glVertex3f(cap->v1->x,cap->v1->y,cap->v1->z);
-//         glVertex3f(cap->v2->x,cap->v2->y,cap->v2->z);
+//         glVertex3f(cap->v1->f[0],cap->v1->f[1],cap->v1->f[2]);
+//         glVertex3f(cap->v2->f[0],cap->v2->f[1],cap->v2->f[2]);
 //     glEnd();
      
-     float d = distance3d(cap->v1->x, cap->v1->y, cap->v1->z, 
-                          cap->v2->x, cap->v2->y, cap->v2->z);
+     float d = distance3d(cap->bv1->v.f[0], cap->bv1->v.f[1], cap->bv1->v.f[2], 
+                          cap->bv2->v.f[0], cap->bv2->v.f[1], cap->bv2->v.f[2]);
      
-     float vx = cap->v2->x - cap->v1->x;
-     float vy = cap->v2->y - cap->v1->y;
-     float vz = cap->v2->z - cap->v1->z;
+     float vx = cap->bv2->v.f[0] - cap->bv1->v.f[0];
+     float vy = cap->bv2->v.f[1] - cap->bv1->v.f[1];
+     float vz = cap->bv2->v.f[2] - cap->bv1->v.f[2];
      
      //handle the degenerate case of z1 == z2 with an approximation
      if(vz == 0)
@@ -242,11 +206,11 @@ void drawCapsule(capsule *cap){
   	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
   	 
      glPushMatrix();
-         glTranslatef(cap->v2->x, cap->v2->y, cap->v2->z);
+         glTranslatef(cap->bv2->v.f[0], cap->bv2->v.f[1], cap->bv2->v.f[2]);
          glutSolidSphere(cap->r,10,10);
      glPopMatrix();
      glPushMatrix();
-         glTranslatef(cap->v1->x, cap->v1->y, cap->v1->z);
+         glTranslatef(cap->bv1->v.f[0], cap->bv1->v.f[1], cap->bv1->v.f[2]);
          glutSolidSphere(cap->r,10,10);
          glRotatef(ax, rx, ry, 0.0);
          gluCylinder(q, cap->r, cap->r, d, 20, 1);
@@ -304,163 +268,201 @@ void drawGrid(){
 
 void initVertices(){
     //
-    testvert.x = testx;
-    testvert.y = testy;
-    testvert.z = testz;
+    testvert.f[0] = testx;
+    testvert.f[1] = testy;
+    testvert.f[2] = testz;
     //
-     
-    waistv.x = 0;
-    waistv.y = -0.4;
-    waistv.z = 0;
-    chestv.x = 0;
-    chestv.y = 0.6;
-    chestv.z = 0;
+    Vec3 waistv, chestv, neckv, headv, headtopv, 
+     rshoulderv, ruarmv, rlarmv, rhandv, rhandtopv, lshoulderv, luarmv, llarmv, lhandv, lhandtopv, 
+     rulegv, rllegv, rfootv, rfoottopv, lulegv, lllegv, lfootv, lfoottopv, 
+     waistc1v, waistc2v, chestc1v, chestc2v;
     
-    waistc1v.x = -(waistc2v.x = -0.5);
-    waistc1v.y = waistc2v.y   = 0.3;
-    waistc1v.z = waistc2v.z   = 0;
-    chestc1v.x = -(chestc2v.x = -0.5);
-    chestc1v.y = chestc2v.y   = 1.2;
-    chestc1v.z = chestc2v.z   = 0;
+    waistv.f[0] = 0;
+    waistv.f[1] = -0.4;
+    waistv.f[2] = 0;
+    waistbv.v = waistv;
     
-    //waistl1v.x = -(waistr1v.x = -0.5);
-//    waistl1v.y = waistr1v.y   = 0.3;
-//    waistl1v.z = waistr1v.z   = 0;
-//    waistl2v.x = -(waistr2v.x = -0.5);
-//    waistl2v.y = waistr2v.y   = 0.3;
-//    waistl2v.z = waistr2v.z   = 0;
-//    chestlv.x = -(chestc2v.x = -0.5);
-//    chestlv.y = chestc2v.y   = 1.2;
-//    chestlv.z = chestc2v.z   = 0;
+    chestv.f[0] = 0;
+    chestv.f[1] = 0.6;
+    chestv.f[2] = 0;
+    chestbv.v = chestv;
     
-    neckv.x = 0;
-    neckv.y = 2.2;
-    neckv.z = 0;
-    headv.x = 0;
-    headv.y = 2.9;
-    headv.z = 0;
-    headtopv.x = 0;
-    headtopv.y = 3.3;
-    headtopv.z = 0;
+    waistc1v.f[0] = -(waistc2v.f[0] = -0.5);
+    waistc1v.f[1] = waistc2v.f[1]   = 0.3;
+    waistc1v.f[2] = waistc2v.f[2]   = 0;
+    waistc1bv.v = waistc1v;
+    waistc2bv.v = waistc2v;
+    chestc1v.f[0] = -(chestc2v.f[0] = -0.5);
+    chestc1v.f[1] = chestc2v.f[1]   = 1.2;
+    chestc1v.f[2] = chestc2v.f[2]   = 0;
+    chestc1bv.v = chestc1v;
+    chestc2bv.v = chestc2v;
     
-    rshoulderv.x = -(lshoulderv.x = -0.4);
-    rshoulderv.y = lshoulderv.y   = 2.05;
-    rshoulderv.z = lshoulderv.z   = 0;
-    ruarmv.x = -(luarmv.x = -1.15);
-    ruarmv.y = luarmv.y   = 1.7;
-    ruarmv.z = luarmv.z   = 0;
-    rlarmv.x = -(llarmv.x = -1.3);
-    rlarmv.y = llarmv.y   = 0.3;
-    rlarmv.z = llarmv.z   = -0.05;
-    rhandv.x = -(lhandv.x = -1.25);
-    rhandv.y = lhandv.y   = -0.8;
-    rhandv.z = lhandv.z   = 0;
-    rhandtopv.x = -(lhandtopv.x = -1.2);
-    rhandtopv.y = lhandtopv.y   = -1.5;
-    rhandtopv.z = lhandtopv.z   = 0;
+    //waistl1v.f[0] = -(waistr1v.f[0] = -0.5);
+//    waistl1v.f[1] = waistr1v.f[1]   = 0.3;
+//    waistl1v.f[2] = waistr1v.f[2]   = 0;
+//    bv.v = v;
+//    waistl2v.f[0] = -(waistr2v.f[0] = -0.5);
+//    waistl2v.f[1] = waistr2v.f[1]   = 0.3;
+//    waistl2v.f[2] = waistr2v.f[2]   = 0;
+//    bv.v = v;
+//    chestlv.f[0] = -(chestc2v.f[0] = -0.5);
+//    chestlv.f[1] = chestc2v.f[1]   = 1.2;
+//    chestlv.f[2] = chestc2v.f[2]   = 0;
+//    bv.v = v;
+
+    neckv.f[0] = 0;
+    neckv.f[1] = 2.2;
+    neckv.f[2] = 0;
+    neckbv.v = neckv;
     
-    rulegv.x = -(lulegv.x = -0.5);
-    rulegv.y = lulegv.y   = -0.4;
-    rulegv.z = lulegv.z   = 0;
-    rllegv.x = -(lllegv.x = -0.45);
-    rllegv.y = lllegv.y   = -2.4;
-    rllegv.z = lllegv.z   = 0.05;
-    rfootv.x = -(lfootv.x = -0.45);
-    rfootv.y = lfootv.y   = -4.35;
-    rfootv.z = lfootv.z   = 0;
-    rfoottopv.x = -(lfoottopv.x = -0.45);
-    rfoottopv.y = lfoottopv.y   = -4.35;
-    rfoottopv.z = lfoottopv.z   = 0.7;
+    headv.f[0] = 0;
+    headv.f[1] = 2.9;
+    headv.f[2] = 0;
+    headbv.v = headv;
     
-    vertices[0] = &waistv;
-    vertices[1] = &chestv;
-    vertices[2] = &neckv;
-    vertices[3] = &headv;
-    vertices[4] = &headtopv;
-    vertices[5] = &rshoulderv;
-    vertices[6] = &ruarmv;
-    vertices[7] = &rlarmv;
-    vertices[8] = &rhandv;
-    vertices[9] = &rhandtopv;
-    vertices[10] = &lshoulderv;
-    vertices[11] = &luarmv;
-    vertices[12] = &llarmv;
-    vertices[13] = &lhandv;
-    vertices[14] = &lhandtopv;
-    vertices[15] = &rulegv;
-    vertices[16] = &rllegv;
-    vertices[17] = &rfootv;
-    vertices[18] = &rfoottopv;
-    vertices[19] = &lulegv;
-    vertices[20] = &lllegv;
-    vertices[21] = &lfootv;
-    vertices[22] = &lfoottopv;
-    vertices[23] = &waistc1v;
-    vertices[24] = &waistc2v;
-    vertices[25] = &chestc1v;
-    vertices[26] = &chestc2v;
+    headtopv.f[0] = 0;
+    headtopv.f[1] = 3.3;
+    headtopv.f[2] = 0;
+    headtopbv.v = headtopv;
+    
+    rshoulderv.f[0] = -(lshoulderv.f[0] = -0.4);
+    rshoulderv.f[1] = lshoulderv.f[1]   = 2.05;
+    rshoulderv.f[2] = lshoulderv.f[2]   = 0;
+    rshoulderbv.v = rshoulderv;
+    lshoulderbv.v = lshoulderv;
+    ruarmv.f[0] = -(luarmv.f[0] = -1.15);
+    ruarmv.f[1] = luarmv.f[1]   = 1.7;
+    ruarmv.f[2] = luarmv.f[2]   = 0;
+    ruarmbv.v = ruarmv;
+    luarmbv.v = luarmv;
+    rlarmv.f[0] = -(llarmv.f[0] = -1.3);
+    rlarmv.f[1] = llarmv.f[1]   = 0.3;
+    rlarmv.f[2] = llarmv.f[2]   = -0.05;
+    rlarmbv.v = rlarmv;
+    llarmbv.v = llarmv;
+    rhandv.f[0] = -(lhandv.f[0] = -1.25);
+    rhandv.f[1] = lhandv.f[1]   = -0.8;
+    rhandv.f[2] = lhandv.f[2]   = 0;
+    rhandbv.v = rhandv;
+    lhandbv.v = lhandv;
+    rhandtopv.f[0] = -(lhandtopv.f[0] = -1.2);
+    rhandtopv.f[1] = lhandtopv.f[1]   = -1.5;
+    rhandtopv.f[2] = lhandtopv.f[2]   = 0;
+    rhandtopbv.v = rhandtopv;
+    lhandtopbv.v = lhandtopv;
+    
+    rulegv.f[0] = -(lulegv.f[0] = -0.5);
+    rulegv.f[1] = lulegv.f[1]   = -0.4;
+    rulegv.f[2] = lulegv.f[2]   = 0;
+    rulegbv.v = rulegv;
+    lulegbv.v = lulegv;
+    rllegv.f[0] = -(lllegv.f[0] = -0.45);
+    rllegv.f[1] = lllegv.f[1]   = -2.4;
+    rllegv.f[2] = lllegv.f[2]   = 0.05;
+    rllegbv.v = rllegv;
+    lllegbv.v = lllegv;
+    rfootv.f[0] = -(lfootv.f[0] = -0.45);
+    rfootv.f[1] = lfootv.f[1]   = -4.35;
+    rfootv.f[2] = lfootv.f[2]   = 0;
+    rfootbv.v = rfootv;
+    lfootbv.v = lfootv;
+    rfoottopv.f[0] = -(lfoottopv.f[0] = -0.45);
+    rfoottopv.f[1] = lfoottopv.f[1]   = -4.35;
+    rfoottopv.f[2] = lfoottopv.f[2]   = 0.7;
+    rfoottopbv.v = rfoottopv;
+    lfoottopbv.v = lfoottopv;
+    
+    bodyverts[0] = &waistbv;
+    bodyverts[1] = &chestbv;
+    bodyverts[2] = &neckbv;
+    bodyverts[3] = &headbv;
+    bodyverts[4] = &headtopbv;
+    bodyverts[5] = &rshoulderbv;
+    bodyverts[6] = &ruarmbv;
+    bodyverts[7] = &rlarmbv;
+    bodyverts[8] = &rhandbv;
+    bodyverts[9] = &rhandtopbv;
+    bodyverts[10] = &lshoulderbv;
+    bodyverts[11] = &luarmbv;
+    bodyverts[12] = &llarmbv;
+    bodyverts[13] = &lhandbv;
+    bodyverts[14] = &lhandtopbv;
+    bodyverts[15] = &rulegbv;
+    bodyverts[16] = &rllegbv;
+    bodyverts[17] = &rfootbv;
+    bodyverts[18] = &rfoottopbv;
+    bodyverts[19] = &lulegbv;
+    bodyverts[20] = &lllegbv;
+    bodyverts[21] = &lfootbv;
+    bodyverts[22] = &lfoottopbv;
+    bodyverts[23] = &waistc1bv;
+    bodyverts[24] = &waistc2bv;
+    bodyverts[25] = &chestc1bv;
+    bodyverts[26] = &chestc2bv;
+
 }
 
 void initCapsules(){
-    waistc.v1 = &waistc1v;
-    waistc.v2 = &waistc2v;
+    waistc.bv1 = &waistc1bv;
+    waistc.bv2 = &waistc2bv;
     waistc.r = 0.35;
-    chestc.v1 = &chestc1v;
-    chestc.v2 = &chestc2v;
+    chestc.bv1 = &chestc1bv;
+    chestc.bv2 = &chestc2bv;
     chestc.r = 0.4;
     
     
-    neckc.v1 = &neckv;
-    neckc.v2 = &headv;
+    neckc.bv1 = &neckbv;
+    neckc.bv2 = &headbv;
     neckc.r = 0.25;
-    headc.v1 = &headv;
-    headc.v2 = &headtopv;
+    headc.bv1 = &headbv;
+    headc.bv2 = &headtopbv;
     headc.r = 0.4;
     
-    rshoulderc.v1 = &rshoulderv;
-    rshoulderc.v2 = &ruarmv;
+    rshoulderc.bv1 = &rshoulderbv;
+    rshoulderc.bv2 = &ruarmbv;
     rshoulderc.r = 0.3;
-    ruarmc.v1 = &ruarmv;
-    ruarmc.v2 = &rlarmv;
+    ruarmc.bv1 = &ruarmbv;
+    ruarmc.bv2 = &rlarmbv;
     ruarmc.r = 0.2;
-    rlarmc.v1 = &rlarmv;
-    rlarmc.v2 = &rhandv;
+    rlarmc.bv1 = &rlarmbv;
+    rlarmc.bv2 = &rhandbv;
     rlarmc.r = 0.15;
-    rhandc.v1 = &rhandv;
-    rhandc.v2 = &rhandtopv;
+    rhandc.bv1 = &rhandbv;
+    rhandc.bv2 = &rhandtopbv;
     rhandc.r = 0.1;
     
-    lshoulderc.v1 = &lshoulderv;
-    lshoulderc.v2 = &luarmv;
+    lshoulderc.bv1 = &lshoulderbv;
+    lshoulderc.bv2 = &luarmbv;
     lshoulderc.r = 0.3;
-    luarmc.v1 = &luarmv;
-    luarmc.v2 = &llarmv;
+    luarmc.bv1 = &luarmbv;
+    luarmc.bv2 = &llarmbv;
     luarmc.r = 0.2;
-    llarmc.v1 = &llarmv;
-    llarmc.v2 = &lhandv;
+    llarmc.bv1 = &llarmbv;
+    llarmc.bv2 = &lhandbv;
     llarmc.r = 0.15;
-    lhandc.v1 = &lhandv;
-    lhandc.v2 = &lhandtopv;
+    lhandc.bv1 = &lhandbv;
+    lhandc.bv2 = &lhandtopbv;
     lhandc.r = 0.1;
     
-    rulegc.v1 = &rulegv;
-    rulegc.v2 = &rllegv;
+    rulegc.bv1 = &rulegbv;
+    rulegc.bv2 = &rllegbv;
     rulegc.r = 0.3;
-    rllegc.v1 = &rllegv;
-    rllegc.v2 = &rfootv;
+    rllegc.bv1 = &rllegbv;
+    rllegc.bv2 = &rfootbv;
     rllegc.r = 0.2;
-    rfootc.v1 = &rfootv;
-    rfootc.v2 = &rfoottopv;
+    rfootc.bv1 = &rfootbv;
+    rfootc.bv2 = &rfoottopbv;
     rfootc.r = 0.1;
     
-    lulegc.v1 = &lulegv;
-    lulegc.v2 = &lllegv;
+    lulegc.bv1 = &lulegbv;
+    lulegc.bv2 = &lllegbv;
     lulegc.r = 0.3;
-    lllegc.v1 = &lllegv;
-    lllegc.v2 = &lfootv;
+    lllegc.bv1 = &lllegbv;
+    lllegc.bv2 = &lfootbv;
     lllegc.r = 0.2;
-    lfootc.v1 = &lfootv;
-    lfootc.v2 = &lfoottopv;
+    lfootc.bv1 = &lfootbv;
+    lfootc.bv2 = &lfoottopbv;
     lfootc.r = 0.1;
     
     caps[0] = &waistc;
@@ -495,8 +497,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0.0,-0.4,0.0);
     waistn.cap = &waistc;
-    waistn.v1 = &waistv;
-    waistn.v2 = &chestv;
+    waistn.bv1 = &waistbv;
+    waistn.bv2 = &chestbv;
     waistn.id = 1;
     waistn.sibling = &rulegn;
     waistn.child = &chestn;
@@ -505,8 +507,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0,1.0,0.0);
     chestn.cap = &chestc;
-    chestn.v1 = &chestv;
-    chestn.v2 = &neckv;
+    chestn.bv1 = &chestbv;
+    chestn.bv2 = &neckbv;
     chestn.id = 16;
     chestn.sibling = NULL;
     chestn.child = &neckn;
@@ -515,8 +517,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0.0,1.8,0.0);
     neckn.cap = &neckc;
-    neckn.v1 = &neckv;
-    neckn.v2 = &headv;
+    neckn.bv1 = &neckbv;
+    neckn.bv2 = &headbv;
     neckn.id = 2;
     neckn.sibling = &rshouldern;
     neckn.child = &headn;
@@ -525,8 +527,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0.0,0.5,0.0);
     headn.cap = &headc;
-    headn.v1 = &headv;
-    headn.v2 = &headtopv;
+    headn.bv1 = &headbv;
+    headn.bv2 = &headtopbv;
     headn.id = 3;
     headn.sibling = NULL;
     headn.child = NULL;
@@ -535,8 +537,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(-0.4,1.45,0.0);
     rshouldern.cap = &rshoulderc;
-    rshouldern.v1 = &rshoulderv;
-    rshouldern.v2 = &ruarmv;
+    rshouldern.bv1 = &rshoulderbv;
+    rshouldern.bv2 = &ruarmbv;
     rshouldern.id = 17;
     rshouldern.sibling = &lshouldern;
     rshouldern.child = &ruarmn;
@@ -545,8 +547,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(-0.85,-0.35,0.0);
     ruarmn.cap = &ruarmc;
-    ruarmn.v1 = &ruarmv;
-    ruarmn.v2 = &rlarmv;
+    ruarmn.bv1 = &ruarmbv;
+    ruarmn.bv2 = &rlarmbv;
     ruarmn.id = 4;
     ruarmn.sibling = NULL;
     ruarmn.child = &rlarmn;
@@ -555,8 +557,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(-0.05,-1.3,-0.05);
     rlarmn.cap = &rlarmc;
-    rlarmn.v1 = &rlarmv;
-    rlarmn.v2 = &rhandv;
+    rlarmn.bv1 = &rlarmbv;
+    rlarmn.bv2 = &rhandbv;
     rlarmn.id = 5;
     rlarmn.sibling = NULL;        
     rlarmn.child = &rhandn;
@@ -565,8 +567,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0.05,-1.3,0.05);
     rhandn.cap = &rhandc;
-    rhandn.v1 = &rhandv;
-    rhandn.v2 = &rhandtopv;
+    rhandn.bv1 = &rhandbv;
+    rhandn.bv2 = &rhandtopbv;
     rhandn.id = 6;
     rhandn.sibling = NULL;        
     rhandn.child = NULL;
@@ -575,8 +577,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0.4,1.45,0.0);
     lshouldern.cap = &lshoulderc;
-    lshouldern.v1 = &lshoulderv;
-    lshouldern.v2 = &luarmv;
+    lshouldern.bv1 = &lshoulderbv;
+    lshouldern.bv2 = &luarmbv;
     lshouldern.id = 17;
     lshouldern.sibling = NULL;
     lshouldern.child = &luarmn;
@@ -585,8 +587,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0.85,-0.35,0.0);
     luarmn.cap = &luarmc;
-    luarmn.v1 = &luarmv;
-    luarmn.v2 = &llarmv;
+    luarmn.bv1 = &luarmbv;
+    luarmn.bv2 = &llarmbv;
     luarmn.id = 7;
     luarmn.sibling = NULL;
     luarmn.child = &llarmn;
@@ -596,8 +598,8 @@ void initNodes(){
     glTranslatef(0.05,-1.3,-0.05);
 
     llarmn.cap = &llarmc;
-    llarmn.v1 = &llarmv;
-    llarmn.v2 = &lhandv;
+    llarmn.bv1 = &llarmbv;
+    llarmn.bv2 = &lhandbv;
     llarmn.id = 8;
     llarmn.sibling = NULL;        
     llarmn.child = &lhandn;
@@ -606,8 +608,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(-0.05,-1.3,0.05);
     lhandn.cap = &lhandc;
-    lhandn.v1 = &lhandv;
-    lhandn.v2 = &lhandtopv;
+    lhandn.bv1 = &lhandbv;
+    lhandn.bv2 = &lhandtopbv;
     lhandn.id = 9;
     lhandn.sibling = NULL;        
     lhandn.child = NULL;
@@ -616,8 +618,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(-0.5,-0.4,0.0);
     rulegn.cap = &rulegc;
-    rulegn.v1 = &rulegv;
-    rulegn.v2 = &rllegv;
+    rulegn.bv1 = &rulegbv;
+    rulegn.bv2 = &rllegbv;
     rulegn.id = 10;
     rulegn.sibling = &lulegn;       
     rulegn.child = &rllegn; 
@@ -626,8 +628,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0.05,-2,0.0);
     rllegn.cap = &rllegc;
-    rllegn.v1 = &rllegv;
-    rllegn.v2 = &rfootv;
+    rllegn.bv1 = &rllegbv;
+    rllegn.bv2 = &rfootbv;
     rllegn.id = 11;
     rllegn.sibling = NULL;
     rllegn.child = &rfootn;
@@ -636,8 +638,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0,-2,0);
     rfootn.cap = &rfootc;
-    rfootn.v1 = &rfootv;
-    rfootn.v2 = &rfoottopv;
+    rfootn.bv1 = &rfootbv;
+    rfootn.bv2 = &rfoottopbv;
     rfootn.id = 12;
     rfootn.sibling = NULL;
     rfootn.child = NULL;
@@ -646,8 +648,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0.5,-0.4,0.0);
     lulegn.cap = &lulegc;
-    lulegn.v1 = &lulegv;
-    lulegn.v2 = &lllegv;
+    lulegn.bv1 = &lulegbv;
+    lulegn.bv2 = &lllegbv;
     lulegn.id = 13;
     lulegn.sibling = NULL;       
     lulegn.child = &lllegn;                      
@@ -656,8 +658,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(-0.05,-2,0.0);
     lllegn.cap = &lllegc;
-    lllegn.v1 = &lllegv;
-    lllegn.v2 = &lfootv;
+    lllegn.bv1 = &lllegbv;
+    lllegn.bv2 = &lfootbv;
     lllegn.id = 14;
     lllegn.sibling = NULL;        
     lllegn.child = &lfootn;
@@ -666,8 +668,8 @@ void initNodes(){
     glLoadIdentity();
     glTranslatef(0,-2,0);
     lfootn.cap = &lfootc;
-    lfootn.v1 = &lfootv;
-    lfootn.v2 = &lfoottopv;
+    lfootn.bv1 = &lfootbv;
+    lfootn.bv2 = &lfoottopbv;
     lfootn.id = 15;
     lfootn.sibling = NULL;        
     lfootn.child = NULL;
@@ -707,35 +709,35 @@ void init(){
 	glEnable(GL_NORMALIZE);
 }
 
-float colDetect(capsule *cap, vertex *h){
+float colDetect(capsule *cap, Vec3 *h){
        
     float D[3];
-    D[0] = h->x - cap->v1->x;
-    D[1] = h->y - cap->v1->y;
-    D[2] = h->z - cap->v1->z;
+    D[0] = h->f[0] - cap->bv1->v.f[0];
+    D[1] = h->f[1] - cap->bv1->v.f[1];
+    D[2] = h->f[2] - cap->bv1->v.f[2];
 
     float C[3];
-    C[0] = (cap->v1->x + cap->v2->x)/2;
-    C[1] = (cap->v1->y + cap->v2->y)/2;
-    C[2] = (cap->v1->z + cap->v2->z)/2;
+    C[0] = (cap->bv1->v.f[0] + cap->bv2->v.f[0])/2;
+    C[1] = (cap->bv1->v.f[1] + cap->bv2->v.f[1])/2;
+    C[2] = (cap->bv1->v.f[2] + cap->bv2->v.f[2])/2;
     
     float A[3];
-    A[0] = (cap->v2->x - cap->v1->x) / (sqrt((cap->v2->x - cap->v1->x)*(cap->v2->x - cap->v1->x) + (cap->v2->y - cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
-    A[1] = (cap->v2->y - cap->v1->y) / (sqrt((cap->v2->x - cap->v1->x)*(cap->v2->x - cap->v1->x) + (cap->v2->y - cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
-    A[2] = (cap->v2->z - cap->v1->z) / (sqrt((cap->v2->x - cap->v1->x)*(cap->v2->x - cap->v1->x) + (cap->v2->y - cap->v1->y) * (cap->v2->y-cap->v1->y) + (cap->v2->z-cap->v1->z) * (cap->v2->z-cap->v1->z)));
+    A[0] = (cap->bv2->v.f[0] - cap->bv1->v.f[0]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
+    A[1] = (cap->bv2->v.f[1] - cap->bv1->v.f[1]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
+    A[2] = (cap->bv2->v.f[2] - cap->bv1->v.f[2]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
 
     float d = D[0] * A[0] + D[1] * A[1] + D[2] * A[2];
     if(d<0)
         d = 0;
-    float caplen = vertDistance(cap->v1, cap->v2);
+    float caplen = vDistance(&(cap->bv1->v), &(cap->bv2->v));
     if(d>caplen)
         d = caplen;
     
     float R[3];
-    R[0] = cap->v1->x + (A[0] * d);
-    R[1] = cap->v1->y + (A[1] * d);
-    R[2] = cap->v1->z + (A[2] * d);
-    float b = distance3d(h->x,h->y,h->z, R[0],R[1],R[2]);
+    R[0] = cap->bv1->v.f[0] + (A[0] * d);
+    R[1] = cap->bv1->v.f[1] + (A[1] * d);
+    R[2] = cap->bv1->v.f[2] + (A[2] * d);
+    float b = distance3d(h->f[0],h->f[1],h->f[2], R[0],R[1],R[2]);
     
     float penetration = 0;
     
@@ -743,70 +745,70 @@ float colDetect(capsule *cap, vertex *h){
         penetration = b - cap->r;
     
     float N[3];
-    N[0] = h->x - R[0] / b;
-    N[1] = h->y - R[1] / b;
-    N[2] = h->z - R[2] / b;
+    N[0] = h->f[0] - R[0] / b;
+    N[1] = h->f[1] - R[1] / b;
+    N[2] = h->f[2] - R[2] / b;
     
     return penetration;
 }
 
-void rotVertX(vertex *v, vertex *pt, float angx){
-    float newy = pt->y + (v->y - pt->y) * cosf(angx * M_PI/180) - (v->z - pt->z) * sinf(angx * M_PI/180);
-    float newz = pt->z + (v->z - pt->z) * cosf(angx * M_PI/180) + (v->y - pt->y) * sinf(angx * M_PI/180);
-    v->y = newy;
-    v->z = newz;
+void rotVertX(Vec3 *v, Vec3 *pt, float angx){
+    float newy = pt->f[1] + (v->f[1] - pt->f[1]) * cosf(angx * M_PI/180) - (v->f[2] - pt->f[2]) * sinf(angx * M_PI/180);
+    float newz = pt->f[2] + (v->f[2] - pt->f[2]) * cosf(angx * M_PI/180) + (v->f[1] - pt->f[1]) * sinf(angx * M_PI/180);
+    v->f[1] = newy;
+    v->f[2] = newz;
 }
 
-void rotVertY(vertex *v, vertex *pt, float angy){
-    float newx = pt->x + (v->x - pt->x) * cosf(angy * M_PI/180) - (v->z - pt->z) * sinf(angy * M_PI/180);
-    float newz = pt->z + (v->z - pt->z) * cosf(angy * M_PI/180) + (v->x - pt->x) * sinf(angy * M_PI/180);
-    v->x = newx;
-    v->z = newz;
+void rotVertY(Vec3 *v, Vec3 *pt, float angy){
+    float newx = pt->f[0] + (v->f[0] - pt->f[0]) * cosf(angy * M_PI/180) - (v->f[2] - pt->f[2]) * sinf(angy * M_PI/180);
+    float newz = pt->f[2] + (v->f[2] - pt->f[2]) * cosf(angy * M_PI/180) + (v->f[0] - pt->f[0]) * sinf(angy * M_PI/180);
+    v->f[0] = newx;
+    v->f[2] = newz;
 }
 
-void rotVertZ(vertex *v, vertex *pt, float angz){
-    float newx = pt->x + (v->x - pt->x) * cosf(angz * M_PI/180) - (v->y - pt->y) * sinf(angz * M_PI/180);
-    float newy = pt->y + (v->y - pt->y) * cosf(angz * M_PI/180) + (v->x - pt->x) * sinf(angz * M_PI/180);
-    v->x = newx;
-    v->y = newy;
+void rotVertZ(Vec3 *v, Vec3 *pt, float angz){
+    float newx = pt->f[0] + (v->f[0] - pt->f[0]) * cosf(angz * M_PI/180) - (v->f[1] - pt->f[1]) * sinf(angz * M_PI/180);
+    float newy = pt->f[1] + (v->f[1] - pt->f[1]) * cosf(angz * M_PI/180) + (v->f[0] - pt->f[0]) * sinf(angz * M_PI/180);
+    v->f[0] = newx;
+    v->f[1] = newy;
 }
 
-void rotChildNode(treenode *n, vertex *pt, float angx, float angy, float angz){
-    if(n->v1->hasmoved == false){
+void rotChildNode(treenode *n, Vec3 *pt, float angx, float angy, float angz){
+    if(n->bv1->hasmoved == false){
         if(angx != 0)
-            rotVertX(n->v1, pt, angx);
+            rotVertX(&(n->bv1->v), pt, angx);
         if(angy != 0)
-            rotVertY(n->v1, pt, angy);
+            rotVertY(&(n->bv1->v), pt, angy);
         if(angz != 0)
-            rotVertZ(n->v1, pt, angz);
-        n->v1->hasmoved = true;
+            rotVertZ(&(n->bv1->v), pt, angz);
+        n->bv1->hasmoved = true;
     }
-    if(n->v2->hasmoved == false){
+    if(n->bv2->hasmoved == false){
         if(angx != 0)
-            rotVertX(n->v2, pt, angx);
+            rotVertX(&(n->bv2->v), pt, angx);
         if(angy != 0)
-            rotVertY(n->v2, pt, angy);
+            rotVertY(&(n->bv2->v), pt, angy);
         if(angz != 0)
-            rotVertZ(n->v2, pt, angz);
-        n->v2->hasmoved = true;
+            rotVertZ(&(n->bv2->v), pt, angz);
+        n->bv2->hasmoved = true;
     }
-    if(n->cap->v1->hasmoved == false){
+    if(n->cap->bv1->hasmoved == false){
         if(angx != 0)
-            rotVertX(n->cap->v1, pt, angx);
+            rotVertX(&(n->cap->bv1->v), pt, angx);
         if(angy != 0)
-            rotVertY(n->cap->v1, pt, angy);
+            rotVertY(&(n->cap->bv1->v), pt, angy);
         if(angz != 0)
-            rotVertZ(n->cap->v1, pt, angz);
-        n->cap->v1->hasmoved = true;
+            rotVertZ(&(n->cap->bv1->v), pt, angz);
+        n->cap->bv1->hasmoved = true;
     }
-    if(n->cap->v2->hasmoved == false){
+    if(n->cap->bv2->hasmoved == false){
         if(angx != 0)
-            rotVertX(n->cap->v2, pt, angx);
+            rotVertX(&(n->cap->bv2->v), pt, angx);
         if(angy != 0)
-            rotVertY(n->cap->v2, pt, angy);
+            rotVertY(&(n->cap->bv2->v), pt, angy);
         if(angz != 0)
-            rotVertZ(n->cap->v2, pt, angz);
-        n->cap->v2->hasmoved = true;
+            rotVertZ(&(n->cap->bv2->v), pt, angz);
+        n->cap->bv2->hasmoved = true;
     }
     if(n->child != NULL)
     	rotChildNode(n->child, pt, angx, angy, angz);
@@ -816,40 +818,40 @@ void rotChildNode(treenode *n, vertex *pt, float angx, float angy, float angz){
 }
 
 void rotNode(treenode *n, float angx, float angy, float angz){
-    if(n->v2->hasmoved == false){
+    if(n->bv2->hasmoved == false){
         if(angx != 0)
-            rotVertX(n->v2, n->v1, angx);
+            rotVertX(&(n->bv2->v), &(n->bv1->v), angx);
         if(angy != 0)
-            rotVertY(n->v2, n->v1, angy);
+            rotVertY(&(n->bv2->v), &(n->bv1->v), angy);
         if(angz != 0)
-            rotVertZ(n->v2, n->v1, angz);
-        n->v2->hasmoved = true;
+            rotVertZ(&(n->bv2->v), &(n->bv1->v), angz);
+        n->bv2->hasmoved = true;
     }
-    if(n->cap->v1->hasmoved == false){
+    if(n->cap->bv1->hasmoved == false){
         if(angx != 0)
-            rotVertX(n->cap->v1, n->v1, angx);
+            rotVertX(&(n->cap->bv1->v), &(n->bv1->v), angx);
         if(angy != 0)
-            rotVertY(n->cap->v1, n->v1, angy);
+            rotVertY(&(n->cap->bv1->v), &(n->bv1->v), angy);
         if(angz != 0)
-            rotVertZ(n->cap->v1, n->v1, angz);
-        n->cap->v1->hasmoved = true;
+            rotVertZ(&(n->cap->bv1->v), &(n->bv1->v), angz);
+        n->cap->bv1->hasmoved = true;
     }
-    if(n->cap->v2->hasmoved == false){
+    if(n->cap->bv2->hasmoved == false){
         if(angx != 0)
-            rotVertX(n->cap->v2, n->v1, angx);
+            rotVertX(&(n->cap->bv2->v), &(n->bv1->v), angx);
         if(angy != 0)
-            rotVertY(n->cap->v2, n->v1, angy);
+            rotVertY(&(n->cap->bv2->v), &(n->bv1->v), angy);
         if(angz != 0)
-            rotVertZ(n->cap->v2, n->v1, angz);
-        n->cap->v2->hasmoved = true;
+            rotVertZ(&(n->cap->bv2->v), &(n->bv1->v), angz);
+        n->cap->bv2->hasmoved = true;
     }
     if(n->child != NULL)
-    	rotChildNode(n->child, n->v1, angx, angy, angz);
+    	rotChildNode(n->child, &(n->bv1->v), angx, angy, angz);
 }
 
 void traverse (treenode *node){
     if(jointswitch){
-        drawJoint(node->v1, node->id);
+        drawJoint(&(node->bv1->v), node->id);
     }
     
     if(capsuleswitch){
@@ -949,7 +951,7 @@ void display(){
 	//drawCapsule(testcap);
 	
     glPushMatrix();
-        glTranslatef(testvert.x, testvert.y, testvert.z);
+        glTranslatef(testvert.f[0], testvert.f[1], testvert.f[2]);
         glutSolidSphere(0.1,10,10);
     glPopMatrix();
     
@@ -1126,34 +1128,34 @@ void resetAngles(){
 
 void resetVertFlags(){
     for(int i=0;i<NUMVERT;i++){
-        vertices[i]->hasmoved = false;
+        bodyverts[i]->hasmoved = false;
     }
 }
 
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          angley = -angdelta;
-         if(segselect==0)testvert.z-=0.1;
+         if(segselect==0)testvert.f[2] -= 0.1;
      }
      if(c==GLUT_KEY_DOWN){
          angley = angdelta;
-         if(segselect==0)testvert.z+=0.1;
+         if(segselect==0)testvert.f[2] += 0.1;
      }
      if(c==GLUT_KEY_RIGHT){
          anglex = -angdelta;
-         if(segselect==0)testvert.x+=0.1;
+         if(segselect==0)testvert.f[0] += 0.1;
      }
      if(c==GLUT_KEY_LEFT){
          anglex = +angdelta;
-         if(segselect==0)testvert.x-=0.1;
+         if(segselect==0)testvert.f[0] -= 0.1;
      }
      if(c==GLUT_KEY_PAGE_UP){
          //testcap.r+=0.1;
-         if(segselect==0)testvert.y+=0.1;
+         if(segselect==0)testvert.f[1] += 0.1;
      }
      if(c==GLUT_KEY_PAGE_DOWN){
          //testcap.r-=0.1;
-         if(segselect==0)testvert.y-=0.1;
+         if(segselect==0)testvert.f[1] -= 0.1;
      }
      
      glPushMatrix();
@@ -1310,6 +1312,24 @@ void processMenu(int val){
     glutPostRedisplay();
 }
 
+void initObj(){
+    skindata = new objLoader();
+    skindata->load("cuerpob.obj");
+    
+    shirtdata = new objLoader();
+    shirtdata->load("camisab.obj");
+    
+    //pantsdata = new objLoader();
+    //pantsdata->load("pantsb.obj");
+}
+
+void initCloth(){
+    int numSprings = 0;
+    for(int i=0;i < shirtdata->faceCount; i++){
+        
+    }
+}
+
 int initMenus(){
 	int mainMenu, skinMenu, shirtMenu;//,pantsMenu;
 	mainMenu = glutCreateMenu(processMenu);
@@ -1355,9 +1375,8 @@ int main(int argc, char **argv)
   
   init();
   initMenus();
-  initSkin();
-  initShirt();
-  //initPants();
+  initObj();
+  initCloth();
   initVertices();
   initCapsules();
   initNodes();
