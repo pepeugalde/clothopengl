@@ -156,8 +156,8 @@ void partresetNormal(particle *p) {p->accumulated_normal = Vec3construct(0,0,0);
 
 /////////////////////////CONSTRAINT
 
-constraint constraintconstruct(particle *p1, particle *p2){
-    constraint temp;
+spring springconstruct(particle *p1, particle *p2){
+    spring temp;
     Vec3 pos1 = partgetPos(p1);
     Vec3 pos2 = partgetPos(p2);
 	Vec3 vec = Vec3minus(&pos1, &pos2);
@@ -165,9 +165,9 @@ constraint constraintconstruct(particle *p1, particle *p2){
 	return temp;
 }
 
-/* This is one of the important methods, where a single constraint between two particles p1 and p2 is solved
+/* This is one of the important methods, where a single spring between two particles p1 and p2 is solved
 the method is called by Cloth.time_step() many times per frame*/
-void satisfyConstraint(constraint *c){
+void satisfyConstraint(spring *c){
 	Vec3 p1_to_p2 = Vec3minus(c->p2->pos, c->p1->pos); // vector from p1 to p2
 	float current_distance = Vec3length(&p1_to_p2); // current distance between p1 and p2
 	Vec3 correctionVector = Vec3mult(&p1_to_p2, (1 - c->rest_distance/current_distance)); // The offset vector that could moves p1 into a distance of rest_distance to p2
