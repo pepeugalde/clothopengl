@@ -159,12 +159,12 @@ obj_light_disc* obj_parse_light_disc(obj_growable_scene_data *scene)
 	return obj;
 }
 
-obj_vector* obj_parse_vector()
+Vec3* obj_parse_vector()
 {
-	obj_vector *v = (obj_vector*)malloc(sizeof(obj_vector));
-	v->e[0] = atof( strtok(NULL, WHITESPACE));
-	v->e[1] = atof( strtok(NULL, WHITESPACE));
-	v->e[2] = atof( strtok(NULL, WHITESPACE));
+	Vec3 *v = (Vec3*)malloc(sizeof(Vec3));
+	v->f[0] = atof( strtok(NULL, WHITESPACE));
+	v->f[1] = atof( strtok(NULL, WHITESPACE));
+	v->f[2] = atof( strtok(NULL, WHITESPACE));
 	return v;
 }
 
@@ -520,9 +520,9 @@ void obj_copy_to_out_storage(obj_scene_data *data_out, obj_growable_scene_data *
 
 	data_out->material_count = growable_data->material_list.item_count;
 	
-	data_out->vertex_list = (obj_vector**)growable_data->vertex_list.items;
-	data_out->vertex_normal_list = (obj_vector**)growable_data->vertex_normal_list.items;
-	data_out->vertex_texture_list = (obj_vector**)growable_data->vertex_texture_list.items;
+	data_out->vertex_list = (Vec3**)growable_data->vertex_list.items;
+	data_out->vertex_normal_list = (Vec3**)growable_data->vertex_normal_list.items;
+	data_out->vertex_texture_list = (Vec3**)growable_data->vertex_texture_list.items;
 
 	data_out->face_list = (obj_face**)growable_data->face_list.items;
 	data_out->sphere_list = (obj_sphere**)growable_data->sphere_list.items;

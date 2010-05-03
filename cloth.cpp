@@ -1,12 +1,6 @@
 /*
 This source code is accompanying the Cloth Tutorial at the cg.alexandra.dk blog.
 
-You may use the code in any way you see fit. Please leave a comment on the blog 
-or send me an email if the code or tutorial was somehow helpful.
-
-Everything needed is defined in this file, it is probably best read from the 
-bottom and up, since dependancy is from the bottom and up
-
 A short overview of this file is;
 * includes
 * physics constant
@@ -21,14 +15,6 @@ A short overview of this file is;
 * OpenGL/Glut methods, including display() and main() (calling methods on Cloth object)
 
 Jesper Mosegaard, clothTutorial@jespermosegaard.dk
-
-Tested on: Windows Vista / Visual Studio 2005
-		   Linux (Red Hat) / GCC 4.1.2
-
-History:
-	2 Jun 2009 - Initial version
-	6 Jan 2010 - Typo corrected in call of glutInitDisplayMode to enable depth-buffer (Thanks Martijn The)
-
 */
 
 
@@ -41,7 +27,6 @@ History:
 #include <vector>
 #include <iostream>
 
-#include "obj_parser.h"
 #include "structs.h"
 
 /* Some physics constants */
@@ -58,12 +43,12 @@ Vec3 Vec3construct(double x, double y, double z){
 	return temp;
 }
 
-float Vec3length(Vec3 *v){
+double Vec3length(Vec3 *v){
 	return sqrt(v->f[0] * v->f[0] + v->f[1] * v->f[1] + v->f[2] * v->f[2]);
 }
 
 Vec3 Vec3normalize(Vec3 *v){
-	float l = Vec3length(v);
+	double l = Vec3length(v);
 	return Vec3construct(v->f[0]/l, v->f[1]/l, v->f[2]/l);;
 }
 
@@ -73,7 +58,7 @@ void Vec3sumeq (Vec3 *vs, Vec3 *v){
 	vs->f[2] += v->f[2];
 }
 
-Vec3 Vec3div (Vec3 *vec, const float &a){
+Vec3 Vec3div (Vec3 *vec, const double &a){
 	return Vec3construct(vec->f[0]/a,vec->f[1]/a,vec->f[2]/a);
 }
 
@@ -85,7 +70,7 @@ Vec3 Vec3sum (Vec3 *vec, const Vec3 *v){
 	return Vec3construct(vec->f[0]+v->f[0],vec->f[1]+v->f[1],vec->f[2]+v->f[2]);
 }
 
-Vec3 Vec3mult (Vec3 *vec, const float &a){
+Vec3 Vec3mult (Vec3 *vec, const double &a){
 	return Vec3construct(vec->f[0]*a,vec->f[1]*a,vec->f[2]*a);
 }
 
@@ -97,7 +82,7 @@ Vec3 Vec3cross(Vec3 *vec, const Vec3 *v){
 	return Vec3construct(vec->f[1]*v->f[2] - vec->f[2]*v->f[1], vec->f[2]*v->f[0] - vec->f[0]*v->f[2], vec->f[0]*v->f[1] - vec->f[1]*v->f[0]);
 }
 
-float Vec3dot(Vec3 *vec, const Vec3 *v){
+double Vec3dot(Vec3 *vec, const Vec3 *v){
 	return vec->f[0]*v->f[0] + vec->f[1]*v->f[1] + vec->f[2]*v->f[2];
 }
 
@@ -169,7 +154,7 @@ spring springconstruct(particle *p1, particle *p2){
 the method is called by Cloth.time_step() many times per frame*/
 void satisfyConstraint(spring *c){
 	Vec3 p1_to_p2 = Vec3minus(c->p2->pos, c->p1->pos); // vector from p1 to p2
-	float current_distance = Vec3length(&p1_to_p2); // current distance between p1 and p2
+	double current_distance = Vec3length(&p1_to_p2); // current distance between p1 and p2
 	Vec3 correctionVector = Vec3mult(&p1_to_p2, (1 - c->rest_distance/current_distance)); // The offset vector that could moves p1 into a distance of rest_distance to p2
 	Vec3 correctionVectorHalf = Vec3mult(&correctionVector, 0.5); // Lets make it half that length, so that we can move BOTH p1 and p2.
 	Vec3 correctionVHneg = Vec3neg(&correctionVectorHalf);
@@ -203,7 +188,7 @@ void addWindForcesForTriangle(particle *p1,particle *p2,particle *p3, const Vec3
 {
 	Vec3 normal = calcTriangleNormal(p1,p2,p3);
 	Vec3 d = Vec3normalize(&normal);
-	float vdot = Vec3dot(&d, &direction);
+	double vdot = Vec3dot(&d, &direction);
 	Vec3 force = Vec3mult(&normal, vdot);
 	partaddForce(p1, force);
 	partaddForce(p2, force);

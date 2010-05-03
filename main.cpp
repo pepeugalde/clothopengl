@@ -17,7 +17,6 @@
 #include <vector>
 #include <string>
 
-#include "obj_parser.h"
 #include "objLoader.h"
 #include "structs.h"
 
@@ -25,11 +24,44 @@
 #define NUMCAPS  18
 #define NUMNODES 18
 
-float testx = 0;
-float testy = 0;
-float testz = 1.5;
+///////////////////////////////////////////////METODOS DE CLOTH
+Vec3 Vec3construct(double x, double y, double z);
+float Vec3length(Vec3 *v);
+Vec3 Vec3normalize(Vec3 *v);
+void Vec3sumeq (Vec3 *vs, Vec3 *v);
+Vec3 Vec3div (Vec3 *vec, const double &a);
+Vec3 Vec3minus (Vec3 *vec, const Vec3 *v);
+Vec3 Vec3sum (Vec3 *vec, const Vec3 *v);
+Vec3 Vec3mult (Vec3 *vec, const double &a);
+Vec3 Vec3neg(Vec3 *vec);
+Vec3 Vec3cross(Vec3 *vec, const Vec3 *v);
+double Vec3dot(Vec3 *vec, const Vec3 *v);
+///////////////PARTICLE
+particle particleconstruct(Vec3 *npos);
+void partaddForce(particle *p, Vec3 f);
+void parttimeStep(particle *p);
+Vec3& partgetPos(particle *p);
+void partresetAcceleration(particle *p);
+void partoffsetPos(particle *p, Vec3 v);
+void partmakeUnmovable(particle *p);
+void partaddToNormal(particle *p, Vec3 normal);
+Vec3& partgetNormal(particle *p);
+void partresetNormal(particle *p);
+/////////////////////////CONSTRAINT
+spring springconstruct(particle *p1, particle *p2);
+void satisfyConstraint(spring *c);
+///////////////////////////CLOTH
+Vec3 calcTriangleNormal(particle *p1, particle *p2, particle *p3);
+void addWindForcesForTriangle(particle *p1,particle *p2,particle *p3, const Vec3 direction);
+void drawTriangle(particle *p1, particle *p2, particle *p3, const Vec3 color);
+///////////////////////////////////////
 
-char title[60];
+double testx = 0;
+double testy = 0;
+double testz = 1.5;
+float testballr = 0.5;
+
+char title[200];
 
 ////////MATERIALES
 GLfloat alphavalue = 0.5;
@@ -45,6 +77,8 @@ GLfloat blueDiffuse[]	    = { 0.1, 0.5, 0.8, 1.0 };
 GLfloat blueDiffuseAlpha[]	= { 0.1, 0.5, 0.8, alphavalue };
 GLfloat greenDiffuse[]	    = { 0.1, 0.8, 0.3, 1.0 };
 GLfloat greenDiffuseAlpha[]	= { 0.1, 0.8, 0.3, alphavalue };
+GLfloat grayDiffuse[]	    = { 0.6, 0.6, 0.6, 1.0 };
+GLfloat grayDiffuseAlpha[]	= { 0.6, 0.6, 0.6, alphavalue };
 GLfloat khakhiDiffuse[]	    = { 0.9, 0.7, 0.4, 1.0 };
 GLfloat khakhiDiffuseAlpha[]= { 0.9, 0.7, 0.4, alphavalue };
 GLfloat yellowDiffuse[]	    = { 1.0, 1.0, 0.0, 1.0 };
@@ -65,7 +99,7 @@ GLfloat highShininess	= 50.0;
 
 /////SWITCHES
 bool smoothswitch     = true;
-bool capvisswitch     = true;
+bool capvisswitch     = false;//true;
 bool capalphaswitch   = false;//true;
 bool jointvisswitch   = true;
 bool jointalphaswitch = false;//true;
@@ -73,12 +107,17 @@ bool jointalphaswitch = false;//true;
 bool skinvisswitch    = false;//true;
 bool skinvertswitch   = false;//true;
 bool skinalphaswitch  = false;//true;
-bool shirtvisswitch   = true;
-bool shirtvertswitch  = false;//true;
+
+bool shirtvisswitch   = false;//true;
+bool shirtvertswitch  = true;
 bool shirtalphaswitch = false;//true;
+bool shirtspringsswitch = true;
+
 bool pantsvisswitch   = true;
 bool pantsvertswitch  = true;
 bool pantsalphaswitch = false;//true;
+bool pantsspringsswitch = true;
+
 bool gridswitch       = false;
 
 bool mouseDown = false;
@@ -128,10 +167,15 @@ GLfloat bodypos[16];
 bodyvertex   *bodyverts[NUMVERT];
 capsule  *caps[NUMCAPS];
 
+
+int totalshirtparticles;
+int totalpantsparticles;
 particle *shirtparticles;
 particle *pantsparticles;
 
-spring *shirtsprings;
+int totalshirtsprings;
+int totalpantssprings;
+spring shirtsprings[500];
 spring *pantssprings;
 
 //----------------------------------------------
@@ -666,7 +710,7 @@ void initNodes(){
 
 //Hasta ahorita detecta colision entre un punto y una capsula, 
 //calcula la normal y regresa que tan adentro esta el punto h, 0 si esta fuera
-float colDetect(capsule *cap, Vec3 *h){
+float colDetect(capsule *cap, Vec3 *h, float hr){
     //dist entre punto uno de cap y *h
     float D[3];
     D[0] = h->f[0] - cap->bv1->v.f[0];
@@ -703,8 +747,8 @@ float colDetect(capsule *cap, Vec3 *h){
     float penetration = 0;
     
     //que tan adentro de la cap esta *h
-    if(b < cap->r)
-        penetration = b - cap->r;
+    if(b < (cap->r + hr))
+        penetration = b - (cap->r + hr);
     
     //normal que todavia no se usa
     float N[3];
@@ -836,32 +880,34 @@ void traverse (treenode *node){
     	traverse(node->sibling);
 }
 
+////////////DRAW
+
+void setMaterials(GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
+    glMaterialfv(GL_FRONT, GL_AMBIENT,   ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE,   diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR,  specular);
+	glMaterialf(GL_FRONT,  GL_SHININESS, shininess);
+}
+
 //Dibuja todos los vertices de un mesh de obj (skindata, shirtdata, pantsdata)
 void drawVert(objLoader *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
      int i;
      double *v;
      
-     glMaterialfv(GL_FRONT, GL_AMBIENT,   ambient);
-     glMaterialfv(GL_FRONT, GL_DIFFUSE,   diffuse);
-	 glMaterialfv(GL_FRONT, GL_SPECULAR,  specular);
-	 glMaterialf(GL_FRONT,  GL_SHININESS, shininess);
-     glBegin(GL_POINTS);
-         for(i=0; i<object->vertexCount; i++){
-              v = object->vertexList[i]->e;
-              glPushMatrix();
-                  glTranslatef(v[0], v[1], v[2]);
-                  glutSolidSphere(vertsize, 5,5);
-              glPopMatrix();
-         }
-     glEnd();
+     setMaterials(ambient, diffuse, specular, shininess);
+     
+     for(i=0; i<object->vertexCount; i++){
+          v = object->vertexList[i]->f;
+          glPushMatrix();
+              glTranslatef(v[0], v[1], v[2]);
+              glutSolidSphere(vertsize, 5,5);
+          glPopMatrix();
+     }
 }
 
 //Dibuja un mesh de obj (skindata, shirtdata o pantsdata)
 void drawObject(objLoader *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
-     glMaterialfv(GL_FRONT, GL_AMBIENT,   ambient);
-     glMaterialfv(GL_FRONT, GL_DIFFUSE,   diffuse);
-     glMaterialfv(GL_FRONT, GL_SPECULAR,  specular);
-     glMaterialf(GL_FRONT,  GL_SHININESS, shininess);
+     setMaterials(ambient, diffuse, specular, shininess);
    	 
    	 obj_face *o_f;
      glBegin(GL_TRIANGLES);
@@ -889,11 +935,49 @@ void drawObject(objLoader *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *
              ///calc nor
              o_f = object->faceList[i];
              for(int j=0; j<3; j++){
-                  glNormal3dv(object->normalList[o_f->normal_index[j]]->e);
-                  glVertex3dv(object->vertexList[o_f->vertex_index[j]]->e);
+                  glNormal3dv(object->normalList[o_f->normal_index[j]]->f);
+                  glVertex3dv(object->vertexList[o_f->vertex_index[j]]->f);
              }
          }
      glEnd();            
+}
+
+void drawParticles(particle *arr, int total, GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
+    setMaterials(ambient, diffuse, specular, shininess);
+    Vec3 v;
+    particle ptemp;
+    int i=0;
+    for(i=0; i<total; i++){
+          glPushMatrix();
+              glTranslatef(arr[i].pos->f[0], arr[i].pos->f[1], arr[i].pos->f[2]);
+              glutSolidSphere(vertsize, 5,5);
+          glPopMatrix();
+//          
+//          ///
+//          glDisable(GL_LIGHTING);
+//          glBegin(GL_LINES);
+//          glVertex3f(0,0,0);
+//          glVertex3f(arr[i].pos->f[0], arr[i].pos->f[1], arr[i].pos->f[2]);
+//          glEnd();
+//          glEnable(GL_LIGHTING);
+//          ///
+     }
+
+}
+
+void drawSprings(spring *arr, int total, GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
+    setMaterials(ambient, diffuse, specular, shininess);
+    
+    int i=0;
+    
+    for(i=0; i<total; i++){
+          double *p1temp = arr[i].p1->pos->f;
+          double *p2temp = arr[i].p2->pos->f;
+          glBegin(GL_LINES);
+              glVertex3f(p1temp[0], p1temp[1], p1temp[2]);
+              glVertex3f(p2temp[0], p2temp[1], p2temp[2]);
+          glEnd();
+     }
 }
 
 void display(){
@@ -921,9 +1005,10 @@ void display(){
    	    glEnable(GL_LIGHTING);
     }
 	
+	//bola de pueba
     glPushMatrix();
         glTranslatef(testvert.f[0], testvert.f[1], testvert.f[2]);
-        glutSolidSphere(0.1,10,10);
+        glutSolidSphere(testballr,10,10);
     glPopMatrix();
     //
     
@@ -931,22 +1016,29 @@ void display(){
     int numcap = -1;
     
     for(int i=0;i<NUMCAPS;i++){
-        if(colDetect(caps[i], &testvert) < 0){
+        if(colDetect(caps[i], &testvert, testballr) < 0){
             glPushMatrix();
                 glTranslatef(-2,3,0);
                 glutSolidCube(1);
             glPopMatrix();
             
-            if(mincoll > colDetect(caps[i], &testvert))
-                mincoll = colDetect(caps[i], &testvert);
+            if(mincoll > colDetect(caps[i], &testvert, testballr))
+                mincoll = colDetect(caps[i], &testvert, testballr);
                 numcap = i;
         }
     }
-    sprintf(title, "Collision at: %g, capsule num: %d", mincoll, numcap);
+    //sprintf(title, "Collision at: %f, capsule num: %f", mincoll, numcap);
+    
+    //sprintf(title, "PARTICLES 0: %f %f %f   shirtdata 0: %f %f %f", 
+//    shirtparticles[1].pos->f[0], shirtparticles[0].pos->f[1], shirtparticles[0].pos->f[2], 
+//    shirtdata->vertexList[1]->f[0], shirtdata->vertexList[0]->f[1], shirtdata->vertexList[0]->f[2]);
+
+    //sprintf(title, "shirt 0: %f  %f  %f", shirtdata->vertexList[0]->f[0], shirtdata->vertexList[0]->f[1], shirtdata->vertexList[0]->f[2]);
+    //sprintf(title, "tshirtpart: %d", totalshirtparticles);
     glutSetWindowTitle(title);
     ///////
 
-
+    //MONO
 	glPushMatrix();
         glMultMatrixf(bodypos);
         traverse(&waistn);
@@ -957,7 +1049,8 @@ void display(){
             drawObject(skindata, zeroMaterial, pinkDiffuseAlpha, zeroMaterial, noShininess);
         else
             drawObject(skindata, zeroMaterial, pinkDiffuse, zeroMaterial, noShininess);
-            
+    
+    //MESHES
     if(shirtvisswitch)
         if(shirtalphaswitch)
             drawObject(shirtdata, zeroMaterial, blueDiffuseAlpha, zeroMaterial, noShininess);
@@ -970,14 +1063,23 @@ void display(){
 //            else
 //                drawObject(pantsdata, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
     
-    glColor3f(0.7, 0.7, 0.7);
+    //VERTICES
     if(skinvertswitch)
         drawVert(skindata, zeroMaterial, greenDiffuse, zeroMaterial, noShininess);
+    
+    //PARTICLES
     if(shirtvertswitch)
-        drawVert(shirtdata, zeroMaterial, yellowDiffuse, zeroMaterial, noShininess);
+        drawParticles(shirtparticles, totalshirtparticles, zeroMaterial, yellowDiffuse, zeroMaterial, noShininess);
     //if(pantsvertswitch)
-        //drawVert(pantsdata, zeroMaterial, greenDiffuse, zeroMaterial, noShininess);
-
+        //drawParticles(pantsparticles, totalpantsparticles, zeroMaterial, yellowDiffuse, zeroMaterial, noShininess);
+        
+    //SPRINGS
+    glDisable(GL_LIGHTING);
+        if(shirtspringsswitch)
+            drawSprings(shirtsprings, totalshirtsprings, zeroMaterial, grayDiffuse, zeroMaterial, noShininess);
+        //if(pantsspringsswitch)
+            //drawSprings(pantssprings, totalpantssprings, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
+    glEnable(GL_LIGHTING);
    	glutSwapBuffers();
 }
 
@@ -1126,6 +1228,8 @@ void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          angley = -angdelta;
          if(segselect==0)testvert.f[2] -= 0.1;
+         
+         shirtparticles[0].pos->f[1] += 1;
      }
      if(c==GLUT_KEY_DOWN){
          angley = angdelta;
@@ -1256,7 +1360,6 @@ void special(int c, int x, int y){
 void mouse(int button, int state, int x, int y){
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
         mouseDown = true;
-        
         xdiff = x - yrot;
         ydiff = -y + xrot;
     }
@@ -1268,7 +1371,6 @@ void mouseMotion(int x, int y){
     if (mouseDown){
         yrot = x - xdiff;
         xrot = y + ydiff;
-        
         glutPostRedisplay();
     }
 }
@@ -1294,41 +1396,82 @@ void initObj(){
 }
 
 void initParticles(){
-    shirtparticles = (particle*)calloc(shirtdata->vertexCount, sizeof(particle));
-    //pantsparticles = (particle*)calloc(pantsdata->vertexCount, sizeof(particle));
+    totalshirtparticles = shirtdata->vertexCount;
+    //totalpantsparticles = pantsdata->vertexCount;
+    shirtparticles = (particle*)calloc(totalshirtparticles, sizeof(particle));
+    //pantsparticles = (particle*)calloc(totalpantsparticles, sizeof(particle));
     
-    if(shirtparticles == NULL)
-        exit(0);
+    if(shirtparticles == NULL){// || pantsparticles == NULL){
+        //println("COULD NOT ALLOCATE MEMORY FOR PARTICLES");
+        sprintf(title, "COULD NOT ALLOCATE MEMORY FOR PARTICLES");
+        glutSetWindowTitle(title);
+        //exit(0);
+    }
+    
+    
     int i=0;
     ////construye particulas con masa y un punto
-    for(i=0; i < shirtdata->vertexCount; i++){
-        
+    for(i=0; i < totalshirtparticles; i++){
+        particle ptemp;
+        ptemp.movable = true;
+        ptemp.mass = 1;
+    	ptemp.pos = shirtdata->vertexList[i];
+    	ptemp.old_pos = Vec3construct(0,0,0);
+    	ptemp.acceleration = Vec3construct(0,0,0);
+    	ptemp.accumulated_normal = Vec3construct(0,0,0);
+        shirtparticles[i] = ptemp;
     }
+    
+    //sprintf(title, "shirtvert 0: %f %f %f ", shirtdata->vertexList[i]->f[0], shirtdata->vertexList[i]->f[1], shirtdata->vertexList[i]->f[2]);
+    //sprintf(title, "shirtvert 0: %f %f %f ", shirtparticles[i].pos->f[0], shirtparticles[i].pos->f[1], shirtparticles[i].pos->f[2]);
+    //sprintf(title, "tshirtpart: %d", totalshirtparticles);
+    //glutSetWindowTitle(title);
+
+    
+    //igual para pants
+    //
 }
 
 //checa si el resorte ya esta en la lista
 //a->b  y  b->a son repetidos, capisce?
-bool checkDuplicateSpring(){
-
+bool checkDuplicateSpring(spring *array, int total, Vec3 *v1, Vec3 *v2){
+     bool flag = false;
+     int i=0;
+     for(i=0;i<total;i++){
+         if((array[i].p1->pos == v1 && array[i].p2->pos == v2) || (array[i].p1->pos == v2 && array[i].p2->pos == v1))
+             flag = true;
+     }
+     return flag;
 }
 
 void initSprings(){
-    shirtsprings = (spring*)calloc(shirtdata->faceCount * 3, sizeof(spring));
+    //shirtsprings = (spring*)calloc(shirtdata->faceCount * 3, sizeof(spring));
     //pantssprings = (spring*)calloc(pantsdata->faceCount * 3, sizeof(spring));
     
-    int springtotal = 0;
-    int i=0;//iterador
-    int currentindex = 0;//no toma en cuenta resortes repetidos
-    ////agrega 3 resortes (aristas) por cada cara, pero checa que no se repitan
-    for(i=0 ;i < shirtdata->faceCount; i++){
-
+    if(shirtsprings == NULL){ // || pantssprings == NULL){
+        //println("COULD NOT ALLOCATE MEMORY FOR SPRINGS");
+        sprintf(title, "COULD NOT ALLOCATE MEMORY FOR SPRINGS");
+        glutSetWindowTitle(title);
+        //exit(-1);
     }
     
-}
-
-void initCloth(){
-    initParticles();
-    initSprings();
+    totalshirtsprings = 0;
+    totalpantssprings = 0;
+    
+    int i=0;//iterador
+    int currentindex = 0;//no toma en cuenta resortes repetidos
+    
+    ////agrega 3 resortes (aristas) por cada cara, pero checa que no se repitan
+    for(i=0 ;i < shirtdata->faceCount; i++){
+        if(!(checkDuplicateSpring(shirtsprings, totalshirtsprings, 
+                                  (shirtdata->vertexList[shirtdata->faceList[i]->vertex_index[0]]), 
+                                  (shirtdata->vertexList[shirtdata->faceList[i]->vertex_index[1]])))){
+            particle pt1;
+            particle pt2;
+            spring stemp = springconstruct(&pt1, &pt2);
+        }
+    }
+    
 }
 
 void processMenu(int val){
@@ -1479,10 +1622,11 @@ int main(int argc, char **argv)
   init();
   initMenus();
   initObj();
-  initCloth();
   initVertices();
   initCapsules();
   initNodes();
+  initParticles();
+  //initSprings();
   
   glutMainLoop();                               // Pasar el control a GLUT.
   return 0;                                     // Regresar 0 por cortesía.

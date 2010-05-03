@@ -1,3 +1,6 @@
+#ifndef CLOTH_STRUCTS_H
+#define CLOTH_STRUCTS_H
+
 /* The particle class represents a particle of mass that can move around in 3D space*/
 typedef struct particle{
 	bool movable; // can the particle move or not ? used to pin parts of the cloth
@@ -27,3 +30,6 @@ typedef struct cloth{
 	Particle* getParticle(int x, int y) {return &particles[y*num_particles_width + x];}
 	void makeConstraint(Particle *p1, Particle *p2) {constraints.push_back(Constraint(p1,p2));}
 } cloth;
+
+#endif
+
