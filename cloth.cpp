@@ -28,11 +28,8 @@ Jesper Mosegaard, clothTutorial@jespermosegaard.dk
 #include <iostream>
 
 #include "structs.h"
+#include "clothfunc.h"
 
-/* Some physics constants */
-#define DAMPING 0.01 // how much to damp the cloth simulation each frame
-#define TIME_STEPSIZE2 0.5*0.5 // how large time step each particle takes each frame
-#define CONSTRAINT_ITERATIONS 15 // how many iterations of constraint satisfaction each frame (more is rigid, less is soft)
 
 
 Vec3 Vec3construct(double x, double y, double z){
@@ -115,7 +112,7 @@ void parttimeStep(particle *p){
 		Vec3 vacc = Vec3mult(&(p->acceleration), TIME_STEPSIZE2);
 		Vec3 vsum = Vec3sum(&vmult, &vacc);
 		Vec3 vsumpos = Vec3sum(p->pos, &vsum);
-		p->pos = &vsumpos;
+//		p->pos = &vsumpos;
 		p->old_pos = temp;
 		p->acceleration = Vec3construct(0,0,0); // acceleration is reset since it HAS been translated into a change in position (and implicitely into velocity)	
 	}

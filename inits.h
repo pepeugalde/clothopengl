@@ -50,6 +50,9 @@ extern spring *pantssprings;
 
 extern Vec3 testvert;
 
+extern Vec3 gravity;
+
+/////////////FUNCIONES
 void initVertices();
 void initCapsules();
 void initNodes();
