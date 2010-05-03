@@ -17,85 +17,11 @@
 #include <vector>
 #include <string>
 
+#include "inits.h"
 #include "objLoader.h"
+#include "materials.h"  //arreglos de materiales
+#include "clothfunc.h"  //funciones relativas a cloth
 #include "structs.h"
-
-#define NUMVERT  27
-#define NUMCAPS  18
-#define NUMNODES 18
-
-///////////////////////////////////////////////METODOS DE CLOTH
-Vec3 Vec3construct(double x, double y, double z);
-float Vec3length(Vec3 *v);
-Vec3 Vec3normalize(Vec3 *v);
-void Vec3sumeq (Vec3 *vs, Vec3 *v);
-Vec3 Vec3div (Vec3 *vec, const double &a);
-Vec3 Vec3minus (Vec3 *vec, const Vec3 *v);
-Vec3 Vec3sum (Vec3 *vec, const Vec3 *v);
-Vec3 Vec3mult (Vec3 *vec, const double &a);
-Vec3 Vec3neg(Vec3 *vec);
-Vec3 Vec3cross(Vec3 *vec, const Vec3 *v);
-double Vec3dot(Vec3 *vec, const Vec3 *v);
-///////////////PARTICLE
-particle particleconstruct(Vec3 *npos);
-void partaddForce(particle *p, Vec3 f);
-void parttimeStep(particle *p);
-Vec3& partgetPos(particle *p);
-void partresetAcceleration(particle *p);
-void partoffsetPos(particle *p, Vec3 v);
-void partmakeUnmovable(particle *p);
-void partaddToNormal(particle *p, Vec3 normal);
-Vec3& partgetNormal(particle *p);
-void partresetNormal(particle *p);
-/////////////////////////CONSTRAINT
-spring springconstruct(particle *p1, particle *p2);
-void satisfyConstraint(spring *c);
-///////////////////////////CLOTH
-Vec3 calcTriangleNormal(particle *p1, particle *p2, particle *p3);
-void addWindForcesForTriangle(particle *p1,particle *p2,particle *p3, const Vec3 direction);
-void drawTriangle(particle *p1, particle *p2, particle *p3, const Vec3 color);
-///////////////////////////////////////
-
-double testx = 0;
-double testy = 0;
-double testz = 1.5;
-float testballr = 0.5;
-
-char title[200];
-
-////////MATERIALES
-GLfloat alphavalue = 0.5;
-
-GLfloat lightPosition[] = { 10.0, 10.0, 10.0, 1.0 };
-
-// a material that is all zeros
-GLfloat zeroMaterial[]	= { 0.0, 0.0, 0.0, 1.0 };
-// a red ambient material
-GLfloat redAmbient[]	= { 0.83, 0.0, 0.0, 1.0 };
-
-GLfloat blueDiffuse[]	    = { 0.1, 0.5, 0.8, 1.0 };
-GLfloat blueDiffuseAlpha[]	= { 0.1, 0.5, 0.8, alphavalue };
-GLfloat greenDiffuse[]	    = { 0.1, 0.8, 0.3, 1.0 };
-GLfloat greenDiffuseAlpha[]	= { 0.1, 0.8, 0.3, alphavalue };
-GLfloat grayDiffuse[]	    = { 0.6, 0.6, 0.6, 1.0 };
-GLfloat grayDiffuseAlpha[]	= { 0.6, 0.6, 0.6, alphavalue };
-GLfloat khakhiDiffuse[]	    = { 0.9, 0.7, 0.4, 1.0 };
-GLfloat khakhiDiffuseAlpha[]= { 0.9, 0.7, 0.4, alphavalue };
-GLfloat yellowDiffuse[]	    = { 1.0, 1.0, 0.0, 1.0 };
-GLfloat yellowDiffuseAlpha[]= { 1.0, 1.0, 0.0, alphavalue };
-GLfloat redDiffuse[]	    = { 1.0, 0.0, 0.0, 1.0 };
-GLfloat redDiffuseAlpha[]	= { 1.0, 0.0, 0.0, alphavalue };
-GLfloat whiteDiffuse[]	    = { 1.0, 1.0, 1.0, 1.0 };
-GLfloat whiteDiffuseAlpha[]	= { 1.0, 1.0, 1.0, alphavalue };
-GLfloat pinkDiffuse[]	    = { 1.0, 0.7, 0.8, 1.0 };
-GLfloat pinkDiffuseAlpha[]	= { 1.0, 0.7, 0.8, alphavalue };
-
-// a white specular material
-GLfloat whiteSpecular[]	= { 1.0, 1.0, 1.0, 1.0 };
-
-// the degrees of shinnines (size of the specular highlight, bigger number means smaller highlight)
-GLfloat noShininess	    =  0.0;
-GLfloat highShininess	= 50.0;
 
 /////SWITCHES
 bool smoothswitch     = true;
@@ -111,12 +37,12 @@ bool skinalphaswitch  = false;//true;
 bool shirtvisswitch   = false;//true;
 bool shirtvertswitch  = true;
 bool shirtalphaswitch = false;//true;
-bool shirtspringsswitch = true;
+bool shirtspringswitch = true;
 
 bool pantsvisswitch   = true;
 bool pantsvertswitch  = true;
 bool pantsalphaswitch = false;//true;
-bool pantsspringsswitch = true;
+bool pantsspringswitch = true;
 
 bool gridswitch       = false;
 
@@ -141,44 +67,9 @@ float ydiff = 0.0f;
 
 float zoom = 12.0;
 
-////STRUCTS
-objLoader *skindata;
-objLoader *shirtdata;
-//objLoader *pantsdata;
-
-bodyvertex waistbv, chestbv, neckbv, headbv, headtopbv, 
-       rshoulderbv, ruarmbv, rlarmbv, rhandbv, rhandtopbv, lshoulderbv, luarmbv, llarmbv, lhandbv, lhandtopbv, 
-       rulegbv, rllegbv, rfootbv, rfoottopbv, lulegbv, lllegbv, lfootbv, lfoottopbv, 
-       waistc1bv, waistc2bv, chestc1bv, chestc2bv;
-//
-Vec3 testvert;
-//
-
-capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
-        chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
-
-treenode headn, neckn, rshouldern, lshouldern, ruarmn, luarmn, rlarmn, llarmn, rhandn, lhandn,
-         chestn, waistn, rulegn, lulegn, rllegn, lllegn, rfootn, lfootn;
-
-//angulos del cuerpo, no se usa
-GLfloat bodypos[16];
-
-//arreglos de structs
-bodyvertex   *bodyverts[NUMVERT];
-capsule  *caps[NUMCAPS];
 
 
-int totalshirtparticles;
-int totalpantsparticles;
-particle *shirtparticles;
-particle *pantsparticles;
-
-int totalshirtsprings;
-int totalpantssprings;
-spring shirtsprings[500];
-spring *pantssprings;
-
-//----------------------------------------------
+//------------------FUNCIONES----------------------------
 //distancia 3d entre 2 puntos
 float vDistance(Vec3 *v1, Vec3 *v2){
     return sqrt(pow((v1->f[0]-v2->f[0]),2) + pow((v1->f[1]-v2->f[1]),2) + pow((v1->f[2]-v2->f[2]),2));
@@ -299,414 +190,7 @@ void drawGrid(){
     glEnd();
 }
 
-void initVertices(){
-    //
-    testvert.f[0] = testx;
-    testvert.f[1] = testy;
-    testvert.f[2] = testz;
-    //
-    Vec3 waistv, chestv, neckv, headv, headtopv, 
-     rshoulderv, ruarmv, rlarmv, rhandv, rhandtopv, lshoulderv, luarmv, llarmv, lhandv, lhandtopv, 
-     rulegv, rllegv, rfootv, rfoottopv, lulegv, lllegv, lfootv, lfoottopv, 
-     waistc1v, waistc2v, chestc1v, chestc2v;
-    
-    waistv.f[0] = 0;
-    waistv.f[1] = -0.4;
-    waistv.f[2] = 0;
-    waistbv.v = waistv;
-    
-    chestv.f[0] = 0;
-    chestv.f[1] = 0.6;
-    chestv.f[2] = 0;
-    chestbv.v = chestv;
-    
-    waistc1v.f[0] = -(waistc2v.f[0] = -0.5);
-    waistc1v.f[1] = waistc2v.f[1]   = 0.3;
-    waistc1v.f[2] = waistc2v.f[2]   = 0;
-    waistc1bv.v = waistc1v;
-    waistc2bv.v = waistc2v;
-    chestc1v.f[0] = -(chestc2v.f[0] = -0.5);
-    chestc1v.f[1] = chestc2v.f[1]   = 1.2;
-    chestc1v.f[2] = chestc2v.f[2]   = 0;
-    chestc1bv.v = chestc1v;
-    chestc2bv.v = chestc2v;
-    
-    //waistl1v.f[0] = -(waistr1v.f[0] = -0.5);
-//    waistl1v.f[1] = waistr1v.f[1]   = 0.3;
-//    waistl1v.f[2] = waistr1v.f[2]   = 0;
-//    bv.v = v;
-//    waistl2v.f[0] = -(waistr2v.f[0] = -0.5);
-//    waistl2v.f[1] = waistr2v.f[1]   = 0.3;
-//    waistl2v.f[2] = waistr2v.f[2]   = 0;
-//    bv.v = v;
-//    chestlv.f[0] = -(chestc2v.f[0] = -0.5);
-//    chestlv.f[1] = chestc2v.f[1]   = 1.2;
-//    chestlv.f[2] = chestc2v.f[2]   = 0;
-//    bv.v = v;
-
-    neckv.f[0] = 0;
-    neckv.f[1] = 2.2;
-    neckv.f[2] = 0;
-    neckbv.v = neckv;
-    
-    headv.f[0] = 0;
-    headv.f[1] = 2.9;
-    headv.f[2] = 0;
-    headbv.v = headv;
-    
-    headtopv.f[0] = 0;
-    headtopv.f[1] = 3.3;
-    headtopv.f[2] = 0;
-    headtopbv.v = headtopv;
-    
-    rshoulderv.f[0] = -(lshoulderv.f[0] = -0.4);
-    rshoulderv.f[1] = lshoulderv.f[1]   = 2.05;
-    rshoulderv.f[2] = lshoulderv.f[2]   = 0;
-    rshoulderbv.v = rshoulderv;
-    lshoulderbv.v = lshoulderv;
-    ruarmv.f[0] = -(luarmv.f[0] = -1.15);
-    ruarmv.f[1] = luarmv.f[1]   = 1.7;
-    ruarmv.f[2] = luarmv.f[2]   = 0;
-    ruarmbv.v = ruarmv;
-    luarmbv.v = luarmv;
-    rlarmv.f[0] = -(llarmv.f[0] = -1.3);
-    rlarmv.f[1] = llarmv.f[1]   = 0.3;
-    rlarmv.f[2] = llarmv.f[2]   = -0.05;
-    rlarmbv.v = rlarmv;
-    llarmbv.v = llarmv;
-    rhandv.f[0] = -(lhandv.f[0] = -1.25);
-    rhandv.f[1] = lhandv.f[1]   = -0.8;
-    rhandv.f[2] = lhandv.f[2]   = 0;
-    rhandbv.v = rhandv;
-    lhandbv.v = lhandv;
-    rhandtopv.f[0] = -(lhandtopv.f[0] = -1.2);
-    rhandtopv.f[1] = lhandtopv.f[1]   = -1.5;
-    rhandtopv.f[2] = lhandtopv.f[2]   = 0;
-    rhandtopbv.v = rhandtopv;
-    lhandtopbv.v = lhandtopv;
-    
-    rulegv.f[0] = -(lulegv.f[0] = -0.5);
-    rulegv.f[1] = lulegv.f[1]   = -0.4;
-    rulegv.f[2] = lulegv.f[2]   = 0;
-    rulegbv.v = rulegv;
-    lulegbv.v = lulegv;
-    rllegv.f[0] = -(lllegv.f[0] = -0.45);
-    rllegv.f[1] = lllegv.f[1]   = -2.4;
-    rllegv.f[2] = lllegv.f[2]   = 0.05;
-    rllegbv.v = rllegv;
-    lllegbv.v = lllegv;
-    rfootv.f[0] = -(lfootv.f[0] = -0.45);
-    rfootv.f[1] = lfootv.f[1]   = -4.35;
-    rfootv.f[2] = lfootv.f[2]   = 0;
-    rfootbv.v = rfootv;
-    lfootbv.v = lfootv;
-    rfoottopv.f[0] = -(lfoottopv.f[0] = -0.45);
-    rfoottopv.f[1] = lfoottopv.f[1]   = -4.35;
-    rfoottopv.f[2] = lfoottopv.f[2]   = 0.7;
-    rfoottopbv.v = rfoottopv;
-    lfoottopbv.v = lfoottopv;
-    
-    bodyverts[0] = &waistbv;
-    bodyverts[1] = &chestbv;
-    bodyverts[2] = &neckbv;
-    bodyverts[3] = &headbv;
-    bodyverts[4] = &headtopbv;
-    bodyverts[5] = &rshoulderbv;
-    bodyverts[6] = &ruarmbv;
-    bodyverts[7] = &rlarmbv;
-    bodyverts[8] = &rhandbv;
-    bodyverts[9] = &rhandtopbv;
-    bodyverts[10] = &lshoulderbv;
-    bodyverts[11] = &luarmbv;
-    bodyverts[12] = &llarmbv;
-    bodyverts[13] = &lhandbv;
-    bodyverts[14] = &lhandtopbv;
-    bodyverts[15] = &rulegbv;
-    bodyverts[16] = &rllegbv;
-    bodyverts[17] = &rfootbv;
-    bodyverts[18] = &rfoottopbv;
-    bodyverts[19] = &lulegbv;
-    bodyverts[20] = &lllegbv;
-    bodyverts[21] = &lfootbv;
-    bodyverts[22] = &lfoottopbv;
-    bodyverts[23] = &waistc1bv;
-    bodyverts[24] = &waistc2bv;
-    bodyverts[25] = &chestc1bv;
-    bodyverts[26] = &chestc2bv;
-
-}
-
-void initCapsules(){
-    waistc.bv1 = &waistc1bv;
-    waistc.bv2 = &waistc2bv;
-    waistc.r = 0.35;
-    chestc.bv1 = &chestc1bv;
-    chestc.bv2 = &chestc2bv;
-    chestc.r = 0.4;
-    
-    
-    neckc.bv1 = &neckbv;
-    neckc.bv2 = &headbv;
-    neckc.r = 0.25;
-    headc.bv1 = &headbv;
-    headc.bv2 = &headtopbv;
-    headc.r = 0.4;
-    
-    rshoulderc.bv1 = &rshoulderbv;
-    rshoulderc.bv2 = &ruarmbv;
-    rshoulderc.r = 0.3;
-    ruarmc.bv1 = &ruarmbv;
-    ruarmc.bv2 = &rlarmbv;
-    ruarmc.r = 0.2;
-    rlarmc.bv1 = &rlarmbv;
-    rlarmc.bv2 = &rhandbv;
-    rlarmc.r = 0.15;
-    rhandc.bv1 = &rhandbv;
-    rhandc.bv2 = &rhandtopbv;
-    rhandc.r = 0.1;
-    
-    lshoulderc.bv1 = &lshoulderbv;
-    lshoulderc.bv2 = &luarmbv;
-    lshoulderc.r = 0.3;
-    luarmc.bv1 = &luarmbv;
-    luarmc.bv2 = &llarmbv;
-    luarmc.r = 0.2;
-    llarmc.bv1 = &llarmbv;
-    llarmc.bv2 = &lhandbv;
-    llarmc.r = 0.15;
-    lhandc.bv1 = &lhandbv;
-    lhandc.bv2 = &lhandtopbv;
-    lhandc.r = 0.1;
-    
-    rulegc.bv1 = &rulegbv;
-    rulegc.bv2 = &rllegbv;
-    rulegc.r = 0.3;
-    rllegc.bv1 = &rllegbv;
-    rllegc.bv2 = &rfootbv;
-    rllegc.r = 0.2;
-    rfootc.bv1 = &rfootbv;
-    rfootc.bv2 = &rfoottopbv;
-    rfootc.r = 0.1;
-    
-    lulegc.bv1 = &lulegbv;
-    lulegc.bv2 = &lllegbv;
-    lulegc.r = 0.3;
-    lllegc.bv1 = &lllegbv;
-    lllegc.bv2 = &lfootbv;
-    lllegc.r = 0.2;
-    lfootc.bv1 = &lfootbv;
-    lfootc.bv2 = &lfoottopbv;
-    lfootc.r = 0.1;
-    
-    caps[0] = &waistc;
-    caps[1] = &chestc;
-    caps[2] = &neckc;
-    caps[3] = &headc;
-    caps[4] = &rshoulderc;
-    caps[5] = &ruarmc;
-    caps[6] = &rlarmc;
-    caps[7] = &rhandc;
-    caps[8] = &lshoulderc;
-    caps[9] = &luarmc;
-    caps[10] = &llarmc;
-    caps[11] = &lhandc;
-    caps[12] = &rulegc;
-    caps[13] = &rllegc;
-    caps[14] = &rfootc;
-    caps[15] = &lulegc;
-    caps[16] = &lllegc;
-    caps[17] = &lfootc;
-}
-
-void initNodes(){
-    //body
-    glPushMatrix();
-        glMultMatrixf(bodypos);
-        glLoadIdentity();
-        glGetFloatv(GL_MODELVIEW_MATRIX, bodypos);
-    glPopMatrix();
-    
-    //waist
-    glLoadIdentity();
-    glTranslatef(0.0,-0.4,0.0);
-    waistn.cap = &waistc;
-    waistn.bv1 = &waistbv;
-    waistn.bv2 = &chestbv;
-    waistn.id = 1;
-    waistn.sibling = &rulegn;
-    waistn.child = &chestn;
-    
-    //chest
-    glLoadIdentity();
-    glTranslatef(0,1.0,0.0);
-    chestn.cap = &chestc;
-    chestn.bv1 = &chestbv;
-    chestn.bv2 = &neckbv;
-    chestn.id = 16;
-    chestn.sibling = NULL;
-    chestn.child = &neckn;
-    
-    //Neck
-    glLoadIdentity();
-    glTranslatef(0.0,1.8,0.0);
-    neckn.cap = &neckc;
-    neckn.bv1 = &neckbv;
-    neckn.bv2 = &headbv;
-    neckn.id = 2;
-    neckn.sibling = &rshouldern;
-    neckn.child = &headn;
-    
-    //HEAD
-    glLoadIdentity();
-    glTranslatef(0.0,0.5,0.0);
-    headn.cap = &headc;
-    headn.bv1 = &headbv;
-    headn.bv2 = &headtopbv;
-    headn.id = 3;
-    headn.sibling = NULL;
-    headn.child = NULL;
-
-    //rshoulder
-    glLoadIdentity();
-    glTranslatef(-0.4,1.45,0.0);
-    rshouldern.cap = &rshoulderc;
-    rshouldern.bv1 = &rshoulderbv;
-    rshouldern.bv2 = &ruarmbv;
-    rshouldern.id = 17;
-    rshouldern.sibling = &lshouldern;
-    rshouldern.child = &ruarmn;
-    
-    //RIGHT UPPER ARM
-    glLoadIdentity();
-    glTranslatef(-0.85,-0.35,0.0);
-    ruarmn.cap = &ruarmc;
-    ruarmn.bv1 = &ruarmbv;
-    ruarmn.bv2 = &rlarmbv;
-    ruarmn.id = 4;
-    ruarmn.sibling = NULL;
-    ruarmn.child = &rlarmn;
-    
-    //RIGHT LOWER ARM
-    glLoadIdentity();
-    glTranslatef(-0.05,-1.3,-0.05);
-    rlarmn.cap = &rlarmc;
-    rlarmn.bv1 = &rlarmbv;
-    rlarmn.bv2 = &rhandbv;
-    rlarmn.id = 5;
-    rlarmn.sibling = NULL;        
-    rlarmn.child = &rhandn;
-    
-    //rhand
-    glLoadIdentity();
-    glTranslatef(0.05,-1.3,0.05);
-    rhandn.cap = &rhandc;
-    rhandn.bv1 = &rhandbv;
-    rhandn.bv2 = &rhandtopbv;
-    rhandn.id = 6;
-    rhandn.sibling = NULL;        
-    rhandn.child = NULL;
-    
-    //lshoulder
-    glLoadIdentity();
-    glTranslatef(0.4,1.45,0.0);
-    lshouldern.cap = &lshoulderc;
-    lshouldern.bv1 = &lshoulderbv;
-    lshouldern.bv2 = &luarmbv;
-    lshouldern.id = 17;
-    lshouldern.sibling = NULL;
-    lshouldern.child = &luarmn;
-    
-    //RIGHT UPPER ARM
-    glLoadIdentity();
-    glTranslatef(0.85,-0.35,0.0);
-    luarmn.cap = &luarmc;
-    luarmn.bv1 = &luarmbv;
-    luarmn.bv2 = &llarmbv;
-    luarmn.id = 7;
-    luarmn.sibling = NULL;
-    luarmn.child = &llarmn;
-    
-    //RIGHT LOWER ARM
-    glLoadIdentity();
-    glTranslatef(0.05,-1.3,-0.05);
-
-    llarmn.cap = &llarmc;
-    llarmn.bv1 = &llarmbv;
-    llarmn.bv2 = &lhandbv;
-    llarmn.id = 8;
-    llarmn.sibling = NULL;        
-    llarmn.child = &lhandn;
-    
-    //rhand
-    glLoadIdentity();
-    glTranslatef(-0.05,-1.3,0.05);
-    lhandn.cap = &lhandc;
-    lhandn.bv1 = &lhandbv;
-    lhandn.bv2 = &lhandtopbv;
-    lhandn.id = 9;
-    lhandn.sibling = NULL;        
-    lhandn.child = NULL;
-    
-    //RIGHT UPPER LEG
-    glLoadIdentity();
-    glTranslatef(-0.5,-0.4,0.0);
-    rulegn.cap = &rulegc;
-    rulegn.bv1 = &rulegbv;
-    rulegn.bv2 = &rllegbv;
-    rulegn.id = 10;
-    rulegn.sibling = &lulegn;       
-    rulegn.child = &rllegn; 
-    
-    //RIGHT LOWER LEG
-    glLoadIdentity();
-    glTranslatef(0.05,-2,0.0);
-    rllegn.cap = &rllegc;
-    rllegn.bv1 = &rllegbv;
-    rllegn.bv2 = &rfootbv;
-    rllegn.id = 11;
-    rllegn.sibling = NULL;
-    rllegn.child = &rfootn;
-    
-    //rfoot
-    glLoadIdentity();
-    glTranslatef(0,-2,0);
-    rfootn.cap = &rfootc;
-    rfootn.bv1 = &rfootbv;
-    rfootn.bv2 = &rfoottopbv;
-    rfootn.id = 12;
-    rfootn.sibling = NULL;
-    rfootn.child = NULL;
-    
-    //LEFT UPPER LEG
-    glLoadIdentity();
-    glTranslatef(0.5,-0.4,0.0);
-    lulegn.cap = &lulegc;
-    lulegn.bv1 = &lulegbv;
-    lulegn.bv2 = &lllegbv;
-    lulegn.id = 13;
-    lulegn.sibling = NULL;       
-    lulegn.child = &lllegn;                      
-    
-    //LEFT LOWER LEG
-    glLoadIdentity();
-    glTranslatef(-0.05,-2,0.0);
-    lllegn.cap = &lllegc;
-    lllegn.bv1 = &lllegbv;
-    lllegn.bv2 = &lfootbv;
-    lllegn.id = 14;
-    lllegn.sibling = NULL;        
-    lllegn.child = &lfootn;
-    
-    //lfoot
-    glLoadIdentity();
-    glTranslatef(0,-2,0);
-    lfootn.cap = &lfootc;
-    lfootn.bv1 = &lfootbv;
-    lfootn.bv2 = &lfoottopbv;
-    lfootn.id = 15;
-    lfootn.sibling = NULL;        
-    lfootn.child = NULL;
-}
+//// INIT VERTICES
 
 //Hasta ahorita detecta colision entre un punto y una capsula, 
 //calcula la normal y regresa que tan adentro esta el punto h, 0 si esta fuera
@@ -880,6 +364,7 @@ void traverse (treenode *node){
     	traverse(node->sibling);
 }
 
+
 ////////////DRAW
 
 void setMaterials(GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
@@ -952,7 +437,7 @@ void drawParticles(particle *arr, int total, GLfloat *ambient, GLfloat *diffuse,
               glTranslatef(arr[i].pos->f[0], arr[i].pos->f[1], arr[i].pos->f[2]);
               glutSolidSphere(vertsize, 5,5);
           glPopMatrix();
-//          
+          
 //          ///
 //          glDisable(GL_LIGHTING);
 //          glBegin(GL_LINES);
@@ -970,12 +455,14 @@ void drawSprings(spring *arr, int total, GLfloat *ambient, GLfloat *diffuse, GLf
     
     int i=0;
     
-    for(i=0; i<total; i++){
+    for(i=0; i<0; i++){
           double *p1temp = arr[i].p1->pos->f;
           double *p2temp = arr[i].p2->pos->f;
           glBegin(GL_LINES);
               glVertex3f(p1temp[0], p1temp[1], p1temp[2]);
               glVertex3f(p2temp[0], p2temp[1], p2temp[2]);
+              glVertex3f(0,0,0);
+              glVertex3f(3,3,3);
           glEnd();
      }
 }
@@ -1035,6 +522,8 @@ void display(){
 
     //sprintf(title, "shirt 0: %f  %f  %f", shirtdata->vertexList[0]->f[0], shirtdata->vertexList[0]->f[1], shirtdata->vertexList[0]->f[2]);
     //sprintf(title, "tshirtpart: %d", totalshirtparticles);
+    //sprintf(title, "tshirtsprings: %d", totalshirtsprings);
+    sprintf(title, "shirtsprings 0: %f    tshirtsprings: %d", shirtsprings[0].rest_distance, totalshirtsprings);
     glutSetWindowTitle(title);
     ///////
 
@@ -1075,9 +564,9 @@ void display(){
         
     //SPRINGS
     glDisable(GL_LIGHTING);
-        if(shirtspringsswitch)
-            drawSprings(shirtsprings, totalshirtsprings, zeroMaterial, grayDiffuse, zeroMaterial, noShininess);
-        //if(pantsspringsswitch)
+        if(shirtspringswitch)
+            //drawSprings(shirtsprings, totalshirtsprings, zeroMaterial, grayDiffuse, zeroMaterial, noShininess);
+        //if(pantsspringswitch)
             //drawSprings(pantssprings, totalpantssprings, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
     glEnable(GL_LIGHTING);
    	glutSwapBuffers();
@@ -1383,96 +872,7 @@ void reshape(int w, int h){
 }
 
 ////////////////////////////////////////////////INITS
-//Carga objs a skindata, shirtdata y pantsdata
-void initObj(){
-    skindata = new objLoader();
-    skindata->load("cuerpob.obj");
-    
-    shirtdata = new objLoader();
-    shirtdata->load("camisab.obj");
-    
-    //pantsdata = new objLoader();
-    //pantsdata->load("pantsb.obj");
-}
 
-void initParticles(){
-    totalshirtparticles = shirtdata->vertexCount;
-    //totalpantsparticles = pantsdata->vertexCount;
-    shirtparticles = (particle*)calloc(totalshirtparticles, sizeof(particle));
-    //pantsparticles = (particle*)calloc(totalpantsparticles, sizeof(particle));
-    
-    if(shirtparticles == NULL){// || pantsparticles == NULL){
-        //println("COULD NOT ALLOCATE MEMORY FOR PARTICLES");
-        sprintf(title, "COULD NOT ALLOCATE MEMORY FOR PARTICLES");
-        glutSetWindowTitle(title);
-        //exit(0);
-    }
-    
-    
-    int i=0;
-    ////construye particulas con masa y un punto
-    for(i=0; i < totalshirtparticles; i++){
-        particle ptemp;
-        ptemp.movable = true;
-        ptemp.mass = 1;
-    	ptemp.pos = shirtdata->vertexList[i];
-    	ptemp.old_pos = Vec3construct(0,0,0);
-    	ptemp.acceleration = Vec3construct(0,0,0);
-    	ptemp.accumulated_normal = Vec3construct(0,0,0);
-        shirtparticles[i] = ptemp;
-    }
-    
-    //sprintf(title, "shirtvert 0: %f %f %f ", shirtdata->vertexList[i]->f[0], shirtdata->vertexList[i]->f[1], shirtdata->vertexList[i]->f[2]);
-    //sprintf(title, "shirtvert 0: %f %f %f ", shirtparticles[i].pos->f[0], shirtparticles[i].pos->f[1], shirtparticles[i].pos->f[2]);
-    //sprintf(title, "tshirtpart: %d", totalshirtparticles);
-    //glutSetWindowTitle(title);
-
-    
-    //igual para pants
-    //
-}
-
-//checa si el resorte ya esta en la lista
-//a->b  y  b->a son repetidos, capisce?
-bool checkDuplicateSpring(spring *array, int total, Vec3 *v1, Vec3 *v2){
-     bool flag = false;
-     int i=0;
-     for(i=0;i<total;i++){
-         if((array[i].p1->pos == v1 && array[i].p2->pos == v2) || (array[i].p1->pos == v2 && array[i].p2->pos == v1))
-             flag = true;
-     }
-     return flag;
-}
-
-void initSprings(){
-    //shirtsprings = (spring*)calloc(shirtdata->faceCount * 3, sizeof(spring));
-    //pantssprings = (spring*)calloc(pantsdata->faceCount * 3, sizeof(spring));
-    
-    if(shirtsprings == NULL){ // || pantssprings == NULL){
-        //println("COULD NOT ALLOCATE MEMORY FOR SPRINGS");
-        sprintf(title, "COULD NOT ALLOCATE MEMORY FOR SPRINGS");
-        glutSetWindowTitle(title);
-        //exit(-1);
-    }
-    
-    totalshirtsprings = 0;
-    totalpantssprings = 0;
-    
-    int i=0;//iterador
-    int currentindex = 0;//no toma en cuenta resortes repetidos
-    
-    ////agrega 3 resortes (aristas) por cada cara, pero checa que no se repitan
-    for(i=0 ;i < shirtdata->faceCount; i++){
-        if(!(checkDuplicateSpring(shirtsprings, totalshirtsprings, 
-                                  (shirtdata->vertexList[shirtdata->faceList[i]->vertex_index[0]]), 
-                                  (shirtdata->vertexList[shirtdata->faceList[i]->vertex_index[1]])))){
-            particle pt1;
-            particle pt2;
-            spring stemp = springconstruct(&pt1, &pt2);
-        }
-    }
-    
-}
 
 void processMenu(int val){
 	switch(val){
@@ -1515,6 +915,9 @@ void processMenu(int val){
         case 43:
              shirtvertswitch = !shirtvertswitch;
              break;
+        case 44:
+             shirtspringswitch = !shirtspringswitch;
+             break;
         case 51:
              pantsvisswitch = !pantsvisswitch;
              break;
@@ -1523,6 +926,9 @@ void processMenu(int val){
              break;
         case 53:
              pantsvertswitch = !pantsvertswitch;
+             break;
+        case 54:
+             pantsspringswitch = !pantsspringswitch;
              break;
         case 0:
              exit(0);
@@ -1561,13 +967,15 @@ int initMenus(){
 	glutAddMenuEntry("Toggle Alpha",             32);
 	glutAddMenuEntry("Toggle Vertex Visibility", 33);
     glutSetMenu(shirtMenu);
-	glutAddMenuEntry("Toggle Visibility",        41);
-	glutAddMenuEntry("Toggle Alpha",             42);
-	glutAddMenuEntry("Toggle Vertex Visibility", 43);
+	glutAddMenuEntry("Toggle Visibility",          41);
+	glutAddMenuEntry("Toggle Alpha",               42);
+	glutAddMenuEntry("Toggle Particle Visibility", 43);
+	glutAddMenuEntry("Toggle Spring Visibility",   44);
 	glutSetMenu(pantsMenu);
-	glutAddMenuEntry("Toggle Visibility",        51);
-	glutAddMenuEntry("Toggle Alpha",             52);
-	glutAddMenuEntry("Toggle Vertex Visibility", 53);
+	glutAddMenuEntry("Toggle Visibility",          51);
+	glutAddMenuEntry("Toggle Alpha",               52);
+	glutAddMenuEntry("Toggle Particle Visibility", 53);
+	glutAddMenuEntry("Toggle Spring Visibility",   54);
 	glutSetMenu(mainMenu);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
@@ -1626,7 +1034,7 @@ int main(int argc, char **argv)
   initCapsules();
   initNodes();
   initParticles();
-  //initSprings();
+  initSprings();
   
   glutMainLoop();                               // Pasar el control a GLUT.
   return 0;                                     // Regresar 0 por cortesía.
