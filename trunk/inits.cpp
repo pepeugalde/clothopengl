@@ -47,6 +47,8 @@ int totalpantssprings;
 spring *shirtsprings;
 spring *pantssprings;
 
+Vec3 gravity = Vec3construct(0,-0.01,0);
+
 /////////////////FUNCIONES
 void initVertices(){
     //
@@ -54,6 +56,7 @@ void initVertices(){
     testvert.f[1] = testy;
     testvert.f[2] = testz;
     //
+    
     Vec3 waistv, chestv, neckv, headv, headtopv, 
      rshoulderv, ruarmv, rlarmv, rhandv, rhandtopv, lshoulderv, luarmv, llarmv, lhandv, lhandtopv, 
      rulegv, rllegv, rfootv, rfoottopv, lulegv, lllegv, lfootv, lfoottopv, 
@@ -109,7 +112,7 @@ void initVertices(){
     headtopbv.v = headtopv;
     
     rshoulderv.f[0] = -(lshoulderv.f[0] = -0.4);
-    rshoulderv.f[1] = lshoulderv.f[1]   = 2.05;
+    rshoulderv.f[1] = lshoulderv.f[1]   = 2;
     rshoulderv.f[2] = lshoulderv.f[2]   = 0;
     rshoulderbv.v = rshoulderv;
     lshoulderbv.v = lshoulderv;
@@ -187,63 +190,61 @@ void initVertices(){
 void initCapsules(){
     waistc.bv1 = &waistc1bv;
     waistc.bv2 = &waistc2bv;
-    waistc.r = 0.35;
+    
     chestc.bv1 = &chestc1bv;
     chestc.bv2 = &chestc2bv;
-    chestc.r = 0.4;
     
     neckc.bv1 = &neckbv;
     neckc.bv2 = &headbv;
-    neckc.r = 0.25;
+    
     headc.bv1 = &headbv;
     headc.bv2 = &headtopbv;
-    headc.r = 0.4;
+    
+    waistc.r = 0.45;
+    chestc.r = 0.5;
+    neckc.r = 0.35;
+    headc.r = 0.5;
     
     rshoulderc.bv1 = &rshoulderbv;
     rshoulderc.bv2 = &ruarmbv;
-    rshoulderc.r = 0.3;
     ruarmc.bv1 = &ruarmbv;
     ruarmc.bv2 = &rlarmbv;
-    ruarmc.r = 0.2;
     rlarmc.bv1 = &rlarmbv;
     rlarmc.bv2 = &rhandbv;
-    rlarmc.r = 0.15;
     rhandc.bv1 = &rhandbv;
     rhandc.bv2 = &rhandtopbv;
-    rhandc.r = 0.1;
     
     lshoulderc.bv1 = &lshoulderbv;
     lshoulderc.bv2 = &luarmbv;
-    lshoulderc.r = 0.3;
     luarmc.bv1 = &luarmbv;
     luarmc.bv2 = &llarmbv;
-    luarmc.r = 0.2;
     llarmc.bv1 = &llarmbv;
     llarmc.bv2 = &lhandbv;
-    llarmc.r = 0.15;
     lhandc.bv1 = &lhandbv;
     lhandc.bv2 = &lhandtopbv;
-    lhandc.r = 0.1;
+    
+    rshoulderc.r = lshoulderc.r = 0.4;
+    ruarmc.r = luarmc.r = 0.3;
+    rlarmc.r = llarmc.r = 0.25;
+    rhandc.r = lhandc.r = 0.2;
     
     rulegc.bv1 = &rulegbv;
     rulegc.bv2 = &rllegbv;
-    rulegc.r = 0.3;
     rllegc.bv1 = &rllegbv;
     rllegc.bv2 = &rfootbv;
-    rllegc.r = 0.2;
     rfootc.bv1 = &rfootbv;
     rfootc.bv2 = &rfoottopbv;
-    rfootc.r = 0.1;
     
     lulegc.bv1 = &lulegbv;
     lulegc.bv2 = &lllegbv;
-    lulegc.r = 0.3;
     lllegc.bv1 = &lllegbv;
     lllegc.bv2 = &lfootbv;
-    lllegc.r = 0.2;
     lfootc.bv1 = &lfootbv;
     lfootc.bv2 = &lfoottopbv;
-    lfootc.r = 0.1;
+    
+    rulegc.r = lulegc.r = 0.4;
+    rllegc.r = lllegc.r = 0.3;
+    rfootc.r = lfootc.r = 0.2;
     
     caps[0] = &waistc;
     caps[1] = &chestc;

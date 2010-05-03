@@ -24,27 +24,29 @@
 #include "structs.h"
 
 /////SWITCHES
-bool smoothswitch     = true;
-bool capvisswitch     = false;//true;
-bool capalphaswitch   = false;//true;
-bool jointvisswitch   = true;
-bool jointalphaswitch = false;//true;
+bool smoothswitch      = true;
 
-bool skinvisswitch    = false;//true;
-bool skinvertswitch   = false;//true;
-bool skinalphaswitch  = false;//true;
+bool capvisswitch      = true;
+bool capalphaswitch    = false;//true;
 
-bool shirtvisswitch   = false;//true;
-bool shirtvertswitch  = true;
-bool shirtalphaswitch = false;//true;
-bool shirtspringswitch = true;
+bool jointvisswitch    = true;
+bool jointalphaswitch  = false;//true;
 
-bool pantsvisswitch   = true;
-bool pantsvertswitch  = true;
-bool pantsalphaswitch = false;//true;
+bool skinvisswitch     = false;//true;
+bool skinvertswitch    = false;//true;
+bool skinalphaswitch   = false;//true;
+
+bool shirtvisswitch    = true;
+bool shirtvertswitch   = false;//true;
+bool shirtalphaswitch  = false;//true;
+bool shirtspringswitch = false;//true;
+
+bool pantsvisswitch    = true;
+bool pantsvertswitch   = true;
+bool pantsalphaswitch  = false;//true;
 bool pantsspringswitch = true;
 
-bool gridswitch       = false;
+bool gridswitch        = false;
 
 bool mouseDown = false;
 
@@ -55,6 +57,7 @@ GLfloat angley = 0; //en y
 int segselect = 0;
 float jointsize = 0.3;
 float vertsize = 0.05;
+float particler = 0.0;
 
 GLUquadric* q = gluNewQuadric();
 
@@ -68,6 +71,9 @@ float ydiff = 0.0f;
 float zoom = 12.0;
 
 
+float speed = 1;
+float eTime;
+float timeDelta = 0.1;
 
 //------------------FUNCIONES----------------------------
 //distancia 3d entre 2 puntos
@@ -201,11 +207,43 @@ float colDetect(capsule *cap, Vec3 *h, float hr){
     D[1] = h->f[1] - cap->bv1->v.f[1];
     D[2] = h->f[2] - cap->bv1->v.f[2];
     
-    //centro de la capsula
-    //float C[3];
-    //C[0] = (cap->bv1->v.f[0] + cap->bv2->v.f[0])/2;
-    //C[1] = (cap->bv1->v.f[1] + cap->bv2->v.f[1])/2;
-    //C[2] = (cap->bv1->v.f[2] + cap->bv2->v.f[2])/2;
+    //vector unitario
+    float A[3];
+    A[0] = (cap->bv2->v.f[0] - cap->bv1->v.f[0]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
+    A[1] = (cap->bv2->v.f[1] - cap->bv1->v.f[1]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
+    A[2] = (cap->bv2->v.f[2] - cap->bv1->v.f[2]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
+    
+    //distancia entre el punto 1 de la cap y la proyeccion de *h
+    float d = D[0] * A[0] + D[1] * A[1] + D[2] * A[2];
+    if(d<0)
+        d = 0;
+    float caplen = vDistance(&(cap->bv1->v), &(cap->bv2->v));
+    if(d>caplen)
+        d = caplen;
+    
+    //punto donde se proyecta *h sobre la linea de la cap
+    float R[3];
+    R[0] = cap->bv1->v.f[0] + (A[0] * d);
+    R[1] = cap->bv1->v.f[1] + (A[1] * d);
+    R[2] = cap->bv1->v.f[2] + (A[2] * d);
+    float b = distance3d(h->f[0],h->f[1],h->f[2], R[0],R[1],R[2]);
+    
+    float penetration = 0;
+    
+    //que tan adentro de la cap esta *h
+    if(b < (cap->r + hr))
+        penetration = b - (cap->r + hr);
+    
+    return penetration;
+}
+
+//saca un punto de una capsula
+float handleColission(capsule *cap, Vec3 *h, float hr){
+    //dist entre punto uno de cap y *h
+    float D[3];
+    D[0] = h->f[0] - cap->bv1->v.f[0];
+    D[1] = h->f[1] - cap->bv1->v.f[1];
+    D[2] = h->f[2] - cap->bv1->v.f[2];
     
     //vector unitario
     float A[3];
@@ -234,14 +272,19 @@ float colDetect(capsule *cap, Vec3 *h, float hr){
     if(b < (cap->r + hr))
         penetration = b - (cap->r + hr);
     
-    //normal que todavia no se usa
-    float N[3];
-    N[0] = h->f[0] - R[0] / b;
-    N[1] = h->f[1] - R[1] / b;
-    N[2] = h->f[2] - R[2] / b;
+    if(penetration != 0){
+        //normal
+        float N[3];
+        N[0] = (h->f[0] - R[0]) / b;
+        N[1] = (h->f[1] - R[1]) / b;
+        N[2] = (h->f[2] - R[2]) / b;
     
-    return penetration;
+        h->f[0] -= N[0] * penetration;
+        h->f[1] -= N[1] * penetration;
+        h->f[2] -= N[2] * penetration;
+    }
 }
+
 
 //Rota un vertice al rededor del eje X
 void rotVertX(Vec3 *v, Vec3 *pt, float angx){
@@ -502,15 +545,16 @@ void display(){
     int numcap = -1;
     
     for(int i=0;i<NUMCAPS;i++){
-        if(colDetect(caps[i], &testvert, testballr) < 0){
+        if(colDetect(caps[i], &testvert, testballr) != 0){
             glPushMatrix();
                 glTranslatef(-2,3,0);
                 glutSolidCube(1);
             glPopMatrix();
             
-            if(mincoll > colDetect(caps[i], &testvert, testballr))
+            if(mincoll > colDetect(caps[i], &testvert, testballr)){
                 mincoll = colDetect(caps[i], &testvert, testballr);
                 numcap = i;
+            }
         }
     }
     //sprintf(title, "Collision at: %f, capsule num: %f", mincoll, numcap);
@@ -611,6 +655,84 @@ void resetVertFlags(){
     }
 }
 
+void parttimeStep2(particle *p){
+	if(p->movable){
+		Vec3 temp = *p->pos;
+		Vec3 vminus = (Vec3minus(p->pos, &(p->old_pos)));
+		Vec3 vmult = Vec3mult(&vminus, (1.0-DAMPING));
+		Vec3 vacc = Vec3mult(&(p->acceleration), TIME_STEPSIZE2);
+		Vec3 vsum = Vec3sum(&vmult, &vacc);
+		Vec3 vsumpos = Vec3sum(p->pos, &vsum);
+        p->pos->f[0] = vsumpos.f[0];
+        p->pos->f[1] = vsumpos.f[1];
+        p->pos->f[2] = vsumpos.f[2];
+		p->old_pos = temp;
+		p->acceleration = Vec3construct(0,0,0); // acceleration is reset since it HAS been translated into a change in position (and implicitely into velocity)	
+	}
+}
+
+///////IDLE
+void idle(void){
+  eTime += timeDelta;
+  if(eTime > speed){
+      int i = 0;
+      int j = 0;
+      
+      float mincoll = 0;
+      int numcap = -1;
+      
+      
+      //aplica fuerzas a shirt
+      for(i=0;i<totalshirtparticles;i++){
+          partaddForce(&shirtparticles[i], gravity);
+          parttimeStep2(&shirtparticles[i]);
+      }
+      //aplica fuerzas a pants
+      //for(i=0;i<totalshirtparticles;i++){
+      //    partTimeStep(pantsparticles[i]);
+      //}
+      
+      
+      for(j=0;j<CONSTRAINT_ITERATIONS;j++){
+          //resortes de shirt
+          for(i=0;i<totalshirtsprings;i++){
+              satisfyConstraint(&shirtsprings[i]);
+          }    
+          //resortes de shirt
+          //for(i=0;i<totalshirtsprings;i++){
+          //    
+          //}
+          
+          //timestep shirt
+          //for(i=0;i<totalshirtparticles;i++){
+          //    parttimeStep(&shirtparticles[i]);
+          //}
+      }
+      //checa colisiones de shirt
+      for(i=0;i<totalshirtparticles;i++){
+          mincoll = 0;
+          numcap = -1;
+          for(j=0;j<NUMCAPS;j++){
+              if(colDetect(caps[j], shirtparticles[i].pos, particler) != 0){
+                  if(mincoll > colDetect(caps[j], shirtparticles[i].pos, particler)){
+                      mincoll = colDetect(caps[j], shirtparticles[i].pos, particler);
+                      numcap = j;
+                  }
+              }
+              if(numcap != -1){
+                  handleColission(caps[numcap], shirtparticles[i].pos, particler);//shirtparticles[i].mass);
+              }
+          }
+      }
+      //checa colisiones de pants
+      //for(i=0;i<totalshirtparticles;i++){
+      //    
+      //}
+  }
+  glutPostRedisplay();
+}
+
+///////MOUSE / KEYBOARD
 void key(unsigned char c, int x, int y){
     switch(c){
         case 27://esc
@@ -713,9 +835,12 @@ void key(unsigned char c, int x, int y){
             break;
         case 'i':
         case 'I':
+            initObj();
             initVertices();
             initCapsules();
             initNodes();
+            initParticles();
+            initSprings();
             glutPostRedisplay();
             break;
     }
@@ -724,27 +849,21 @@ void key(unsigned char c, int x, int y){
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          angley = -angdelta;
-         if(segselect==0)testvert.f[2] -= 0.1;
-         
-         shirtparticles[0].pos->f[1] += 1;
      }
      if(c==GLUT_KEY_DOWN){
          angley = angdelta;
-         if(segselect==0)testvert.f[2] += 0.1;
      }
      if(c==GLUT_KEY_RIGHT){
          anglex = -angdelta;
-         if(segselect==0)testvert.f[0] += 0.1;
      }
      if(c==GLUT_KEY_LEFT){
          anglex = +angdelta;
-         if(segselect==0)testvert.f[0] -= 0.1;
      }
      if(c==GLUT_KEY_PAGE_UP){
-         if(segselect==0)testvert.f[1] += 0.1;
+                             
      }
      if(c==GLUT_KEY_PAGE_DOWN){
-         if(segselect==0)testvert.f[1] -= 0.1;
+                               
      }
      
      glPushMatrix();
@@ -752,10 +871,10 @@ void special(int c, int x, int y){
      
      switch(segselect){
          case 0:
-              //glMultMatrixf(bodypos);
-//              glRotatef(anglex,1.0,0.0,0.0);
-//              glRotatef(angley,0.0,1.0,0.0);
-//              glGetFloatv(GL_MODELVIEW_MATRIX, bodypos);
+              rotChildNode(&waistn, &waistn.bv1->v, 0, anglex, 0);
+              resetVertFlags();
+              rotChildNode(&waistn, &waistn.bv1->v, angley, 0, 0);
+              resetVertFlags();
               break;
          case 1:
               rotNode(&waistn, 0,anglex,0);
@@ -880,8 +999,6 @@ void reshape(int w, int h){
 }
 
 ////////////////////////////////////////////////INITS
-
-
 void processMenu(int val){
 	switch(val){
         case 1:
@@ -1034,7 +1151,8 @@ int main(int argc, char **argv)
   glutMotionFunc(mouseMotion);
   glutKeyboardFunc(key);
   glutSpecialFunc(special);
-  
+  glutIdleFunc(idle);
+  	
   init();
   initMenus();
   initObj();
