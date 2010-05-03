@@ -455,14 +455,13 @@ void drawSprings(spring *arr, int total, GLfloat *ambient, GLfloat *diffuse, GLf
     
     int i=0;
     
-    for(i=0; i<0; i++){
+    for(i=0; i<total; i++){
           double *p1temp = arr[i].p1->pos->f;
           double *p2temp = arr[i].p2->pos->f;
+          glLineWidth(2);
           glBegin(GL_LINES);
               glVertex3f(p1temp[0], p1temp[1], p1temp[2]);
               glVertex3f(p2temp[0], p2temp[1], p2temp[2]);
-              glVertex3f(0,0,0);
-              glVertex3f(3,3,3);
           glEnd();
      }
 }
@@ -523,8 +522,17 @@ void display(){
     //sprintf(title, "shirt 0: %f  %f  %f", shirtdata->vertexList[0]->f[0], shirtdata->vertexList[0]->f[1], shirtdata->vertexList[0]->f[2]);
     //sprintf(title, "tshirtpart: %d", totalshirtparticles);
     //sprintf(title, "tshirtsprings: %d", totalshirtsprings);
-    sprintf(title, "shirtsprings 0: %f    tshirtsprings: %d", shirtsprings[0].rest_distance, totalshirtsprings);
-    glutSetWindowTitle(title);
+    
+//    if(shirtparticles[shirtdata->faceList[0]->vertex_index[0]].pos == NULL){
+//    if(shirtsprings[0].p1 == NULL)
+//        sprintf(title, "NULL!!!");
+//    else
+//        sprintf(title, "no null");
+    
+    sprintf(title, "shirtsprings 0 p1x: %f   p2x: %f    tshirtsprings: %d", shirtsprings[0].p1->pos[0], shirtsprings[0].p2->pos[0], totalshirtsprings);
+    sprintf(title, "facecount: %d", shirtdata->faceCount);
+    sprintf(title, "facecount: %d", shirtdata->vertexCount);
+    //glutSetWindowTitle(title);
     ///////
 
     //MONO
@@ -565,7 +573,7 @@ void display(){
     //SPRINGS
     glDisable(GL_LIGHTING);
         if(shirtspringswitch)
-            //drawSprings(shirtsprings, totalshirtsprings, zeroMaterial, grayDiffuse, zeroMaterial, noShininess);
+            drawSprings(shirtsprings, totalshirtsprings, zeroMaterial, grayDiffuse, zeroMaterial, noShininess);
         //if(pantsspringswitch)
             //drawSprings(pantssprings, totalpantssprings, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
     glEnable(GL_LIGHTING);

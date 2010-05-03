@@ -147,6 +147,8 @@ spring springconstruct(particle *p1, particle *p2){
     Vec3 pos2 = partgetPos(p2);
 	Vec3 vec = Vec3minus(&pos1, &pos2);
 	temp.rest_distance = Vec3length(&vec);
+	temp.p1=p1;
+	temp.p2=p2;
 	return temp;
 }
 

@@ -480,7 +480,6 @@ void initParticles(){
         exit(-1);
     }
     
-    
     int i=0;
     ////construye particulas con masa y un punto
     for(i=0; i < totalshirtparticles; i++){
@@ -507,12 +506,9 @@ bool isDuplicateSpring(spring *array, int total, particle *pa1, particle *pa2){
     bool flag = false;
     int i=0;
     for(i=0;i<total;i++){
-        //if((array[i].p1->pos == pa1->pos && array[i].p2->pos == pa2->pos) || (array[i].p1->pos == pa2->pos && array[i].p2->pos == pa1->pos));
-        //if(array[i].p1->pos == pa1->pos)
-//        if(array[i].p2->pos == pa2->pos)
-//        if(array[i].p1->pos == pa2->pos)
-//        if(array[i].p2->pos == pa1->pos)
+        if((array[i].p1->pos == pa1->pos && array[i].p2->pos == pa2->pos) || (array[i].p1->pos == pa2->pos && array[i].p2->pos == pa1->pos)){
             flag = true;
+        }
     }
     return flag;
 }
@@ -538,7 +534,7 @@ void initSprings(){
         ///arista 1
         particle *pt1a = &(shirtparticles[shirtdata->faceList[i]->vertex_index[0]]);
         particle *pt2a = &(shirtparticles[shirtdata->faceList[i]->vertex_index[1]]);
-        if(!(isDuplicateSpring(shirtsprings, totalshirtsprings, (pt1a), (pt2a)))){
+        if(!(isDuplicateSpring(shirtsprings, totalshirtsprings, pt1a, pt2a))){
             spring stemp = springconstruct(pt1a, pt2a);
             shirtsprings[totalshirtsprings] = stemp;
             totalshirtsprings++;
@@ -546,7 +542,7 @@ void initSprings(){
         ///arista 2
         particle *pt1b = &(shirtparticles[shirtdata->faceList[i]->vertex_index[1]]);
         particle *pt2b = &(shirtparticles[shirtdata->faceList[i]->vertex_index[2]]);
-        if(!(isDuplicateSpring(shirtsprings, totalshirtsprings, (pt1b), (pt2b)))){
+        if(!(isDuplicateSpring(shirtsprings, totalshirtsprings, pt1b, pt2b))){
             spring stemp = springconstruct(pt1b, pt2b);
             shirtsprings[totalshirtsprings] = stemp;
             totalshirtsprings++;
@@ -554,10 +550,14 @@ void initSprings(){
         ///arista 3
         particle *pt1c = &(shirtparticles[shirtdata->faceList[i]->vertex_index[2]]);
         particle *pt2c = &(shirtparticles[shirtdata->faceList[i]->vertex_index[0]]);
-        if(!(isDuplicateSpring(shirtsprings, totalshirtsprings, (pt1c), (pt2c)))){
+        if(!(isDuplicateSpring(shirtsprings, totalshirtsprings, pt1c, pt2c))){
             spring stemp = springconstruct(pt1c, pt2c);
             shirtsprings[totalshirtsprings] = stemp;
             totalshirtsprings++;
         }
-    }    
+//        sprintf(title, "tss: %d", 592 * 3);
+//        glutSetWindowTitle(title);
+    }
+
+
 }
