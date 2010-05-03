@@ -2,6 +2,7 @@
 #define OBJ_PARSER_H
 
 #include "list.h"
+#include "structs.h"
 
 #define OBJ_FILENAME_LENGTH 500
 #define MATERIAL_NAME_SIZE 255
@@ -35,10 +36,7 @@ typedef struct obj_plane
 	int material_index;
 };
 
-typedef struct obj_vector
-{
-	double e[3];
-};
+
 
 typedef struct obj_material
 {
@@ -106,9 +104,9 @@ typedef struct obj_growable_scene_data
 
 typedef struct obj_scene_data
 {
-	obj_vector **vertex_list;
-	obj_vector **vertex_normal_list;
-	obj_vector **vertex_texture_list;
+	Vec3 **vertex_list;
+	Vec3 **vertex_normal_list;
+	Vec3 **vertex_texture_list;
 	
 	obj_face **face_list;
 	obj_sphere **sphere_list;

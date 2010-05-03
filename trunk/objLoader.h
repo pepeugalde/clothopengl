@@ -14,9 +14,9 @@ public:
 
 	int load(char *filename);
 
-	obj_vector **vertexList;
-	obj_vector **normalList;
-	obj_vector **textureList;
+	Vec3 **vertexList;
+	Vec3 **normalList;
+	Vec3 **textureList;
 	
 	obj_face **faceList;
 	obj_sphere **sphereList;

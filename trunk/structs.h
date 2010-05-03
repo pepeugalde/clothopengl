@@ -1,7 +1,10 @@
+#ifndef STRUCTS_H
+#define STRUCTS_H
+
 /*Punto, vector, vertice, como lo quieran ver
 contiene x, y, z */
 typedef struct Vec3{
-    float f[3];
+    double f[3];
 } Vec3;
 
 /*vertice del cuerpo (hombro, cadera, codo, etc)
@@ -55,3 +58,4 @@ typedef struct cloth{
 	int num_particles_height; // number of particles in "height" direction
 } cloth;
 
+#endif
