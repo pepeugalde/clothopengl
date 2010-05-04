@@ -32,7 +32,7 @@ extern treenode headn, neckn, rshouldern, lshouldern, ruarmn, luarmn, rlarmn, ll
 ////STRUCTS
 extern objLoader *skindata;
 extern objLoader *shirtdata;
-//extern objLoader *pantsdata;
+extern objLoader *pantsdata;
 
 //arreglos de structs
 extern bodyvertex   *bodyverts[NUMVERT];
