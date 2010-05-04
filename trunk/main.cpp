@@ -26,23 +26,23 @@
 /////SWITCHES
 bool smoothswitch      = true;
 
-bool capvisswitch      = true;
+bool capvisswitch      = false;//true;
 bool capalphaswitch    = true;
 
-bool jointvisswitch    = true;
+bool jointvisswitch    = false;//true;
 bool jointalphaswitch  = false;//true;
 
 bool skinvisswitch     = true;
 bool skinvertswitch    = false;//true;
 bool skinalphaswitch   = false;//true;
 
-bool shirtvisswitch    = false;//true;
+bool shirtvisswitch    = true;
 bool shirtvertswitch   = false;//true;
 bool shirtalphaswitch  = false;//true;
 bool shirtspringswitch = false;//true;
 
 bool pantsvisswitch    = true;
-bool pantsvertswitch   = true;
+bool pantsvertswitch   = false;//true;
 bool pantsalphaswitch  = false;//true;
 bool pantsspringswitch = false;//true;
 
