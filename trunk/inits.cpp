@@ -10,7 +10,7 @@ char title[200];
 double testx = 0;
 double testy = 0;
 double testz = 1.5;
-float testballr = 0.5;
+float testballr = 0.1;
 
 Vec3 testvert;
 
@@ -29,7 +29,7 @@ treenode headn, neckn, rshouldern, lshouldern, ruarmn, luarmn, rlarmn, llarmn, r
 ////STRUCTS
 objLoader *skindata;
 objLoader *shirtdata;
-//objLoader *pantsdata;
+objLoader *pantsdata;
 
 //angulos del cuerpo
 GLfloat bodypos[16];
@@ -47,7 +47,7 @@ int totalpantssprings;
 spring *shirtsprings;
 spring *pantssprings;
 
-Vec3 gravity = Vec3construct(0,-0.01,0);
+Vec3 gravity = Vec3construct(0,-0.1,0);
 
 /////////////////FUNCIONES
 void initVertices(){
@@ -63,22 +63,22 @@ void initVertices(){
      waistc1v, waistc2v, chestc1v, chestc2v;
     
     waistv.f[0] = 0;
-    waistv.f[1] = -0.4;
+    waistv.f[1] = -0.1;
     waistv.f[2] = 0;
     waistbv.v = waistv;
     
     chestv.f[0] = 0;
-    chestv.f[1] = 0.6;
+    chestv.f[1] = 0.8;
     chestv.f[2] = 0;
     chestbv.v = chestv;
     
-    waistc1v.f[0] = -(waistc2v.f[0] = -0.5);
+    waistc1v.f[0] = -(waistc2v.f[0] = -0.3);
     waistc1v.f[1] = waistc2v.f[1]   = 0.3;
-    waistc1v.f[2] = waistc2v.f[2]   = 0;
+    waistc1v.f[2] = waistc2v.f[2]   = -0.05;
     waistc1bv.v = waistc1v;
     waistc2bv.v = waistc2v;
-    chestc1v.f[0] = -(chestc2v.f[0] = -0.5);
-    chestc1v.f[1] = chestc2v.f[1]   = 1.2;
+    chestc1v.f[0] = -(chestc2v.f[0] = -0.2);
+    chestc1v.f[1] = chestc2v.f[1]   = 1.4;
     chestc1v.f[2] = chestc2v.f[2]   = 0;
     chestc1bv.v = chestc1v;
     chestc2bv.v = chestc2v;
@@ -98,62 +98,63 @@ void initVertices(){
 
     neckv.f[0] = 0;
     neckv.f[1] = 2.2;
-    neckv.f[2] = 0;
+    neckv.f[2] = -0.1;
     neckbv.v = neckv;
     
     headv.f[0] = 0;
-    headv.f[1] = 2.9;
-    headv.f[2] = 0;
+    headv.f[1] = 2.8;
+    headv.f[2] = 0.1;
     headbv.v = headv;
     
     headtopv.f[0] = 0;
     headtopv.f[1] = 3.3;
-    headtopv.f[2] = 0;
+    headtopv.f[2] = 0.25;
     headtopbv.v = headtopv;
     
-    rshoulderv.f[0] = -(lshoulderv.f[0] = -0.4);
+    rshoulderv.f[0] = -(lshoulderv.f[0] = -0.3);
     rshoulderv.f[1] = lshoulderv.f[1]   = 2;
-    rshoulderv.f[2] = lshoulderv.f[2]   = 0;
+    rshoulderv.f[2] = lshoulderv.f[2]   = -0.1;
     rshoulderbv.v = rshoulderv;
     lshoulderbv.v = lshoulderv;
-    ruarmv.f[0] = -(luarmv.f[0] = -1.15);
-    ruarmv.f[1] = luarmv.f[1]   = 1.7;
-    ruarmv.f[2] = luarmv.f[2]   = 0;
+    
+    ruarmv.f[0] = -(luarmv.f[0] = -0.9);
+    ruarmv.f[1] = luarmv.f[1]   = 1.9;
+    ruarmv.f[2] = luarmv.f[2]   = -0.25;
     ruarmbv.v = ruarmv;
     luarmbv.v = luarmv;
-    rlarmv.f[0] = -(llarmv.f[0] = -1.3);
-    rlarmv.f[1] = llarmv.f[1]   = 0.3;
-    rlarmv.f[2] = llarmv.f[2]   = -0.05;
+    rlarmv.f[0] = -(llarmv.f[0] = -1.9);
+    rlarmv.f[1] = llarmv.f[1]   = 1.8;
+    rlarmv.f[2] = llarmv.f[2]   = -0.4;
     rlarmbv.v = rlarmv;
     llarmbv.v = llarmv;
-    rhandv.f[0] = -(lhandv.f[0] = -1.25);
-    rhandv.f[1] = lhandv.f[1]   = -0.8;
-    rhandv.f[2] = lhandv.f[2]   = 0;
+    rhandv.f[0] = -(lhandv.f[0] = -3);
+    rhandv.f[1] = lhandv.f[1]   = 1.7;
+    rhandv.f[2] = lhandv.f[2]   = 0.15;
     rhandbv.v = rhandv;
     lhandbv.v = lhandv;
-    rhandtopv.f[0] = -(lhandtopv.f[0] = -1.2);
-    rhandtopv.f[1] = lhandtopv.f[1]   = -1.5;
-    rhandtopv.f[2] = lhandtopv.f[2]   = 0;
+    rhandtopv.f[0] = -(lhandtopv.f[0] = -3.6);
+    rhandtopv.f[1] = lhandtopv.f[1]   = 1.7;
+    rhandtopv.f[2] = lhandtopv.f[2]   = 0.5;
     rhandtopbv.v = rhandtopv;
     lhandtopbv.v = lhandtopv;
     
-    rulegv.f[0] = -(lulegv.f[0] = -0.5);
-    rulegv.f[1] = lulegv.f[1]   = -0.4;
-    rulegv.f[2] = lulegv.f[2]   = 0;
+    rulegv.f[0] = -(lulegv.f[0] = -0.4);
+    rulegv.f[1] = lulegv.f[1]   = -0.2;
+    rulegv.f[2] = lulegv.f[2]   = -0.05;
     rulegbv.v = rulegv;
     lulegbv.v = lulegv;
-    rllegv.f[0] = -(lllegv.f[0] = -0.45);
-    rllegv.f[1] = lllegv.f[1]   = -2.4;
-    rllegv.f[2] = lllegv.f[2]   = 0.05;
+    rllegv.f[0] = -(lllegv.f[0] = -0.6);
+    rllegv.f[1] = lllegv.f[1]   = -2.2;
+    rllegv.f[2] = lllegv.f[2]   = 0;
     rllegbv.v = rllegv;
     lllegbv.v = lllegv;
-    rfootv.f[0] = -(lfootv.f[0] = -0.45);
-    rfootv.f[1] = lfootv.f[1]   = -4.35;
-    rfootv.f[2] = lfootv.f[2]   = 0;
+    rfootv.f[0] = -(lfootv.f[0] = -0.7);
+    rfootv.f[1] = lfootv.f[1]   = -4.5;
+    rfootv.f[2] = lfootv.f[2]   = -0.2;
     rfootbv.v = rfootv;
     lfootbv.v = lfootv;
-    rfoottopv.f[0] = -(lfoottopv.f[0] = -0.45);
-    rfoottopv.f[1] = lfoottopv.f[1]   = -4.35;
+    rfoottopv.f[0] = -(lfoottopv.f[0] = -0.85);
+    rfoottopv.f[1] = lfoottopv.f[1]   = -4.5;
     rfoottopv.f[2] = lfoottopv.f[2]   = 0.7;
     rfoottopbv.v = rfoottopv;
     lfoottopbv.v = lfoottopv;
@@ -200,10 +201,10 @@ void initCapsules(){
     headc.bv1 = &headbv;
     headc.bv2 = &headtopbv;
     
-    waistc.r = 0.45;
-    chestc.r = 0.5;
-    neckc.r = 0.35;
-    headc.r = 0.5;
+    waistc.r = 0.5;
+    chestc.r = 0.55;
+    neckc.r = 0.3;
+    headc.r = 0.4;
     
     rshoulderc.bv1 = &rshoulderbv;
     rshoulderc.bv2 = &ruarmbv;
@@ -459,22 +460,22 @@ void initNodes(){
 //Carga objs a skindata, shirtdata y pantsdata
 void initObj(){
     skindata = new objLoader();
-    skindata->load("cuerpob.obj");
+    skindata->load("human.obj");
     
     shirtdata = new objLoader();
-    shirtdata->load("camisab.obj");
+    shirtdata->load("shirt.obj");
     
-    //pantsdata = new objLoader();
-    //pantsdata->load("pantsb.obj");
+    pantsdata = new objLoader();
+    pantsdata->load("pants.obj");
 }
 
 void initParticles(){
     totalshirtparticles = shirtdata->vertexCount;
-    //totalpantsparticles = pantsdata->vertexCount;
+    totalpantsparticles = pantsdata->vertexCount;
     shirtparticles = (particle*)calloc(totalshirtparticles, sizeof(particle));
-    //pantsparticles = (particle*)calloc(totalpantsparticles, sizeof(particle));
+    pantsparticles = (particle*)calloc(totalpantsparticles, sizeof(particle));
     
-    if(shirtparticles == NULL){// || pantsparticles == NULL){
+    if(shirtparticles == NULL || pantsparticles == NULL){
         //println("COULD NOT ALLOCATE MEMORY FOR PARTICLES");
         sprintf(title, "COULD NOT ALLOCATE MEMORY FOR PARTICLES");
         glutSetWindowTitle(title);
@@ -485,20 +486,20 @@ void initParticles(){
     ////construye particulas con masa y un punto
     for(i=0; i < totalshirtparticles; i++){
         particle ptemp = particleconstruct(shirtdata->vertexList[i]);
+        //si esta a la altura de los hombros, no se cae
+        if(ptemp.pos->f[1] >= 2.3) ptemp.movable = false;
+        ptemp.mass = 10;
         shirtparticles[i] = ptemp;
     }
     
-    //sprintf(title, "shirtvert 0: %f %f %f ", shirtdata->vertexList[i]->f[0], shirtdata->vertexList[i]->f[1], shirtdata->vertexList[i]->f[2]);
-    //sprintf(title, "shirtvert 0: %f %f %f ", shirtparticles[i].pos->f[0], shirtparticles[i].pos->f[1], shirtparticles[i].pos->f[2]);
-    //sprintf(title, "tshirtpart: %d", totalshirtparticles);
-    //glutSetWindowTitle(title);
-
-    
     //igual para pants
-    //for(i=0; i < totalpantsparticles; i++){
-//        particle ptemp = particleconstruct(pantsdata->vertexList[i]);
-//        pantsparticles[i] = ptemp;
-//    }
+    for(i=0; i < totalpantsparticles; i++){
+        particle ptemp = particleconstruct(pantsdata->vertexList[i]);
+        //si esta a la altura de la cintura, no se cae
+        if(ptemp.pos->f[1] >= 0.3) ptemp.movable = false;
+        ptemp.mass = 10;
+        pantsparticles[i] = ptemp;
+    }
 }
 
 //checa si el resorte ya esta en la lista
@@ -516,9 +517,9 @@ bool isDuplicateSpring(spring *array, int total, particle *pa1, particle *pa2){
 
 void initSprings(){
     shirtsprings = (spring*)calloc(shirtdata->faceCount * 3, sizeof(spring));
-    //pantssprings = (spring*)calloc(pantsdata->faceCount * 3, sizeof(spring));
+    pantssprings = (spring*)calloc(pantsdata->faceCount * 3, sizeof(spring));
     
-    if(shirtsprings == NULL){ // || pantssprings == NULL){
+    if(shirtsprings == NULL || pantssprings == NULL){
         //println("COULD NOT ALLOCATE MEMORY FOR SPRINGS");
         sprintf(title, "COULD NOT ALLOCATE MEMORY FOR SPRINGS");
         glutSetWindowTitle(title);
@@ -556,9 +557,34 @@ void initSprings(){
             shirtsprings[totalshirtsprings] = stemp;
             totalshirtsprings++;
         }
-//        sprintf(title, "tss: %d", 592 * 3);
-//        glutSetWindowTitle(title);
     }
+    
+    ////agrega 3 resortes (aristas) por cada cara, pero checa que no se repitan
+    for(i=0 ;i < pantsdata->faceCount; i++){ //5;i++){//
+        ///arista 1
+        particle *pt1a = &(pantsparticles[pantsdata->faceList[i]->vertex_index[0]]);
+        particle *pt2a = &(pantsparticles[pantsdata->faceList[i]->vertex_index[1]]);
+        if(!(isDuplicateSpring(pantssprings, totalpantssprings, pt1a, pt2a))){
+            spring stemp = springconstruct(pt1a, pt2a);
+            pantssprings[totalpantssprings] = stemp;
+            totalpantssprings++;
+        }
+        ///arista 2
+        particle *pt1b = &(pantsparticles[pantsdata->faceList[i]->vertex_index[1]]);
+        particle *pt2b = &(pantsparticles[pantsdata->faceList[i]->vertex_index[2]]);
+        if(!(isDuplicateSpring(pantssprings, totalpantssprings, pt1b, pt2b))){
+            spring stemp = springconstruct(pt1b, pt2b);
+            pantssprings[totalpantssprings] = stemp;
+            totalpantssprings++;
+        }
+        ///arista 3
+        particle *pt1c = &(pantsparticles[pantsdata->faceList[i]->vertex_index[2]]);
+        particle *pt2c = &(pantsparticles[pantsdata->faceList[i]->vertex_index[0]]);
+        if(!(isDuplicateSpring(pantssprings, totalpantssprings, pt1c, pt2c))){
+            spring stemp = springconstruct(pt1c, pt2c);
+            pantssprings[totalpantssprings] = stemp;
+            totalpantssprings++;
+        }
 
-
+    }
 }

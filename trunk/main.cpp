@@ -27,16 +27,16 @@
 bool smoothswitch      = true;
 
 bool capvisswitch      = true;
-bool capalphaswitch    = false;//true;
+bool capalphaswitch    = true;
 
 bool jointvisswitch    = true;
 bool jointalphaswitch  = false;//true;
 
-bool skinvisswitch     = false;//true;
+bool skinvisswitch     = true;
 bool skinvertswitch    = false;//true;
 bool skinalphaswitch   = false;//true;
 
-bool shirtvisswitch    = true;
+bool shirtvisswitch    = false;//true;
 bool shirtvertswitch   = false;//true;
 bool shirtalphaswitch  = false;//true;
 bool shirtspringswitch = false;//true;
@@ -44,20 +44,22 @@ bool shirtspringswitch = false;//true;
 bool pantsvisswitch    = true;
 bool pantsvertswitch   = true;
 bool pantsalphaswitch  = false;//true;
-bool pantsspringswitch = true;
+bool pantsspringswitch = false;//true;
+
+bool gravityswitch     = true;
 
 bool gridswitch        = false;
 
 bool mouseDown = false;
 
-float angdelta = 6; //cuanto se dobla
+float angdelta = 1.3; //cuanto se dobla
 GLfloat anglex = 0; //en x
 GLfloat angley = 0; //en y
 
 int segselect = 0;
 float jointsize = 0.3;
 float vertsize = 0.05;
-float particler = 0.0;
+float particler = 0.1;
 
 GLUquadric* q = gluNewQuadric();
 
@@ -71,9 +73,9 @@ float ydiff = 0.0f;
 float zoom = 12.0;
 
 
-float speed = 1;
-float eTime;
-float timeDelta = 0.1;
+float speed = 10;
+float eTime = 0;
+float timeDelta = 1;
 
 //------------------FUNCIONES----------------------------
 //distancia 3d entre 2 puntos
@@ -417,7 +419,7 @@ void setMaterials(GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat
 	glMaterialf(GL_FRONT,  GL_SHININESS, shininess);
 }
 
-//Dibuja todos los vertices de un mesh de obj (skindata, shirtdata, pantsdata)
+//Dibuja todos los vertices de un mesh de obj (skindata)
 void drawVert(objLoader *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
      int i;
      double *v;
@@ -440,30 +442,33 @@ void drawObject(objLoader *object, GLfloat *ambient, GLfloat *diffuse, GLfloat *
    	 obj_face *o_f;
      glBegin(GL_TRIANGLES);
          ///calculate normals
-         GLfloat normals[3];
+         GLdouble normals[3];
          float ax, ay, az, bx, by, bz, nx, ny, nz, n;
          for(int i = 0; i < object->faceCount; i++){
-             //ax = object->vertexList[object->faceList[i][1]].e[0] - object->vertexList[object->faceList[i][0]].e[0];
-//             ay = object->vertexList[object->faceList[i][1]].e[1] - object->vertexList[object->faceList[i][0]].e[1];
-//             az = object->vertexList[object->faceList[i][1]].e[2] - object->vertexList[object->faceList[i][0]].e[2];
-//             bx = object->vertexList[object->faceList[i][2]].e[0] - object->vertexList[object->faceList[i][0]].e[0];
-//             by = object->vertexList[object->faceList[i][2]].e[1] - object->vertexList[object->faceList[i][0]].e[1];
-//             bz = object->vertexList[object->faceList[i][2]].e[2] - object->vertexList[object->faceList[i][0]].e[2];
-//             nx = ay*bz - az*by;
-//             ny = az*bx - ax*bz;
-//             nz = ax*by - ay*bx;
-//             n = sqrt(nx*nx+ny*ny+nz*nz);
-//             if (n != 0.0) {
-//                n = 1.0/n;
-//            	nx *= n; ny *= n; nz *= n;
-//             }
-//             normals[0] = nx;
-//             normals[1] = ny;
-//             normals[2] = nz;
              ///calc nor
              o_f = object->faceList[i];
+             
+             ax = object->vertexList[o_f->vertex_index[1]]->f[0] - object->vertexList[o_f->vertex_index[0]]->f[0];
+             ay = object->vertexList[o_f->vertex_index[1]]->f[1] - object->vertexList[o_f->vertex_index[0]]->f[1];
+             az = object->vertexList[o_f->vertex_index[1]]->f[2] - object->vertexList[o_f->vertex_index[0]]->f[2];
+             bx = object->vertexList[o_f->vertex_index[2]]->f[0] - object->vertexList[o_f->vertex_index[0]]->f[0];
+             by = object->vertexList[o_f->vertex_index[2]]->f[1] - object->vertexList[o_f->vertex_index[0]]->f[1];
+             bz = object->vertexList[o_f->vertex_index[2]]->f[2] - object->vertexList[o_f->vertex_index[0]]->f[2];
+             nx = ay*bz - az*by;
+             ny = az*bx - ax*bz;
+             nz = ax*by - ay*bx;
+             n = sqrt(nx*nx+ny*ny+nz*nz);
+             if (n != 0.0) {
+                n = 1.0/n;
+            	nx *= n; ny *= n; nz *= n;
+             }
+             normals[0] = nx;
+             normals[1] = ny;
+             normals[2] = nz;
+
              for(int j=0; j<3; j++){
-                  glNormal3dv(object->normalList[o_f->normal_index[j]]->f);
+                  glNormal3dv(normals);
+                  //glNormal3dv(object->normalList[o_f->normal_index[j]]->f);
                   glVertex3dv(object->vertexList[o_f->vertex_index[j]]->f);
              }
          }
@@ -478,7 +483,7 @@ void drawParticles(particle *arr, int total, GLfloat *ambient, GLfloat *diffuse,
     for(i=0; i<total; i++){
           glPushMatrix();
               glTranslatef(arr[i].pos->f[0], arr[i].pos->f[1], arr[i].pos->f[2]);
-              glutSolidSphere(vertsize, 5,5);
+              glutSolidSphere(particler, 5,5);
           glPopMatrix();
           
 //          ///
@@ -540,23 +545,23 @@ void display(){
         glutSolidSphere(testballr,10,10);
     glPopMatrix();
     //
-    
-    float mincoll = 0;
-    int numcap = -1;
-    
-    for(int i=0;i<NUMCAPS;i++){
-        if(colDetect(caps[i], &testvert, testballr) != 0){
-            glPushMatrix();
-                glTranslatef(-2,3,0);
-                glutSolidCube(1);
-            glPopMatrix();
-            
-            if(mincoll > colDetect(caps[i], &testvert, testballr)){
-                mincoll = colDetect(caps[i], &testvert, testballr);
-                numcap = i;
-            }
-        }
-    }
+//    
+//    float mincoll = 0;
+//    int numcap = -1;
+//    
+//    for(int i=0;i<NUMCAPS;i++){
+//        if(colDetect(caps[i], &testvert, testballr) != 0){
+//            glPushMatrix();
+//                glTranslatef(-2,3,0);
+//                glutSolidCube(1);
+//            glPopMatrix();
+//            
+//            if(mincoll > colDetect(caps[i], &testvert, testballr)){
+//                mincoll = colDetect(caps[i], &testvert, testballr);
+//                numcap = i;
+//            }
+//        }
+//    }
     //sprintf(title, "Collision at: %f, capsule num: %f", mincoll, numcap);
     
     //sprintf(title, "PARTICLES 0: %f %f %f   shirtdata 0: %f %f %f", 
@@ -573,10 +578,12 @@ void display(){
 //    else
 //        sprintf(title, "no null");
     
-    sprintf(title, "shirtsprings 0 p1x: %f   p2x: %f    tshirtsprings: %d", shirtsprings[0].p1->pos[0], shirtsprings[0].p2->pos[0], totalshirtsprings);
-    sprintf(title, "facecount: %d", shirtdata->faceCount);
-    sprintf(title, "facecount: %d", shirtdata->vertexCount);
-    //glutSetWindowTitle(title);
+//    sprintf(title, "shirtsprings 0 p1x: %f   p2x: %f    tshirtsprings: %d", shirtsprings[0].p1->pos[0], shirtsprings[0].p2->pos[0], totalshirtsprings);
+//    sprintf(title, "facecount: %d", shirtdata->faceCount);
+//    sprintf(title, "facecount: %d", shirtdata->vertexCount);
+    
+    sprintf(title, "x: %f    y: %f    z: %f", testvert.f[0], testvert.f[1], testvert.f[2]);
+    glutSetWindowTitle(title);
     ///////
 
     //MONO
@@ -598,11 +605,11 @@ void display(){
         else
             drawObject(shirtdata, zeroMaterial, blueDiffuse, zeroMaterial, noShininess);
     
-//        if(pantsvisswitch)
-//            if(pantsalphaswitch)
-//                drawObject(pantsdata, zeroMaterial, khakhiDiffuseAlpha, zeroMaterial, noShininess);
-//            else
-//                drawObject(pantsdata, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
+    if(pantsvisswitch)
+        if(pantsalphaswitch)
+            drawObject(pantsdata, zeroMaterial, khakhiDiffuseAlpha, zeroMaterial, noShininess);
+        else
+            drawObject(pantsdata, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
     
     //VERTICES
     if(skinvertswitch)
@@ -611,15 +618,15 @@ void display(){
     //PARTICLES
     if(shirtvertswitch)
         drawParticles(shirtparticles, totalshirtparticles, zeroMaterial, yellowDiffuse, zeroMaterial, noShininess);
-    //if(pantsvertswitch)
-        //drawParticles(pantsparticles, totalpantsparticles, zeroMaterial, yellowDiffuse, zeroMaterial, noShininess);
+    if(pantsvertswitch)
+        drawParticles(pantsparticles, totalpantsparticles, zeroMaterial, yellowDiffuse, zeroMaterial, noShininess);
         
     //SPRINGS
     glDisable(GL_LIGHTING);
         if(shirtspringswitch)
             drawSprings(shirtsprings, totalshirtsprings, zeroMaterial, grayDiffuse, zeroMaterial, noShininess);
-        //if(pantsspringswitch)
-            //drawSprings(pantssprings, totalpantssprings, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
+        if(pantsspringswitch)
+            drawSprings(pantssprings, totalpantssprings, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
     glEnable(GL_LIGHTING);
    	glutSwapBuffers();
 }
@@ -655,21 +662,6 @@ void resetVertFlags(){
     }
 }
 
-void parttimeStep2(particle *p){
-	if(p->movable){
-		Vec3 temp = *p->pos;
-		Vec3 vminus = (Vec3minus(p->pos, &(p->old_pos)));
-		Vec3 vmult = Vec3mult(&vminus, (1.0-DAMPING));
-		Vec3 vacc = Vec3mult(&(p->acceleration), TIME_STEPSIZE2);
-		Vec3 vsum = Vec3sum(&vmult, &vacc);
-		Vec3 vsumpos = Vec3sum(p->pos, &vsum);
-        p->pos->f[0] = vsumpos.f[0];
-        p->pos->f[1] = vsumpos.f[1];
-        p->pos->f[2] = vsumpos.f[2];
-		p->old_pos = temp;
-		p->acceleration = Vec3construct(0,0,0); // acceleration is reset since it HAS been translated into a change in position (and implicitely into velocity)	
-	}
-}
 
 ///////IDLE
 void idle(void){
@@ -681,32 +673,28 @@ void idle(void){
       float mincoll = 0;
       int numcap = -1;
       
-      
-      //aplica fuerzas a shirt
-      for(i=0;i<totalshirtparticles;i++){
-          partaddForce(&shirtparticles[i], gravity);
-          parttimeStep2(&shirtparticles[i]);
+      if(gravityswitch){
+          //aplica fuerzas a shirt
+          for(i=0;i<totalshirtparticles;i++){
+              partaddForce(&shirtparticles[i], gravity);
+              parttimeStep(&shirtparticles[i]);
+          }
+          //aplica fuerzas a pants
+          for(i=0;i<totalpantsparticles;i++){
+              partaddForce(&pantsparticles[i], gravity);
+              parttimeStep(&pantsparticles[i]);
+          }
       }
-      //aplica fuerzas a pants
-      //for(i=0;i<totalshirtparticles;i++){
-      //    partTimeStep(pantsparticles[i]);
-      //}
-      
       
       for(j=0;j<CONSTRAINT_ITERATIONS;j++){
           //resortes de shirt
           for(i=0;i<totalshirtsprings;i++){
               satisfyConstraint(&shirtsprings[i]);
           }    
-          //resortes de shirt
-          //for(i=0;i<totalshirtsprings;i++){
-          //    
-          //}
-          
-          //timestep shirt
-          //for(i=0;i<totalshirtparticles;i++){
-          //    parttimeStep(&shirtparticles[i]);
-          //}
+          //resortes de pants
+          for(i=0;i<totalpantssprings;i++){
+              satisfyConstraint(&pantssprings[i]);
+          }
       }
       //checa colisiones de shirt
       for(i=0;i<totalshirtparticles;i++){
@@ -725,9 +713,21 @@ void idle(void){
           }
       }
       //checa colisiones de pants
-      //for(i=0;i<totalshirtparticles;i++){
-      //    
-      //}
+      for(i=0;i<totalpantsparticles;i++){
+          mincoll = 0;
+          numcap = -1;
+          for(j=0;j<NUMCAPS;j++){
+              if(colDetect(caps[j], pantsparticles[i].pos, particler) != 0){
+                  if(mincoll > colDetect(caps[j], pantsparticles[i].pos, particler)){
+                      mincoll = colDetect(caps[j], pantsparticles[i].pos, particler);
+                      numcap = j;
+                  }
+              }
+              if(numcap != -1){
+                  handleColission(caps[numcap], pantsparticles[i].pos, particler);//pantsparticles[i].mass);
+              }
+          }
+      }
   }
   glutPostRedisplay();
 }
@@ -760,6 +760,10 @@ void key(unsigned char c, int x, int y){
             shirtvisswitch = !shirtvisswitch;
             glutPostRedisplay();
             break;
+        case 'g':
+            pantsvisswitch = !pantsvisswitch;
+            glutPostRedisplay();
+            break;
         case 'c':
             capvisswitch = !capvisswitch;
             glutPostRedisplay();
@@ -774,8 +778,12 @@ void key(unsigned char c, int x, int y){
             jointvisswitch = !jointvisswitch;
             glutPostRedisplay();
             break;
-        case 'g':
+        case 'h':
             gridswitch = !gridswitch;
+            glutPostRedisplay();
+            break;
+        case 'z':
+            gravityswitch = !gravityswitch;
             glutPostRedisplay();
             break;
         //SELECTS
@@ -849,21 +857,25 @@ void key(unsigned char c, int x, int y){
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          angley = -angdelta;
+         testvert.f[2] -= 0.1;
      }
      if(c==GLUT_KEY_DOWN){
          angley = angdelta;
+         testvert.f[2] += 0.1;
      }
      if(c==GLUT_KEY_RIGHT){
          anglex = -angdelta;
+         testvert.f[0] += 0.1;
      }
      if(c==GLUT_KEY_LEFT){
          anglex = +angdelta;
+         testvert.f[0] -= 0.1;
      }
      if(c==GLUT_KEY_PAGE_UP){
-                             
+         testvert.f[1] += 0.1;                 
      }
      if(c==GLUT_KEY_PAGE_DOWN){
-                               
+         testvert.f[1] -= 0.1;
      }
      
      glPushMatrix();
@@ -1069,7 +1081,6 @@ int initMenus(){
 	skinMenu  = glutCreateMenu(processMenu);
 	shirtMenu = glutCreateMenu(processMenu);
 	pantsMenu = glutCreateMenu(processMenu);
-	//pantsMenu = glutCreateMenu(processMenu);
 	glutSetMenu(mainMenu);
     glutAddMenuEntry("Toggle Smooth", 1);
 	glutAddSubMenu("Joints",          jointMenu);

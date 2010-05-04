@@ -109,10 +109,12 @@ void parttimeStep(particle *p){
 		Vec3 temp = *p->pos;
 		Vec3 vminus = (Vec3minus(p->pos, &(p->old_pos)));
 		Vec3 vmult = Vec3mult(&vminus, (1.0-DAMPING));
-		Vec3 vacc = Vec3mult(&(p->acceleration), TIME_STEPSIZE2);
+		Vec3 vacc = Vec3mult(&(p->acceleration), TIME_STEPSIZE2 * 5);
 		Vec3 vsum = Vec3sum(&vmult, &vacc);
 		Vec3 vsumpos = Vec3sum(p->pos, &vsum);
-//		p->pos = &vsumpos;
+        p->pos->f[0] = vsumpos.f[0];
+        p->pos->f[1] = vsumpos.f[1];
+        p->pos->f[2] = vsumpos.f[2];
 		p->old_pos = temp;
 		p->acceleration = Vec3construct(0,0,0); // acceleration is reset since it HAS been translated into a change in position (and implicitely into velocity)	
 	}
