@@ -1,19 +1,27 @@
-Escojer joints
+Escoger joints
    1-9, q,w,e,r,t,y
 
-Seleccionar esfera que checa colisiones
+escoger todo el cuerpo para moverlo
    0
-Mover esfera:
-   X: arriba, abajo, 
-   Z: izq, der, 
-   Y: pgup, pgdn
+   
+rotar y mover
+   arriba, abajo, 
+   izq, der, 
+   pgup, pgdn
 
 Switches:
  alpha:    a
  smooth:   s
  piel:     d
  camisa:   f
+ pants:    g
+ pelo:     h
+ grid:     j
+ planos para medir:   k
  capsulas: c
  joints:   j
+ vertices/particulas: v
+ gravedad: z
+ 
  
 Click derecho: menu con todos los switches

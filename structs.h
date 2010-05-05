@@ -34,6 +34,12 @@ typedef struct treenode{
     struct treenode *child;
 } treenode;
 
+typedef struct binding{
+    bodyvertex *bv;
+    Vec3 *sv;
+    float w;
+} binding;
+
 /////CLOTH
 
 /* The particle class represents a particle of mass that can move around in 3D space*/
