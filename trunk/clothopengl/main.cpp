@@ -7,7 +7,7 @@
  * Enrique Peña 1162110
  *
  * Monito Final
- * v 3
+ * v 3.1
 *******************************************/
 
 #include <GL/glut.h>
@@ -97,7 +97,7 @@ bool jointalphaswitch  = false;//true;
 
 bool skinvisswitch     = true;
 bool skinvertswitch    = false;//true;
-bool skinalphaswitch   = true;
+bool skinalphaswitch   = false;//true;
 
 bool shirtvisswitch    = false;//true;
 bool shirtvertswitch   = false;//true;
@@ -163,120 +163,6 @@ float distance3d(float x1,float y1,float z1,float x2,float y2,float z2){
 float distance2d(float x1,float y1,float x2,float y2){
     return sqrt(pow((x1-x2),2) + pow((y1-y2),2));
 }
-
-//dibuja los joints donde se dobla el mono
-void drawJoint(Vec3 *v, int id){
-     if(id == segselect){
-         glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
-    	 if(jointalphaswitch)
-             glMaterialfv(GL_FRONT, GL_DIFFUSE,   yellowDiffuseAlpha);
-         else
-             glMaterialfv(GL_FRONT, GL_DIFFUSE,   yellowDiffuse);
-    	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
-    	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
-     }else{
-         glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
-         if(jointalphaswitch)
-    	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   redDiffuseAlpha);
-   	     else
-   	         glMaterialfv(GL_FRONT, GL_DIFFUSE,   redDiffuse);
-    	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
-    	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
-     }
-     glPushMatrix();
-         glTranslatef(v->f[0],v->f[1],v->f[2]);
-         glutSolidSphere(jointsize,10,10);
-     glPopMatrix();
-     
-}
-
-//dibuja un unicornio
-void drawCapsule(capsule *cap){
-//     glLineWidth(5);
-//     glBegin(GL_LINES);
-//         glVertex3f(cap->v1->f[0],cap->v1->f[1],cap->v1->f[2]);
-//         glVertex3f(cap->v2->f[0],cap->v2->f[1],cap->v2->f[2]);
-//     glEnd();
-     
-     float d = distance3d(cap->bv1->v.f[0], cap->bv1->v.f[1], cap->bv1->v.f[2], 
-                          cap->bv2->v.f[0], cap->bv2->v.f[1], cap->bv2->v.f[2]);
-     
-     float vx = cap->bv2->v.f[0] - cap->bv1->v.f[0];
-     float vy = cap->bv2->v.f[1] - cap->bv1->v.f[1];
-     float vz = cap->bv2->v.f[2] - cap->bv1->v.f[2];
-     
-     //handle the degenerate case of z1 == z2 with an approximation
-     if(vz == 0)
-          vz = 0.0001;
-    
-     float v = sqrt( vx*vx + vy*vy + vz*vz );
-     float ax = 57.2957795*acos( vz/v );
-     if ( vz < 0.0 )
-         ax = -ax;
-     float rx = -vy*vz;
-     float ry = vx*vz;
-     
-     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
-     if(capalphaswitch)
-   	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuseAlpha);
-     else
-   	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuse);
-  	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
-  	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
-  	 
-     glPushMatrix();
-         glTranslatef(cap->bv2->v.f[0], cap->bv2->v.f[1], cap->bv2->v.f[2]);
-         glutSolidSphere(cap->r,10,10);
-     glPopMatrix();
-     glPushMatrix();
-         glTranslatef(cap->bv1->v.f[0], cap->bv1->v.f[1], cap->bv1->v.f[2]);
-         glutSolidSphere(cap->r,10,10);
-         glRotatef(ax, rx, ry, 0.0);
-         gluCylinder(q, cap->r, cap->r, d, 20, 1);
-     glPopMatrix();    
-}
-
-void drawCaps(){
-    for(int i=0; i<NUMCAPS;i++){
-        drawCapsule(caps[i]);
-    }     
-}
-
-//si picas G se dibuja
-void drawGrid(){
-    float i,j;
-    glBegin(GL_LINES);
-//    for(i=-80;i<80;i++){
-//        for(j=-80;j<80;j++){
-//            glVertex3f(-8,i/10,0);//x
-//            glVertex3f(8,i/10,0);
-//            glVertex3f(i/10,-8,0);//y
-//            glVertex3f(i/10,8,0);
-//            glVertex3f(0,i/10,-8);//zx
-//            glVertex3f(0,i/10,8);
-//            glVertex3f(0,-8,i/10);//zy
-//            glVertex3f(0,8,i/10);
-//        }
-//    }
-
-    for(i=-8;i<8;i++){
-        for(j=-8;j<8;j++){
-        	
-            glVertex3f(-8,i,0.01);//x
-            glVertex3f(8,i,0.01);
-            glVertex3f(i,-8,0.01);//y
-            glVertex3f(i,8,0.01);
-            
-            glVertex3f(0.01,i,-8);//zx
-            glVertex3f(0.01,i,8);
-            glVertex3f(0.01,-8,i);//zy
-            glVertex3f(0.01,8,i);
-        }
-    }
-    glEnd();
-}
-
-//// INIT VERTICES
 
 //Hasta ahorita detecta colision entre un punto y una capsula, 
 //calcula la normal y regresa que tan adentro esta el punto h, 0 si esta fuera
@@ -420,15 +306,7 @@ void rotChildNode(treenode *n, Vec3 *pt, float angx, float angy, float angz){
             rotBVZ(n->bv1, pt, angz);
         n->bv1->hasmoved = true;
     }
-    if(n->bv2->hasmoved == false){
-        if(angx != 0)
-            rotBVX(n->bv2, pt, angx);
-        if(angy != 0)
-            rotBVY(n->bv2, pt, angy);
-        if(angz != 0)
-            rotBVZ(n->bv2, pt, angz);
-        n->bv2->hasmoved = true;
-    }
+    
     if(n->cap->bv1->hasmoved == false){
         if(angx != 0)
             rotBVX(n->cap->bv1, pt, angx);
@@ -457,15 +335,15 @@ void rotChildNode(treenode *n, Vec3 *pt, float angx, float angy, float angz){
 //Recibe un nodo, usa el metodo de arriba para 
 //girar hijos respecto al primer vertice de un nodo
 void rotNode(treenode *n, float angx, float angy, float angz){
-    if(n->bv2->hasmoved == false){
-        if(angx != 0)
-            rotBVX(n->bv2, &(n->bv1->v), angx);
-        if(angy != 0)
-            rotBVY(n->bv2, &(n->bv1->v), angy);
-        if(angz != 0)
-            rotBVZ(n->bv2, &(n->bv1->v), angz);
-        n->bv2->hasmoved = true;
-    }
+//    if(n->bv2->hasmoved == false){
+//        if(angx != 0)
+//            rotBVX(n->bv2, &(n->bv1->v), angx);
+//        if(angy != 0)
+//            rotBVY(n->bv2, &(n->bv1->v), angy);
+//        if(angz != 0)
+//            rotBVZ(n->bv2, &(n->bv1->v), angz);
+//        n->bv2->hasmoved = true;
+//    }
     if(n->cap->bv1->hasmoved == false){
         if(angx != 0)
             rotBVX(n->cap->bv1, &(n->bv1->v), angx);
@@ -488,28 +366,138 @@ void rotNode(treenode *n, float angx, float angy, float angz){
     	rotChildNode(n->child, &(n->bv1->v), angx, angy, angz);
 }
 
-void traverse(treenode *node){
-    if(jointvisswitch){
-        drawJoint(&(node->bv1->v), node->id);
-    }
-    
-    // primer recorrer los hijos (si hay)
-    if(node->child != NULL)
-    	traverse(node->child);
-        
-    // después recorrer los hermanos (si hay)
-    if(node->sibling != NULL)
-    	traverse(node->sibling);
-}
-
-
 ////////////DRAW
+
 
 void setMaterials(GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
     glMaterialfv(GL_FRONT, GL_AMBIENT,   ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE,   diffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR,  specular);
 	glMaterialf(GL_FRONT,  GL_SHININESS, shininess);
+}
+
+//dibuja los joints donde se dobla el mono
+void drawJoint(Vec3 *v, int id){
+     if(id == segselect){
+         glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+    	 if(jointalphaswitch)
+             glMaterialfv(GL_FRONT, GL_DIFFUSE,   yellowDiffuseAlpha);
+         else
+             glMaterialfv(GL_FRONT, GL_DIFFUSE,   yellowDiffuse);
+    	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+    	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+     }else{
+         glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+         if(jointalphaswitch)
+    	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   redDiffuseAlpha);
+   	     else
+   	         glMaterialfv(GL_FRONT, GL_DIFFUSE,   redDiffuse);
+    	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+    	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+     }
+     glPushMatrix();
+         glTranslatef(v->f[0],v->f[1],v->f[2]);
+         glutSolidSphere(jointsize,10,10);
+     glPopMatrix();
+}
+
+//dibuja un unicornio
+void drawCapsule(capsule *cap){
+//     glLineWidth(5);
+//     glBegin(GL_LINES);
+//         glVertex3f(cap->v1->f[0],cap->v1->f[1],cap->v1->f[2]);
+//         glVertex3f(cap->v2->f[0],cap->v2->f[1],cap->v2->f[2]);
+//     glEnd();
+     
+     float d = distance3d(cap->bv1->v.f[0], cap->bv1->v.f[1], cap->bv1->v.f[2], 
+                          cap->bv2->v.f[0], cap->bv2->v.f[1], cap->bv2->v.f[2]);
+     
+     float vx = cap->bv2->v.f[0] - cap->bv1->v.f[0];
+     float vy = cap->bv2->v.f[1] - cap->bv1->v.f[1];
+     float vz = cap->bv2->v.f[2] - cap->bv1->v.f[2];
+     
+     //handle the degenerate case of z1 == z2 with an approximation
+     if(vz == 0)
+          vz = 0.0001;
+    
+     float v = sqrt( vx*vx + vy*vy + vz*vz );
+     float ax = 57.2957795*acos( vz/v );
+     if ( vz < 0.0 )
+         ax = -ax;
+     float rx = -vy*vz;
+     float ry = vx*vz;
+     
+     glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+     if(capalphaswitch)
+   	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuseAlpha);
+     else
+   	     glMaterialfv(GL_FRONT, GL_DIFFUSE,   whiteDiffuse);
+  	 glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+  	 glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+  	 
+     glPushMatrix();
+         glTranslatef(cap->bv2->v.f[0], cap->bv2->v.f[1], cap->bv2->v.f[2]);
+         glutSolidSphere(cap->r,10,10);
+     glPopMatrix();
+     glPushMatrix();
+         glTranslatef(cap->bv1->v.f[0], cap->bv1->v.f[1], cap->bv1->v.f[2]);
+         glutSolidSphere(cap->r,10,10);
+         glRotatef(ax, rx, ry, 0.0);
+         gluCylinder(q, cap->r, cap->r, d, 20, 1);
+     glPopMatrix();    
+}
+
+void drawCaps(){
+    for(int i=0;i<NUMCAPS;i++){
+        drawCapsule(caps[i]);
+    }     
+}
+
+void drawBV(){
+    glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE,   greenDiffuseAlpha);
+    glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
+    glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+    for(int i=0;i<NUMVERTS;i++){
+         glPushMatrix();
+             glTranslatef(bodyverts[i]->v.f[0],bodyverts[i]->v.f[1],bodyverts[i]->v.f[2]);
+             glutSolidCube(jointsize+0.1);
+         glPopMatrix();
+    }     
+}
+
+//si picas G se dibuja
+void drawGrid(){
+    float i,j;
+    glBegin(GL_LINES);
+//    for(i=-80;i<80;i++){
+//        for(j=-80;j<80;j++){
+//            glVertex3f(-8,i/10,0);//x
+//            glVertex3f(8,i/10,0);
+//            glVertex3f(i/10,-8,0);//y
+//            glVertex3f(i/10,8,0);
+//            glVertex3f(0,i/10,-8);//zx
+//            glVertex3f(0,i/10,8);
+//            glVertex3f(0,-8,i/10);//zy
+//            glVertex3f(0,8,i/10);
+//        }
+//    }
+
+    for(i=-8;i<8;i++){
+        for(j=-8;j<8;j++){
+        	
+            glVertex3f(-8,i,0.01);//x
+            glVertex3f(8,i,0.01);
+            glVertex3f(i,-8,0.01);//y
+            glVertex3f(i,8,0.01);
+            
+            glVertex3f(0.01,i,-8);//zx
+            glVertex3f(0.01,i,8);
+            glVertex3f(0.01,-8,i);//zy
+            glVertex3f(0.01,8,i);
+        }
+    }
+    glEnd();
 }
 
 //Dibuja todos los vertices de un mesh de obj (skindata)
@@ -600,6 +588,21 @@ void drawSprings(spring *arr, int total, GLfloat *ambient, GLfloat *diffuse, GLf
           glEnd();
      }
 }
+
+void traverse(treenode *node){
+    if(jointvisswitch){
+        drawJoint(&(node->bv1->v), node->id);
+    }
+    
+    // primer recorrer los hijos (si hay)
+    if(node->child != NULL)
+    	traverse(node->child);
+        
+    // después recorrer los hermanos (si hay)
+    if(node->sibling != NULL)
+    	traverse(node->sibling);
+}
+
 void idle();
 void display(){     
     if (smoothswitch)
@@ -633,45 +636,48 @@ void display(){
     //MONO
     traverse(&waistn); 
     
+    drawBV();
+    
     if(capvisswitch)
         drawCaps();
     
+    //SKIN
     if(skinvisswitch)
         if(skinalphaswitch)
             drawObject(skindata, zeroMaterial, pinkDiffuseAlpha, zeroMaterial, noShininess);
         else
             drawObject(skindata, zeroMaterial, pinkDiffuse, zeroMaterial, noShininess);
     
-    //MESHES
+    //CLOTH
     if(shirtvisswitch)
         if(shirtalphaswitch)
             drawObject(shirtdata, zeroMaterial, blueDiffuseAlpha, zeroMaterial, noShininess);
         else
             drawObject(shirtdata, zeroMaterial, blueDiffuse, zeroMaterial, noShininess);
-    
-    if(pantsvisswitch)
-        if(pantsalphaswitch)
-            drawObject(pantsdata, zeroMaterial, khakhiDiffuseAlpha, zeroMaterial, noShininess);
-        else
-            drawObject(pantsdata, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
-    
-    if(hairvisswitch)
-        if(hairalphaswitch)
-            drawObject(hairdata, zeroMaterial, brownDiffuseAlpha, zeroMaterial, noShininess);
-        else
-            drawObject(hairdata, zeroMaterial, brownDiffuse, zeroMaterial, noShininess);
-    
-    //VERTICES
-    if(skinvertswitch)
-        drawVert(skindata, zeroMaterial, purpleDiffuse, zeroMaterial, noShininess);
+
+//    if(pantsvisswitch)
+//        if(pantsalphaswitch)
+//            drawObject(pantsdata, zeroMaterial, khakhiDiffuseAlpha, zeroMaterial, noShininess);
+//        else
+//            drawObject(pantsdata, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
+//    
+//    if(hairvisswitch)
+//        if(hairalphaswitch)
+//            drawObject(hairdata, zeroMaterial, brownDiffuseAlpha, zeroMaterial, noShininess);
+//        else
+//            drawObject(hairdata, zeroMaterial, brownDiffuse, zeroMaterial, noShininess);
+//    
+//    //VERTICES
+//    if(skinvertswitch)
+//        drawVert(skindata, zeroMaterial, purpleDiffuse, zeroMaterial, noShininess);
     
     //PARTICLES
-    if(shirtvertswitch)
-        drawParticles(shirtparticles, totalshirtparticles, zeroMaterial, dblueDiffuse, zeroMaterial, noShininess);
-    if(pantsvertswitch)
-        drawParticles(pantsparticles, totalpantsparticles, zeroMaterial, greenDiffuse, zeroMaterial, noShininess);
-    if(hairvertswitch)
-        drawParticles(hairparticles, totalhairparticles, zeroMaterial, dgreenDiffuse, zeroMaterial, noShininess);
+//    if(shirtvertswitch)
+//        drawParticles(shirtparticles, totalshirtparticles, zeroMaterial, dblueDiffuse, zeroMaterial, noShininess);
+//    if(pantsvertswitch)
+//        drawParticles(pantsparticles, totalpantsparticles, zeroMaterial, greenDiffuse, zeroMaterial, noShininess);
+//    if(hairvertswitch)
+//        drawParticles(hairparticles, totalhairparticles, zeroMaterial, dgreenDiffuse, zeroMaterial, noShininess);
         
     //SPRINGS
     glDisable(GL_LIGHTING);
@@ -733,7 +739,7 @@ void resetAngles(){
 
 //Hace movibles los vertices del cuerpo
 void resetVertFlags(){
-    for(int i=0;i<NUMVERT;i++){
+    for(int i=0;i<NUMVERTS;i++){
         bodyverts[i]->hasmoved = false;
     }
 }
@@ -838,16 +844,16 @@ void idle(void){
               partaddForce(&shirtparticles[i], gravity);
               parttimeStep(&shirtparticles[i]);
           }
-          //aplica fuerzas a pants
-          for(i=0;i<totalpantsparticles;i++){
-              partaddForce(&pantsparticles[i], gravity);
-              parttimeStep(&pantsparticles[i]);
-          }
-          //aplica fuerzas a hair
-          for(i=0;i<totalhairparticles;i++){
-              partaddForce(&hairparticles[i], gravity);
-              parttimeStep(&hairparticles[i]);
-          }
+//          //aplica fuerzas a pants
+//          for(i=0;i<totalpantsparticles;i++){
+//              partaddForce(&pantsparticles[i], gravity);
+//              parttimeStep(&pantsparticles[i]);
+//          }
+//          //aplica fuerzas a hair
+//          for(i=0;i<totalhairparticles;i++){
+//              partaddForce(&hairparticles[i], gravity);
+//              parttimeStep(&hairparticles[i]);
+//          }
       }
       
       for(j=0;j<CONSTRAINT_ITERATIONS;j++){
@@ -867,9 +873,9 @@ void idle(void){
       //checa colisiones de shirt
       parrcollide(shirtparticles, shirtparticler, totalshirtparticles);
       //checa colisiones de pants
-      parrcollide(pantsparticles, pantsparticler, totalpantsparticles);
+//      parrcollide(pantsparticles, pantsparticler, totalpantsparticles);
       //checa colisiones de hair
-      parrcollide(hairparticles, hairparticler, totalhairparticles);
+//      parrcollide(hairparticles, hairparticler, totalhairparticles);
   }
   glutPostRedisplay();
 }
@@ -877,7 +883,7 @@ void idle(void){
 void movebodyx(float x){
     int i;
     int j;
-    for(i=0;i<NUMVERT;i++){
+    for(i=0;i<NUMVERTS;i++){
         bodyverts[i]->v.f[0] += x;
         moveskinx(bodyverts[i], x);
     }
@@ -885,7 +891,7 @@ void movebodyx(float x){
 void movebodyy(float y){
     int i;
     int j;
-    for(i=0;i<NUMVERT;i++){
+    for(i=0;i<NUMVERTS;i++){
         bodyverts[i]->v.f[1] += y;
         for(j=0;j<numbindings;j++){
             if(&bindings[j].bv->v == &bodyverts[i]->v){
@@ -898,7 +904,7 @@ void movebodyy(float y){
 void movebodyz(float z){
     int i;
     int j;
-    for(i=0;i<NUMVERT;i++){
+    for(i=0;i<NUMVERTS;i++){
         bodyverts[i]->v.f[2] += z;
         for(j=0;j<numbindings;j++){
             if(&bindings[j].bv->v == &bodyverts[i]->v){
@@ -920,135 +926,20 @@ void reset(){
 }
 
 void applyrotations(){
-    switch(segselect){
-         case 1:
-              if(anglex != 0) rotNode(&waistn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&waistn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&waistn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 2:
-              if(anglex != 0) rotNode(&neckn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&neckn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&neckn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 3:
-              if(anglex != 0) rotNode(&headn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&headn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&headn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 4:
-              if(anglex != 0) rotNode(&ruarmn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&ruarmn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&ruarmn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 5:
-              if(anglex != 0) rotNode(&rlarmn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&rlarmn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&rlarmn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 6:
-              if(anglex != 0) rotNode(&rhandn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&rhandn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&rhandn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 7:
-              if(anglex != 0) rotNode(&luarmn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&luarmn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&luarmn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 8:
-              if(anglex != 0) rotNode(&llarmn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&llarmn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&llarmn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 9:
-              if(anglex != 0) rotNode(&lhandn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&lhandn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&lhandn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 10:
-              if(anglex != 0) rotNode(&rulegn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&rulegn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&rulegn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 11:
-              if(anglex != 0) rotNode(&rllegn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&rllegn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&rllegn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 12:
-              if(anglex != 0) rotNode(&rfootn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&rfootn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&rfootn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 13:
-              if(anglex != 0) rotNode(&lulegn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&lulegn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&lulegn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 14:
-              if(anglex != 0) rotNode(&lllegn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&lllegn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&lllegn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 15:
-              if(anglex != 0) rotNode(&lfootn, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotNode(&lfootn, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotNode(&lfootn, 0, 0, anglez);
-              resetVertFlags();
-              break;
-         case 16:
-              if(anglex != 0) rotChildNode(&waistn, &waistn.bv1->v, anglex, 0, 0);
-              resetVertFlags();
-              if(angley != 0) rotChildNode(&waistn, &waistn.bv1->v, 0, angley, 0);
-              resetVertFlags();
-              if(anglez != 0) rotChildNode(&waistn, &waistn.bv1->v, 0, 0, anglez);
-              resetVertFlags();
-              break;
+    if(segselect >= 0 && segselect < NUMVERTS){
+        if(anglex != 0) rotNode(nodes[segselect], anglex, 0, 0);
+        resetVertFlags();
+        if(angley != 0) rotNode(nodes[segselect], 0, angley, 0);
+        resetVertFlags();
+        if(anglez != 0) rotNode(nodes[segselect], 0, 0, anglez);
+        resetVertFlags();
+     }else if(segselect == 16){
+        if(anglex != 0) rotChildNode(&waistn, &waistn.bv1->v, anglex, 0, 0);
+        resetVertFlags();
+        if(angley != 0) rotChildNode(&waistn, &waistn.bv1->v, 0, angley, 0);
+        resetVertFlags();
+        if(anglez != 0) rotChildNode(&waistn, &waistn.bv1->v, 0, 0, anglez);
+        resetVertFlags();
      }
 }
 ///////MOUSE / KEYBOARD
@@ -1481,6 +1372,8 @@ void init(){
 	// make sure the normals are unit vectors
 	glEnable(GL_NORMALIZE);
 }
+
+void lol(){}
 
 int main(int argc, char **argv)
 {

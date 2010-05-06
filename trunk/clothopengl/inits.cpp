@@ -13,22 +13,22 @@ int shirtoption = 0;
 int pantsoption = 0;
 int hairoption  = 0;
 
-
 float shirtmass = 30;
 float pantsmass = 30;
 float hairmass  = 20;
 float afromass  = 100;
 
-bodyvertex waistbv, chestbv, neckbv, headbv, headtopbv, 
-       rshoulderbv, ruarmbv, rlarmbv, rhandbv, rhandtopbv, lshoulderbv, luarmbv, llarmbv, lhandbv, lhandtopbv, 
-       rulegbv, rllegbv, rfootbv, rfoottopbv, lulegbv, lllegbv, lfootbv, lfoottopbv, 
-       waistc1bv, waistc2bv, chestc1bv, chestc2bv;
+bodyvertex waistbv, chestbv, abdomenbv, neckbv, headbv, headtopbv, 
+           rshoulderbv, relbowbv, rwristbv, rhandtopbv, lshoulderbv, lelbowbv, lwristbv, lhandtopbv, 
+           rulegbv, rkneebv, ranklebv, rfoottopbv, lulegbv, lkneebv, lanklebv, lfoottopbv, 
+           rabdomenbv, labdomenbv, rneckbv, lneckbv;
 
-capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
-        chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
+capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc, 
+        chestc, rchestc, lchestc, waistc, rwaistc, lwaistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
 
-treenode headn, neckn, rshouldern, lshouldern, ruarmn, luarmn, rlarmn, llarmn, rhandn, lhandn,
-         chestn, waistn, rulegn, lulegn, rllegn, lllegn, rfootn, lfootn;
+treenode waistn, abdomenn, neckn, headn, 
+            rshouldern, relbown, rwristn, lshouldern, lelbown, lwristn, 
+            rulegn, rkneen, ranklen, lulegn, lkneen, lanklen;
 
 ////STRUCTS
 objLoader *skindata;
@@ -39,8 +39,9 @@ objLoader *hairdata;
 //angulos del cuerpo
 GLfloat bodypos[16];
 
-bodyvertex   *bodyverts[NUMVERT];
-capsule  *caps[NUMCAPS];
+treenode   *nodes[NUMNODES];
+bodyvertex *bodyverts[NUMVERTS];
+capsule    *caps[NUMCAPS];
 
 int numbindings;
 binding *bindings;
@@ -67,10 +68,10 @@ void initVertices(){
 //    testvert.f[2] = testz;
     //
     
-    Vec3 waistv, chestv, neckv, headv, headtopv, 
-     rshoulderv, ruarmv, rlarmv, rhandv, rhandtopv, lshoulderv, luarmv, llarmv, lhandv, lhandtopv, 
-     rulegv, rllegv, rfootv, rfoottopv, lulegv, lllegv, lfootv, lfoottopv, 
-     waistc1v, waistc2v, chestc1v, chestc2v;
+    Vec3 waistv, chestv, abdomenv, neckv, headv, headtopv, 
+     rshoulderv,relbowv, rwristv, rhandtopv, lshoulderv, lelbowv, lwristv, lhandtopv, 
+     rulegv, rkneev, ranklev, rfoottopv, lulegv, lkneev, lanklev, lfoottopv, 
+     rabdomenv, labdomenv, rneckv, lneckv;
     
     waistv.f[0] = 0;
     waistv.f[1] = -0.1;
@@ -78,37 +79,30 @@ void initVertices(){
     waistbv.v = waistv;
     
     chestv.f[0] = 0;
-    chestv.f[1] = 0.8;
+    chestv.f[1] = 1.8;
     chestv.f[2] = 0;
-    chestbv.v = chestv;
+    chestbv.v = chestv;    
     
-    waistc1v.f[0] = -(waistc2v.f[0] = -0.25);
-    waistc1v.f[1] = waistc2v.f[1]   = 0.4;
-    waistc1v.f[2] = waistc2v.f[2]   = -0.05;
-    waistc1bv.v = waistc1v;
-    waistc2bv.v = waistc2v;
-    chestc1v.f[0] = -(chestc2v.f[0] = -0.2);
-    chestc1v.f[1] = chestc2v.f[1]   = 1.6;
-    chestc1v.f[2] = chestc2v.f[2]   = -0.05;
-    chestc1bv.v = chestc1v;
-    chestc2bv.v = chestc2v;
+    abdomenv.f[0] = 0;
+    abdomenv.f[1] = 0.8;
+    abdomenv.f[2] = 0.05;
+    abdomenbv.v = abdomenv;
     
-    //waistl1v.f[0] = -(waistr1v.f[0] = -0.5);
-//    waistl1v.f[1] = waistr1v.f[1]   = 0.3;
-//    waistl1v.f[2] = waistr1v.f[2]   = 0;
-//    bv.v = v;
-//    waistl2v.f[0] = -(waistr2v.f[0] = -0.5);
-//    waistl2v.f[1] = waistr2v.f[1]   = 0.3;
-//    waistl2v.f[2] = waistr2v.f[2]   = 0;
-//    bv.v = v;
-//    chestlv.f[0] = -(chestc2v.f[0] = -0.5);
-//    chestlv.f[1] = chestc2v.f[1]   = 1.2;
-//    chestlv.f[2] = chestc2v.f[2]   = 0;
-//    bv.v = v;
+    rabdomenv.f[0] = -(labdomenv.f[0] = -0.25);
+    rabdomenv.f[1] = labdomenv.f[1] = 0.6;
+    rabdomenv.f[2] = labdomenv.f[2] = 0.05;
+    rabdomenbv.v = rabdomenv;
+    labdomenbv.v = labdomenv;
+    
+    rneckv.f[0] = -(lneckv.f[0] = -0.3);
+    rneckv.f[1] = lneckv.f[1] = 1.8;
+    rneckv.f[2] = lneckv.f[2] = 0;
+    rneckbv.v = rneckv;
+    lneckbv.v = lneckv;
 
     neckv.f[0] = 0;
     neckv.f[1] = 2.1;
-    neckv.f[2] = 0;
+    neckv.f[2] = -0.1;
     neckbv.v = neckv;
     
     headv.f[0] = 0;
@@ -121,27 +115,22 @@ void initVertices(){
     headtopv.f[2] = 0.1;
     headtopbv.v = headtopv;
     
-    rshoulderv.f[0] = -(lshoulderv.f[0] = -0.3);
-    rshoulderv.f[1] = lshoulderv.f[1]   = 2;
+    rshoulderv.f[0] = -(lshoulderv.f[0] = -0.7);
+    rshoulderv.f[1] = lshoulderv.f[1]   = 1.9;
     rshoulderv.f[2] = lshoulderv.f[2]   = -0.2;
     rshoulderbv.v = rshoulderv;
     lshoulderbv.v = lshoulderv;
     
-    ruarmv.f[0] = -(luarmv.f[0] = -0.7);
-    ruarmv.f[1] = luarmv.f[1]   = 1.9;
-    ruarmv.f[2] = luarmv.f[2]   = -0.2;
-    ruarmbv.v = ruarmv;
-    luarmbv.v = luarmv;
-    rlarmv.f[0] = -(llarmv.f[0] = -1.9);
-    rlarmv.f[1] = llarmv.f[1]   = 1.8;
-    rlarmv.f[2] = llarmv.f[2]   = -0.35;
-    rlarmbv.v = rlarmv;
-    llarmbv.v = llarmv;
-    rhandv.f[0] = -(lhandv.f[0] = -3);
-    rhandv.f[1] = lhandv.f[1]   = 1.7;
-    rhandv.f[2] = lhandv.f[2]   = 0;
-    rhandbv.v = rhandv;
-    lhandbv.v = lhandv;
+    relbowv.f[0] = -(lelbowv.f[0] = -1.9);
+    relbowv.f[1] = lelbowv.f[1]   = 1.8;
+    relbowv.f[2] = lelbowv.f[2]   = -0.35;
+    relbowbv.v = relbowv;
+    lelbowbv.v = lelbowv;
+    rwristv.f[0] = -(lwristv.f[0] = -3);
+    rwristv.f[1] = lwristv.f[1]   = 1.7;
+    rwristv.f[2] = lwristv.f[2]   = 0;
+    rwristbv.v = rwristv;
+    lwristbv.v = lwristv;
     rhandtopv.f[0] = -(lhandtopv.f[0] = -3.6);
     rhandtopv.f[1] = lhandtopv.f[1]   = 1.65;
     rhandtopv.f[2] = lhandtopv.f[2]   = 0.25;
@@ -153,318 +142,300 @@ void initVertices(){
     rulegv.f[2] = lulegv.f[2]   = -0.05;
     rulegbv.v = rulegv;
     lulegbv.v = lulegv;
-    rllegv.f[0] = -(lllegv.f[0] = -0.6);
-    rllegv.f[1] = lllegv.f[1]   = -2.2;
-    rllegv.f[2] = lllegv.f[2]   = 0;
-    rllegbv.v = rllegv;
-    lllegbv.v = lllegv;
-    rfootv.f[0] = -(lfootv.f[0] = -0.7);
-    rfootv.f[1] = lfootv.f[1]   = -4.5;
-    rfootv.f[2] = lfootv.f[2]   = -0.2;
-    rfootbv.v = rfootv;
-    lfootbv.v = lfootv;
+    rkneev.f[0] = -(lkneev.f[0] = -0.6);
+    rkneev.f[1] = lkneev.f[1]   = -2.2;
+    rkneev.f[2] = lkneev.f[2]   = 0;
+    rkneebv.v = rkneev;
+    lkneebv.v = lkneev;
+    ranklev.f[0] = -(lanklev.f[0] = -0.7);
+    ranklev.f[1] = lanklev.f[1]   = -4.5;
+    ranklev.f[2] = lanklev.f[2]   = -0.2;
+    ranklebv.v = ranklev;
+    lanklebv.v = lanklev;
     rfoottopv.f[0] = -(lfoottopv.f[0] = -0.85);
     rfoottopv.f[1] = lfoottopv.f[1]   = -4.5;
     rfoottopv.f[2] = lfoottopv.f[2]   = 0.8;
     rfoottopbv.v = rfoottopv;
     lfoottopbv.v = lfoottopv;
     
-    bodyverts[0] = &waistbv;
-    bodyverts[1] = &chestbv;
-    bodyverts[2] = &neckbv;
-    bodyverts[3] = &headbv;
-    bodyverts[4] = &headtopbv;
+    //seleccionables
+    bodyverts[1] = &waistbv;
+    bodyverts[2] = &abdomenbv;
+    bodyverts[3] = &neckbv;
+    bodyverts[4] = &headbv;
+    
     bodyverts[5] = &rshoulderbv;
-    bodyverts[6] = &ruarmbv;
-    bodyverts[7] = &rlarmbv;
-    bodyverts[8] = &rhandbv;
-    bodyverts[9] = &rhandtopbv;
-    bodyverts[10] = &lshoulderbv;
-    bodyverts[11] = &luarmbv;
-    bodyverts[12] = &llarmbv;
-    bodyverts[13] = &lhandbv;
-    bodyverts[14] = &lhandtopbv;
-    bodyverts[15] = &rulegbv;
-    bodyverts[16] = &rllegbv;
-    bodyverts[17] = &rfootbv;
-    bodyverts[18] = &rfoottopbv;
-    bodyverts[19] = &lulegbv;
-    bodyverts[20] = &lllegbv;
-    bodyverts[21] = &lfootbv;
-    bodyverts[22] = &lfoottopbv;
-    bodyverts[23] = &waistc1bv;
-    bodyverts[24] = &waistc2bv;
-    bodyverts[25] = &chestc1bv;
-    bodyverts[26] = &chestc2bv;
+    bodyverts[6] = &relbowbv;
+    bodyverts[7] = &rwristbv;
+    
+    bodyverts[8] = &lshoulderbv;
+    bodyverts[9] = &lelbowbv;
+    bodyverts[0] = &lwristbv;
+    
+    bodyverts[10] = &rulegbv;
+    bodyverts[11] = &rkneebv;
+    bodyverts[12] = &ranklebv;
+    
+    bodyverts[13] = &lulegbv;
+    bodyverts[14] = &lkneebv;
+    bodyverts[15] = &lanklebv;
+    
+    //no seleccionables
+    bodyverts[16] = &rabdomenbv;
+    bodyverts[17] = &labdomenbv;
+    bodyverts[18] = &rneckbv;
+    bodyverts[19] = &lneckbv;
+    
+    bodyverts[20] = &headtopbv;
+    bodyverts[21] = &rhandtopbv;
+    bodyverts[22] = &lhandtopbv;
+    bodyverts[23] = &rfoottopbv;
+    bodyverts[24] = &lfoottopbv;
 }
 
 void initCapsules(){
-    waistc.bv1 = &waistc1bv;
-    waistc.bv2 = &waistc2bv;
+    waistc.bv1 = &waistbv;
+    waistc.bv2 = &abdomenbv;
+    rwaistc.bv1 = &rulegbv;
+    rwaistc.bv2 = &rabdomenbv;
+    lwaistc.bv1 = &lulegbv;
+    lwaistc.bv2 = &labdomenbv;
     
-    chestc.bv1 = &chestc1bv;
-    chestc.bv2 = &chestc2bv;
+    chestc.bv1 = &abdomenbv;
+    chestc.bv2 = &chestbv;
+    rchestc.bv1 = &rabdomenbv;
+    rchestc.bv2 = &rneckbv;
+    lchestc.bv1 = &labdomenbv;
+    lchestc.bv2 = &lneckbv;
+    
+    waistc.r = 0.45;
+    waistc.sib = &rwaistc;
+    rwaistc.r = lwaistc.r = 0.3;
+    rwaistc.sib = &lwaistc;
+    lwaistc.sib = NULL;
+    chestc.r = 0.5;
+    chestc.sib = &rchestc;
+    rchestc.r = lchestc.r = 0.4;
+    rchestc.sib = &lchestc;
+    lchestc.sib = NULL;
     
     neckc.bv1 = &neckbv;
     neckc.bv2 = &headbv;
-    
     headc.bv1 = &headbv;
     headc.bv2 = &headtopbv;
-    
-    waistc.r = 0.55;
-    chestc.r = 0.55;
     neckc.r = 0.3;
     headc.r = 0.45;
+    neckc.sib = headc.sib = NULL;
     
-    rshoulderc.bv1 = &rshoulderbv;
-    rshoulderc.bv2 = &ruarmbv;
-    ruarmc.bv1 = &ruarmbv;
-    ruarmc.bv2 = &rlarmbv;
-    rlarmc.bv1 = &rlarmbv;
-    rlarmc.bv2 = &rhandbv;
-    rhandc.bv1 = &rhandbv;
+    rshoulderc.bv1 = &neckbv;
+    rshoulderc.bv2 = &rshoulderbv;
+    ruarmc.bv1 = &rshoulderbv;
+    ruarmc.bv2 = &relbowbv;
+    rlarmc.bv1 = &relbowbv;
+    rlarmc.bv2 = &rwristbv;
+    rhandc.bv1 = &rwristbv;
     rhandc.bv2 = &rhandtopbv;
     
-    lshoulderc.bv1 = &lshoulderbv;
-    lshoulderc.bv2 = &luarmbv;
-    luarmc.bv1 = &luarmbv;
-    luarmc.bv2 = &llarmbv;
-    llarmc.bv1 = &llarmbv;
-    llarmc.bv2 = &lhandbv;
-    lhandc.bv1 = &lhandbv;
+    lshoulderc.bv1 = &neckbv;
+    lshoulderc.bv2 = &lshoulderbv;
+    luarmc.bv1 = &lshoulderbv;
+    luarmc.bv2 = &lelbowbv;
+    llarmc.bv1 = &lelbowbv;
+    llarmc.bv2 = &lwristbv;
+    lhandc.bv1 = &lwristbv;
     lhandc.bv2 = &lhandtopbv;
     
     rshoulderc.r = lshoulderc.r = 0.4;
-    ruarmc.r = luarmc.r = 0.3;
+    ruarmc.r = luarmc.r = 0.35;
     rlarmc.r = llarmc.r = 0.25;
     rhandc.r = lhandc.r = 0.25;
+    rshoulderc.sib = ruarmc.sib = rlarmc.sib = rhandc.sib = NULL;
+    lshoulderc.sib = luarmc.sib = llarmc.sib = lhandc.sib = NULL;
     
     rulegc.bv1 = &rulegbv;
-    rulegc.bv2 = &rllegbv;
-    rllegc.bv1 = &rllegbv;
-    rllegc.bv2 = &rfootbv;
-    rfootc.bv1 = &rfootbv;
+    rulegc.bv2 = &rkneebv;
+    rllegc.bv1 = &rkneebv;
+    rllegc.bv2 = &ranklebv;
+    rfootc.bv1 = &ranklebv;
     rfootc.bv2 = &rfoottopbv;
     
     lulegc.bv1 = &lulegbv;
-    lulegc.bv2 = &lllegbv;
-    lllegc.bv1 = &lllegbv;
-    lllegc.bv2 = &lfootbv;
-    lfootc.bv1 = &lfootbv;
+    lulegc.bv2 = &lkneebv;
+    lllegc.bv1 = &lkneebv;
+    lllegc.bv2 = &lanklebv;
+    lfootc.bv1 = &lanklebv;
     lfootc.bv2 = &lfoottopbv;
     
     rulegc.r = lulegc.r = 0.4;
     rllegc.r = lllegc.r = 0.3;
     rfootc.r = lfootc.r = 0.25;
+    rulegc.sib = rllegc.sib = rfootc.sib = NULL;
+    lulegc.sib = lllegc.sib = lfootc.sib = NULL;
     
     caps[0] = &waistc;
     caps[1] = &chestc;
     caps[2] = &neckc;
     caps[3] = &headc;
+    
     caps[4] = &rshoulderc;
     caps[5] = &ruarmc;
     caps[6] = &rlarmc;
     caps[7] = &rhandc;
+    
     caps[8] = &lshoulderc;
     caps[9] = &luarmc;
     caps[10] = &llarmc;
     caps[11] = &lhandc;
+        
     caps[12] = &rulegc;
     caps[13] = &rllegc;
     caps[14] = &rfootc;
+    
     caps[15] = &lulegc;
     caps[16] = &lllegc;
     caps[17] = &lfootc;
+    
+    caps[18] = &rwaistc;
+    caps[19] = &lwaistc;
+    caps[20] = &rchestc;
+    caps[21] = &lchestc;
 }
 
 void initNodes(){
-    //body
-    glPushMatrix();
-        glMultMatrixf(bodypos);
-        glLoadIdentity();
-        glGetFloatv(GL_MODELVIEW_MATRIX, bodypos);
-    glPopMatrix();
     
     //waist
-    glLoadIdentity();
-    glTranslatef(0.0,-0.4,0.0);
     waistn.cap = &waistc;
     waistn.bv1 = &waistbv;
-    waistn.bv2 = &chestbv;
     waistn.id = 1;
     waistn.sibling = &rulegn;
-    waistn.child = &chestn;
+    waistn.child = &abdomenn;
     
-    //chest
-    glLoadIdentity();
-    glTranslatef(0,1.0,0.0);
-    chestn.cap = &chestc;
-    chestn.bv1 = &chestbv;
-    chestn.bv2 = &neckbv;
-    chestn.id = 16;
-    chestn.sibling = NULL;
-    chestn.child = &neckn;
+    //abdomen
+    abdomenn.cap = &chestc;
+    abdomenn.bv1 = &abdomenbv;
+    abdomenn.id = 2;
+    abdomenn.sibling = NULL;
+    abdomenn.child = &neckn;
     
     //Neck
-    glLoadIdentity();
-    glTranslatef(0.0,1.8,0.0);
     neckn.cap = &neckc;
     neckn.bv1 = &neckbv;
-    neckn.bv2 = &headbv;
-    neckn.id = 2;
+    neckn.id = 3;
     neckn.sibling = &rshouldern;
     neckn.child = &headn;
     
-    //HEAD
-    glLoadIdentity();
-    glTranslatef(0.0,0.5,0.0);
+    //Head
     headn.cap = &headc;
     headn.bv1 = &headbv;
-    headn.bv2 = &headtopbv;
-    headn.id = 3;
+    headn.id = 4;
     headn.sibling = NULL;
     headn.child = NULL;
-
-    //rshoulder
-    glLoadIdentity();
-    glTranslatef(-0.4,1.45,0.0);
+    
+    //shoulder
     rshouldern.cap = &rshoulderc;
     rshouldern.bv1 = &rshoulderbv;
-    rshouldern.bv2 = &ruarmbv;
-    rshouldern.id = 17;
+    rshouldern.id = 5;
     rshouldern.sibling = &lshouldern;
-    rshouldern.child = &ruarmn;
+    rshouldern.child = &relbown;
     
-    //RIGHT UPPER ARM
-    glLoadIdentity();
-    glTranslatef(-0.85,-0.35,0.0);
-    ruarmn.cap = &ruarmc;
-    ruarmn.bv1 = &ruarmbv;
-    ruarmn.bv2 = &rlarmbv;
-    ruarmn.id = 4;
-    ruarmn.sibling = NULL;
-    ruarmn.child = &rlarmn;
+    //relbow
+    relbown.cap = &ruarmc;
+    relbown.bv1 = &relbowbv;
+    relbown.id = 6;
+    relbown.sibling = NULL;
+    relbown.child = &rwristn;
     
-    //RIGHT LOWER ARM
-    glLoadIdentity();
-    glTranslatef(-0.05,-1.3,-0.05);
-    rlarmn.cap = &rlarmc;
-    rlarmn.bv1 = &rlarmbv;
-    rlarmn.bv2 = &rhandbv;
-    rlarmn.id = 5;
-    rlarmn.sibling = NULL;        
-    rlarmn.child = &rhandn;
-    
-    //rhand
-    glLoadIdentity();
-    glTranslatef(0.05,-1.3,0.05);
-    rhandn.cap = &rhandc;
-    rhandn.bv1 = &rhandbv;
-    rhandn.bv2 = &rhandtopbv;
-    rhandn.id = 6;
-    rhandn.sibling = NULL;        
-    rhandn.child = NULL;
+    //rwrist
+    rwristn.cap = &rlarmc;
+    rwristn.bv1 = &rwristbv;
+    rwristn.id = 7;
+    rwristn.sibling = NULL;        
+    rwristn.child = NULL;
     
     //lshoulder
-    glLoadIdentity();
-    glTranslatef(0.4,1.45,0.0);
     lshouldern.cap = &lshoulderc;
     lshouldern.bv1 = &lshoulderbv;
-    lshouldern.bv2 = &luarmbv;
-    lshouldern.id = 17;
+    lshouldern.id = 8;
     lshouldern.sibling = NULL;
-    lshouldern.child = &luarmn;
+    lshouldern.child = &lelbown;
     
-    //RIGHT UPPER ARM
-    glLoadIdentity();
-    glTranslatef(0.85,-0.35,0.0);
-    luarmn.cap = &luarmc;
-    luarmn.bv1 = &luarmbv;
-    luarmn.bv2 = &llarmbv;
-    luarmn.id = 7;
-    luarmn.sibling = NULL;
-    luarmn.child = &llarmn;
+    //lelbow
+    lelbown.cap = &luarmc;
+    lelbown.bv1 = &lelbowbv;
+    lelbown.id = 9;
+    lelbown.sibling = NULL;        
+    lelbown.child = &lwristn;
     
-    //RIGHT LOWER ARM
-    glLoadIdentity();
-    glTranslatef(0.05,-1.3,-0.05);
-
-    llarmn.cap = &llarmc;
-    llarmn.bv1 = &llarmbv;
-    llarmn.bv2 = &lhandbv;
-    llarmn.id = 8;
-    llarmn.sibling = NULL;        
-    llarmn.child = &lhandn;
+    //lwrist
+    lwristn.cap = &llarmc;
+    lwristn.bv1 = &lwristbv;
+    lwristn.id = 0;
+    lwristn.sibling = NULL;        
+    lwristn.child = NULL;
     
-    //rhand
-    glLoadIdentity();
-    glTranslatef(-0.05,-1.3,0.05);
-    lhandn.cap = &lhandc;
-    lhandn.bv1 = &lhandbv;
-    lhandn.bv2 = &lhandtopbv;
-    lhandn.id = 9;
-    lhandn.sibling = NULL;        
-    lhandn.child = NULL;
-    
-    //RIGHT UPPER LEG
-    glLoadIdentity();
-    glTranslatef(-0.5,-0.4,0.0);
+    //ruleg
     rulegn.cap = &rulegc;
     rulegn.bv1 = &rulegbv;
-    rulegn.bv2 = &rllegbv;
     rulegn.id = 10;
     rulegn.sibling = &lulegn;       
-    rulegn.child = &rllegn; 
+    rulegn.child = &rkneen; 
     
-    //RIGHT LOWER LEG
-    glLoadIdentity();
-    glTranslatef(0.05,-2,0.0);
-    rllegn.cap = &rllegc;
-    rllegn.bv1 = &rllegbv;
-    rllegn.bv2 = &rfootbv;
-    rllegn.id = 11;
-    rllegn.sibling = NULL;
-    rllegn.child = &rfootn;
+    //rlleg
+    rkneen.cap = &rllegc;
+    rkneen.bv1 = &rkneebv;
+    rkneen.id = 11;
+    rkneen.sibling = NULL;
+    rkneen.child = &ranklen;
     
-    //rfoot
-    glLoadIdentity();
-    glTranslatef(0,-2,0);
-    rfootn.cap = &rfootc;
-    rfootn.bv1 = &rfootbv;
-    rfootn.bv2 = &rfoottopbv;
-    rfootn.id = 12;
-    rfootn.sibling = NULL;
-    rfootn.child = NULL;
+    //rankle
+    ranklen.cap = &rfootc;
+    ranklen.bv1 = &ranklebv;
+    ranklen.id = 12;
+    ranklen.sibling = NULL;
+    ranklen.child = NULL;
     
-    //LEFT UPPER LEG
-    glLoadIdentity();
-    glTranslatef(0.5,-0.4,0.0);
+    //luleg
     lulegn.cap = &lulegc;
     lulegn.bv1 = &lulegbv;
-    lulegn.bv2 = &lllegbv;
     lulegn.id = 13;
     lulegn.sibling = NULL;       
-    lulegn.child = &lllegn;                      
+    lulegn.child = &lkneen;                      
     
-    //LEFT LOWER LEG
-    glLoadIdentity();
-    glTranslatef(-0.05,-2,0.0);
-    lllegn.cap = &lllegc;
-    lllegn.bv1 = &lllegbv;
-    lllegn.bv2 = &lfootbv;
-    lllegn.id = 14;
-    lllegn.sibling = NULL;        
-    lllegn.child = &lfootn;
+    //llleg
+    lkneen.cap = &lllegc;
+    lkneen.bv1 = &lkneebv;
+    lkneen.id = 14;
+    lkneen.sibling = NULL;        
+    lkneen.child = &lanklen;
     
-    //lfoot
-    glLoadIdentity();
-    glTranslatef(0,-2,0);
-    lfootn.cap = &lfootc;
-    lfootn.bv1 = &lfootbv;
-    lfootn.bv2 = &lfoottopbv;
-    lfootn.id = 15;
-    lfootn.sibling = NULL;        
-    lfootn.child = NULL;
+    //lankle
+    lanklen.cap = &lfootc;
+    lanklen.bv1 = &lanklebv;
+    lanklen.id = 15;
+    lanklen.sibling = NULL;        
+    lanklen.child = NULL;
+    
+    //seleccionables
+    nodes[1] = &waistn;
+    nodes[2] = &abdomenn;
+    nodes[3] = &neckn;
+    nodes[4] = &headn;
+    
+    nodes[5] = &rshouldern;
+    nodes[6] = &relbown;
+    nodes[7] = &rwristn;
+    
+    nodes[8] = &lshouldern;
+    nodes[9] = &lelbown;
+    nodes[0] = &lwristn;
+    
+    nodes[10] = &rulegn;
+    nodes[11] = &rkneen;
+    nodes[12] = &ranklen;
+    
+    nodes[13] = &lulegn;
+    nodes[14] = &lkneen;
+    nodes[15] = &lanklen;
 }
 
 //Carga objs a skindata, shirtdata y pantsdata
@@ -494,6 +465,8 @@ void initObj(){
 }
 
 void bind(bodyvertex *nbv, Vec3 *nsv, float nw){
+sprintf(title, "bind: %f   %f   %f      %d / %d", nbv->v.f[0], nbv->v.f[1], nbv->v.f[2], numbindings, (skindata->vertexCount + shirtdata->vertexCount + pantsdata->vertexCount + hairdata->vertexCount) * 2);
+glutSetWindowTitle(title);
     binding newbind;
     newbind.bv = nbv;
     newbind.sv = nsv;
@@ -545,7 +518,7 @@ bool betweenz(Vec3 *v, float zlow, float zhigh){
 }
 
 void initSkin(){
-    bindings = (binding*)calloc(skindata->vertexCount * 2, sizeof(binding));
+    bindings = (binding*)calloc((skindata->vertexCount + shirtdata->vertexCount + pantsdata->vertexCount + hairdata->vertexCount) * 2, sizeof(binding));
     if(bindings == NULL){
         //println("COULD NOT ALLOCATE MEMORY FOR BINDINGS");
         sprintf(title, "COULD NOT ALLOCATE MEMORY FOR BINDINGS");
@@ -559,55 +532,55 @@ void initSkin(){
         iter = skindata->vertexList[i];
         //////manoizq
         if(betweenx(iter, -3.05, -4)){
-            bind(&lhandbv, iter, 1);
+            bind(&lwristbv, iter, 1);
         }else
         ////manoder
         if(betweenx(iter, 3.05, 4)){
-            bind(&rhandbv, iter, 1);
+            bind(&rwristbv, iter, 1);
         }else
         //munecaizq
         if(betweenx(iter, -2.75, -3.05)){
-            bind(&llarmbv, iter, 0.5);
-            bind(&lhandbv, iter, 0.5);
+            bind(&lelbowbv, iter, 0.5);
+            bind(&lwristbv, iter, 0.5);
         }else
         //munecader
         if(betweenx(iter, 2.75, 3.05)){
-            bind(&rlarmbv, iter, 0.5);
-            bind(&rhandbv, iter, 0.5);
+            bind(&relbowbv, iter, 0.5);
+            bind(&rwristbv, iter, 0.5);
         }else
         ////anteizq
         if(betweenx(iter, -2.1, -2.75)){
-            bind(&llarmbv, iter, 1);
+            bind(&lelbowbv, iter, 1);
         }else
         //anteder
         if(betweenx(iter, 2.1, 2.75)){
-            bind(&rlarmbv, iter, 1);
+            bind(&relbowbv, iter, 1);
         }else
         //codoizq
         if(betweenx(iter, -1.75, -2.1)){
-            bind(&llarmbv, iter, 0.5);
-            bind(&luarmbv, iter, 0.5);
+            bind(&lelbowbv, iter, 0.5);
+            bind(&lshoulderbv, iter, 0.5);
         }else
         //cododer
         if(betweenx(iter, 1.75, 2.1)){
-            bind(&rlarmbv, iter, 0.5);
-            bind(&ruarmbv, iter, 0.5);
+            bind(&relbowbv, iter, 0.5);
+            bind(&rshoulderbv, iter, 0.5);
         }else
         //brazoizq
         if(betweenx(iter, -1.2, -1.75) && betweeny(iter, 1.4, 2.35)){
-            bind(&luarmbv, iter, 1);
+            bind(&lshoulderbv, iter, 1);
         }else
         //brazoder
         if(betweenx(iter, 1.2, 1.75) && betweeny(iter, 1.4, 2.35)){
-            bind(&ruarmbv, iter, 1);
+            bind(&rshoulderbv, iter, 1);
         }else
         //hombroizq
         if(betweenx(iter, -0.5, -1.2) && betweeny(iter, 1.55, 2.3)){
-            bind(&luarmbv, iter, 1);
+            bind(&lshoulderbv, iter, 1);
         }else
         //hombroder
         if(betweenx(iter, 0.5, 1.2) && betweeny(iter, 1.55, 2.3)){
-            bind(&ruarmbv, iter, 1);
+            bind(&rshoulderbv, iter, 1);
         }else
         
         //cabeza cuello
@@ -626,28 +599,28 @@ void initSkin(){
         //cuello torso
         if(betweeny(iter, 2.3, 2.4)){
             bind(&neckbv, iter, 0.5);
-            bind(&chestbv, iter, 0.5);
+            bind(&abdomenbv, iter, 0.5);
         }else
         
         //torso pierna izq
         if(betweenx(iter, -0.1, -1.2) && betweeny(iter, -0.6, 0.4)){
             bind(&lulegbv, iter, 0.3);
-            bind(&chestbv, iter, 0.3);
+            bind(&abdomenbv, iter, 0.3);
             bind(&waistbv, iter, 0.4);
         }else
         //torso pierna der
         if(betweenx(iter, 0.1, 1.2) && betweeny(iter, -0.6, 0.4)){
             bind(&rulegbv, iter, 0.3);
-            bind(&chestbv, iter, 0.3);
+            bind(&abdomenbv, iter, 0.3);
             bind(&waistbv, iter, 0.4);
         }else
         //torso
         if(betweeny(iter, -0.6, 2.3)){ //recorte
-            bind(&chestbv, iter, 1);
+            bind(&abdomenbv, iter, 1);
         }else
 //        //cadera torso
 //        if(betweeny(iter, 0.3, 0.7)){
-//            bind(&chestbv, iter, 0.5);
+//            bind(&abdomenbv, iter, 0.5);
 //            bind(&waistbv, iter, 0.5);
 //        }else
 //        //cadera
@@ -676,40 +649,40 @@ void initSkin(){
         //rodilla izq
         if(betweenx(iter, 0, -1.2) && betweeny(iter, -2, -2.6)){
             bind(&lulegbv, iter, 0.5);
-            bind(&lllegbv, iter, 0.5);
+            bind(&lkneebv, iter, 0.5);
         }else
         //rodilla der
         if(betweenx(iter, 0, 1.2) && betweeny(iter, -2, -2.6)){
             bind(&rulegbv, iter, 0.5);
-            bind(&rllegbv, iter, 0.5);
+            bind(&rkneebv, iter, 0.5);
         }else
 
         //chamorro izq
         if(betweenx(iter, 0, -1.2) && betweeny(iter, -2.6, -3.8)){
-            bind(&lllegbv, iter, 1);
+            bind(&lkneebv, iter, 1);
         }else
         //chamorro der
         if(betweenx(iter, 0, 1.2) && betweeny(iter, -2.6, -3.8)){
-            bind(&rllegbv, iter, 1);
+            bind(&rkneebv, iter, 1);
         }else
 
         //tobillo izq
         if(betweenx(iter, 0, -1.5) && betweeny(iter, -3.8, -4.9) && betweenz(iter, 0.2, -4.2)){
-            bind(&lllegbv, iter, 0.5);
-            bind(&lfootbv, iter, 0.5);
+            bind(&lkneebv, iter, 0.5);
+            bind(&lanklebv, iter, 0.5);
         }else
         //tobillo der
         if(betweenx(iter, 0, 1.5) && betweeny(iter, -3.8, -4.9) && betweenz(iter, 0.2, -4.2)){
-            bind(&rllegbv, iter, 0.5);
-            bind(&rfootbv, iter, 0.5);
+            bind(&rkneebv, iter, 0.5);
+            bind(&ranklebv, iter, 0.5);
         }else
         //pie izq
         if(betweenx(iter, 0, -1.2) && betweeny(iter, -3.8, -4.9) && betweenz(iter, 0.2, 1.2)){
-            bind(&lfootbv, iter, 1);
+            bind(&lanklebv, iter, 1);
         }else
         //pie der
         if(betweenx(iter, 0, 1.2) && betweeny(iter, -3.8, -4.9) && betweenz(iter, 0.2, 1.2)){
-            bind(&rfootbv, iter, 1);
+            bind(&ranklebv, iter, 1);
         }
     }
 }
@@ -721,6 +694,7 @@ void initParticles(){
     shirtparticles = (particle*)calloc(totalshirtparticles, sizeof(particle));
     pantsparticles = (particle*)calloc(totalpantsparticles, sizeof(particle));
     hairparticles = (particle*)calloc(totalhairparticles, sizeof(particle));
+
     
     if(shirtparticles == NULL || pantsparticles == NULL || hairparticles == NULL){
         //println("COULD NOT ALLOCATE MEMORY FOR PARTICLES");
@@ -729,6 +703,7 @@ void initParticles(){
         exit(-1);
     }
     
+
     int i=0;
     ////construye particulas con masa y un punto
     for(i=0; i < totalshirtparticles; i++){
@@ -739,6 +714,7 @@ void initParticles(){
         shirtparticles[i] = ptemp;
     }
     
+
     //igual para pants
     for(i=0; i < totalpantsparticles; i++){
         particle ptemp = particleconstruct(pantsdata->vertexList[i]);
@@ -747,32 +723,34 @@ void initParticles(){
             ptemp.movable = false;
         }
         if(betweeny(ptemp.pos, -0.5, 0.4)){
-            bind(&chestbv, ptemp.pos, 1);
+            //bind(&abdomenbv, ptemp.pos, 1);
         }
         ptemp.mass = pantsmass;
         pantsparticles[i] = ptemp;
     }
     
+
     //igual para hair
     for(i=0; i < totalhairparticles; i++){
         particle ptemp = particleconstruct(hairdata->vertexList[i]);
         //si esta por el centro, no se cae y se pega a la cabeza
-        if(hairoption == 0){ //l. s. kennedy
-            if(betweenx(ptemp.pos, -0.25, 0.25) && betweeny(ptemp.pos, 3.6, 4)){
-                ptemp.movable = false;
-                bind(&headbv, ptemp.pos, 1);
-            }
-            ptemp.mass = hairmass;
-        }
-        if(hairoption == 1){ //bob ross
-            if(betweenx(ptemp.pos, -0.55, 0.55) && betweeny(ptemp.pos, 2.55, 3.45) && betweenz(ptemp.pos, -0.35, 0.7)){
-                ptemp.movable = false;
-                bind(&headbv, ptemp.pos, 1);
-            }
-            ptemp.mass = afromass;
-        }
+//        if(hairoption == 0){ //l. s. kennedy
+//            if(betweenx(ptemp.pos, -0.25, 0.25) && betweeny(ptemp.pos, 3.6, 4)){
+//                ptemp.movable = false;
+//                bind(&headbv, ptemp.pos, 1);
+//            }
+//            ptemp.mass = hairmass;
+//        }
+//        if(hairoption == 1){ //bob ross
+//            if(betweenx(ptemp.pos, -0.55, 0.55) && betweeny(ptemp.pos, 2.55, 3.45) && betweenz(ptemp.pos, -0.35, 0.7)){
+//                ptemp.movable = false;
+//                bind(&headbv, ptemp.pos, 1);
+//            }
+//            ptemp.mass = afromass;
+//        }
         hairparticles[i] = ptemp;
     }
+
 }
 
 //checa si el resorte ya esta en la lista
