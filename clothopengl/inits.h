@@ -4,9 +4,9 @@
 #include "structs.h"
 #include "objLoader.h"
 
-#define NUMVERT  27
-#define NUMCAPS  18
-#define NUMNODES 18
+#define NUMVERTS 25
+#define NUMNODES 16
+#define NUMCAPS  22
 
 extern char title[200];
 
@@ -17,17 +17,17 @@ extern int pantsoption;
 extern int hairoption;
 
 
-extern bodyvertex waistbv, chestbv, neckbv, headbv, headtopbv, 
-       rshoulderbv, ruarmbv, rlarmbv, rhandbv, rhandtopbv, lshoulderbv, luarmbv, llarmbv, lhandbv, lhandtopbv, 
-       rulegbv, rllegbv, rfootbv, rfoottopbv, lulegbv, lllegbv, lfootbv, lfoottopbv, 
-       waistc1bv, waistc2bv, chestc1bv, chestc2bv;
+extern bodyvertex waistbv, chestbv, abdomenbv, neckbv, headbv, headtopbv, 
+                   rshoulderbv, relbowbv, rwristbv, rhandtopbv, lshoulderbv, lelbowbv, lwristbv, lhandtopbv, 
+                   rulegbv, rkneebv, ranklebv, rfoottopbv, lulegbv, lkneebv, lanklebv, lfoottopbv, 
+                   rabdomenbv, labdomenbv, rneckbv, lneckbv;
 
+extern capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc, 
+               chestc, rchestc, lchestc, waistc, rwaistc, lwaistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
 
-extern capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc,
-        chestc, waistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
-
-extern treenode headn, neckn, rshouldern, lshouldern, ruarmn, luarmn, rlarmn, llarmn, rhandn, lhandn,
-         chestn, waistn, rulegn, lulegn, rllegn, lllegn, rfootn, lfootn;
+extern treenode waistn, abdomenn, neckn, headn, 
+        rshouldern, relbown, rwristn, lshouldern, lelbown, lwristn, 
+        rulegn, rkneen, ranklen, lulegn, lkneen, lanklen;
 
 ////STRUCTS
 extern objLoader *skindata;
@@ -36,8 +36,9 @@ extern objLoader *pantsdata;
 extern objLoader *hairdata;
 
 //arreglos de structs
-extern bodyvertex   *bodyverts[NUMVERT];
-extern capsule  *caps[NUMCAPS];
+extern treenode   *nodes[NUMNODES];
+extern bodyvertex *bodyverts[NUMVERTS];
+extern capsule    *caps[NUMCAPS];
 
 extern int numbindings;
 extern binding *bindings;
