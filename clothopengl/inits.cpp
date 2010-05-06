@@ -7,18 +7,17 @@
 
 char title[200];
 
-double testx = 0;
-double testy = 0;
-double testz = 1.5;
-float testballr = 0.1;
-
-Vec3 testvert;
-
 Vec3 gravity = Vec3construct(0,-0.1,0);
+
+int shirtoption = 0;
+int pantsoption = 0;
+int hairoption  = 0;
+
 
 float shirtmass = 30;
 float pantsmass = 30;
-float hairmass  = 10;
+float hairmass  = 20;
+float afromass  = 100;
 
 bodyvertex waistbv, chestbv, neckbv, headbv, headtopbv, 
        rshoulderbv, ruarmbv, rlarmbv, rhandbv, rhandtopbv, lshoulderbv, luarmbv, llarmbv, lhandbv, lhandtopbv, 
@@ -63,9 +62,9 @@ spring *hairsprings;
 /////////////////FUNCIONES
 void initVertices(){
     //
-    testvert.f[0] = testx;
-    testvert.f[1] = testy;
-    testvert.f[2] = testz;
+//    testvert.f[0] = testx;
+//    testvert.f[1] = testy;
+//    testvert.f[2] = testz;
     //
     
     Vec3 waistv, chestv, neckv, headv, headtopv, 
@@ -124,34 +123,34 @@ void initVertices(){
     
     rshoulderv.f[0] = -(lshoulderv.f[0] = -0.3);
     rshoulderv.f[1] = lshoulderv.f[1]   = 2;
-    rshoulderv.f[2] = lshoulderv.f[2]   = -0.15;
+    rshoulderv.f[2] = lshoulderv.f[2]   = -0.2;
     rshoulderbv.v = rshoulderv;
     lshoulderbv.v = lshoulderv;
     
-    ruarmv.f[0] = -(luarmv.f[0] = -0.9);
+    ruarmv.f[0] = -(luarmv.f[0] = -0.7);
     ruarmv.f[1] = luarmv.f[1]   = 1.9;
-    ruarmv.f[2] = luarmv.f[2]   = -0.25;
+    ruarmv.f[2] = luarmv.f[2]   = -0.2;
     ruarmbv.v = ruarmv;
     luarmbv.v = luarmv;
     rlarmv.f[0] = -(llarmv.f[0] = -1.9);
     rlarmv.f[1] = llarmv.f[1]   = 1.8;
-    rlarmv.f[2] = llarmv.f[2]   = -0.4;
+    rlarmv.f[2] = llarmv.f[2]   = -0.35;
     rlarmbv.v = rlarmv;
     llarmbv.v = llarmv;
     rhandv.f[0] = -(lhandv.f[0] = -3);
     rhandv.f[1] = lhandv.f[1]   = 1.7;
-    rhandv.f[2] = lhandv.f[2]   = 0.1;
+    rhandv.f[2] = lhandv.f[2]   = 0;
     rhandbv.v = rhandv;
     lhandbv.v = lhandv;
     rhandtopv.f[0] = -(lhandtopv.f[0] = -3.6);
     rhandtopv.f[1] = lhandtopv.f[1]   = 1.65;
-    rhandtopv.f[2] = lhandtopv.f[2]   = 0.5;
+    rhandtopv.f[2] = lhandtopv.f[2]   = 0.25;
     rhandtopbv.v = rhandtopv;
     lhandtopbv.v = lhandtopv;
     
     rulegv.f[0] = -(lulegv.f[0] = -0.4);
     rulegv.f[1] = lulegv.f[1]   = -0.1;
-    rulegv.f[2] = lulegv.f[2]   = -0.1;
+    rulegv.f[2] = lulegv.f[2]   = -0.05;
     rulegbv.v = rulegv;
     lulegbv.v = lulegv;
     rllegv.f[0] = -(lllegv.f[0] = -0.6);
@@ -238,7 +237,7 @@ void initCapsules(){
     rshoulderc.r = lshoulderc.r = 0.4;
     ruarmc.r = luarmc.r = 0.3;
     rlarmc.r = llarmc.r = 0.25;
-    rhandc.r = lhandc.r = 0.2;
+    rhandc.r = lhandc.r = 0.25;
     
     rulegc.bv1 = &rulegbv;
     rulegc.bv2 = &rllegbv;
@@ -256,7 +255,7 @@ void initCapsules(){
     
     rulegc.r = lulegc.r = 0.4;
     rllegc.r = lllegc.r = 0.3;
-    rfootc.r = lfootc.r = 0.2;
+    rfootc.r = lfootc.r = 0.25;
     
     caps[0] = &waistc;
     caps[1] = &chestc;
@@ -472,15 +471,26 @@ void initNodes(){
 void initObj(){
     skindata = new objLoader();
     skindata->load("human.obj");
-    
     shirtdata = new objLoader();
-    shirtdata->load("shirt.obj");
-    
     pantsdata = new objLoader();
-    pantsdata->load("pants.obj");
-    
     hairdata = new objLoader();
+    shirtdata->load("shirt.obj");
+    pantsdata->load("pants.obj");
     hairdata->load("hair.obj");
+    if(shirtoption == 0)
+        shirtdata->load("shirt.obj");
+    else
+        shirtdata->load("vest.obj");
+        
+    if(pantsoption == 0)
+        pantsdata->load("pants.obj");
+    else
+        pantsdata->load("tidusp.obj");
+        
+    if(hairoption == 0)
+        hairdata->load("hair.obj");
+    else
+        hairdata->load("afro.obj");
 }
 
 void bind(bodyvertex *nbv, Vec3 *nsv, float nw){
@@ -547,22 +557,21 @@ void initSkin(){
     Vec3 *iter;
     for(i=0;i<skindata->vertexCount;i++){
         iter = skindata->vertexList[i];
-        
         //////manoizq
-        if(betweenx(iter, -2.9, -3.8)){
+        if(betweenx(iter, -3.05, -4)){
             bind(&lhandbv, iter, 1);
         }else
         ////manoder
-        if(betweenx(iter, 2.9, 3.8)){
+        if(betweenx(iter, 3.05, 4)){
             bind(&rhandbv, iter, 1);
         }else
         //munecaizq
-        if(betweenx(iter, -2.75, -2.9)){
+        if(betweenx(iter, -2.75, -3.05)){
             bind(&llarmbv, iter, 0.5);
             bind(&lhandbv, iter, 0.5);
         }else
         //munecader
-        if(betweenx(iter, 2.75, 2.9)){
+        if(betweenx(iter, 2.75, 3.05)){
             bind(&rlarmbv, iter, 0.5);
             bind(&rhandbv, iter, 0.5);
         }else
@@ -575,50 +584,133 @@ void initSkin(){
             bind(&rlarmbv, iter, 1);
         }else
         //codoizq
-        if(betweenx(iter, -1.7, -2.1)){
+        if(betweenx(iter, -1.75, -2.1)){
             bind(&llarmbv, iter, 0.5);
             bind(&luarmbv, iter, 0.5);
         }else
         //cododer
-        if(betweenx(iter, 1.7, 2.1)){
+        if(betweenx(iter, 1.75, 2.1)){
             bind(&rlarmbv, iter, 0.5);
             bind(&ruarmbv, iter, 0.5);
         }else
         //brazoizq
-        if(betweenx(iter, -1.05, -2.1) && betweeny(iter, 1.4, 2.35)){
+        if(betweenx(iter, -1.2, -1.75) && betweeny(iter, 1.4, 2.35)){
             bind(&luarmbv, iter, 1);
         }else
         //brazoder
-        if(betweenx(iter, 1.05, 2.1) && betweeny(iter, 1.4, 2.35)){
+        if(betweenx(iter, 1.2, 1.75) && betweeny(iter, 1.4, 2.35)){
+            bind(&ruarmbv, iter, 1);
+        }else
+        //hombroizq
+        if(betweenx(iter, -0.5, -1.2) && betweeny(iter, 1.55, 2.3)){
+            bind(&luarmbv, iter, 1);
+        }else
+        //hombroder
+        if(betweenx(iter, 0.5, 1.2) && betweeny(iter, 1.55, 2.3)){
             bind(&ruarmbv, iter, 1);
         }else
         
-        //hombroder
-        
-        
+        //cabeza cuello
+        if(betweenx(iter, -0.5, 0.5) && betweeny(iter, 2.45, 2.6) && betweenz(iter, -0.5, 0.35)){
+            bind(&headbv, iter, 0.5);
+            bind(&neckbv, iter, 0.5);
+        }else
         //cabeza
-        if(betweeny(iter, 2.5, 3.8)){
+        if(betweeny(iter, 2.45, 3.8)){ //recorte
             bind(&headbv, iter, 1);
         }else
         //cuello
-        if(betweeny(iter, 2.25, 2.5)){
+        if(betweeny(iter, 2.4, 2.45)){
             bind(&neckbv, iter, 1);
         }else
+        //cuello torso
+        if(betweeny(iter, 2.3, 2.4)){
+            bind(&neckbv, iter, 0.5);
+            bind(&chestbv, iter, 0.5);
+        }else
+        
+        //torso pierna izq
+        if(betweenx(iter, -0.1, -1.2) && betweeny(iter, -0.6, 0.4)){
+            bind(&lulegbv, iter, 0.3);
+            bind(&chestbv, iter, 0.3);
+            bind(&waistbv, iter, 0.4);
+        }else
+        //torso pierna der
+        if(betweenx(iter, 0.1, 1.2) && betweeny(iter, -0.6, 0.4)){
+            bind(&rulegbv, iter, 0.3);
+            bind(&chestbv, iter, 0.3);
+            bind(&waistbv, iter, 0.4);
+        }else
         //torso
-        if(betweeny(iter, 0.75, 2.25)){
+        if(betweeny(iter, -0.6, 2.3)){ //recorte
             bind(&chestbv, iter, 1);
         }else
-        //cadera
-        if(betweeny(iter, 0, 0.75)){
-            bind(&waistbv, iter, 1);
-        }//else
+//        //cadera torso
+//        if(betweeny(iter, 0.3, 0.7)){
+//            bind(&chestbv, iter, 0.5);
+//            bind(&waistbv, iter, 0.5);
+//        }else
+//        //cadera
+//        if(betweenx(iter, -0.1, 0.1) && betweeny(iter, -0.6, 0.3)){
+//            bind(&waistbv, iter, 1);
+//        }else
+//        //cadera pierna izq
+//        if(betweenx(iter, -0.1, -1.2) && betweeny(iter, -0.6, 0.3)){
+//            bind(&lulegbv, iter, 0.5);
+//            bind(&waistbv, iter, 0.5);
+//        }else
+//        //cadera pierna der
+//        if(betweenx(iter, 0.1, 1.2) && betweeny(iter, -0.6, 0.3)){
+//            bind(&rulegbv, iter, 0.5);
+//            bind(&waistbv, iter, 0.5);
+//        }else
+        
+        //pierna izq
+        if(betweenx(iter, 0, -1.2) && betweeny(iter, -0.6, -2)){
+            bind(&lulegbv, iter, 1);
+        }else
+        //pierna der
+        if(betweenx(iter, 0, 1.2) && betweeny(iter, -0.6, -2)){
+            bind(&rulegbv, iter, 1);
+        }else
+        //rodilla izq
+        if(betweenx(iter, 0, -1.2) && betweeny(iter, -2, -2.6)){
+            bind(&lulegbv, iter, 0.5);
+            bind(&lllegbv, iter, 0.5);
+        }else
+        //rodilla der
+        if(betweenx(iter, 0, 1.2) && betweeny(iter, -2, -2.6)){
+            bind(&rulegbv, iter, 0.5);
+            bind(&rllegbv, iter, 0.5);
+        }else
 
-        //pierna
+        //chamorro izq
+        if(betweenx(iter, 0, -1.2) && betweeny(iter, -2.6, -3.8)){
+            bind(&lllegbv, iter, 1);
+        }else
+        //chamorro der
+        if(betweenx(iter, 0, 1.2) && betweeny(iter, -2.6, -3.8)){
+            bind(&rllegbv, iter, 1);
+        }else
 
-        //rodilla
-
-        //pie
-
+        //tobillo izq
+        if(betweenx(iter, 0, -1.5) && betweeny(iter, -3.8, -4.9) && betweenz(iter, 0.2, -4.2)){
+            bind(&lllegbv, iter, 0.5);
+            bind(&lfootbv, iter, 0.5);
+        }else
+        //tobillo der
+        if(betweenx(iter, 0, 1.5) && betweeny(iter, -3.8, -4.9) && betweenz(iter, 0.2, -4.2)){
+            bind(&rllegbv, iter, 0.5);
+            bind(&rfootbv, iter, 0.5);
+        }else
+        //pie izq
+        if(betweenx(iter, 0, -1.2) && betweeny(iter, -3.8, -4.9) && betweenz(iter, 0.2, 1.2)){
+            bind(&lfootbv, iter, 1);
+        }else
+        //pie der
+        if(betweenx(iter, 0, 1.2) && betweeny(iter, -3.8, -4.9) && betweenz(iter, 0.2, 1.2)){
+            bind(&rfootbv, iter, 1);
+        }
     }
 }
 
@@ -665,11 +757,20 @@ void initParticles(){
     for(i=0; i < totalhairparticles; i++){
         particle ptemp = particleconstruct(hairdata->vertexList[i]);
         //si esta por el centro, no se cae y se pega a la cabeza
-        if(betweenx(ptemp.pos, -0.25, 0.25) && betweeny(ptemp.pos, 3.6, 4)){
-            ptemp.movable = false;
-            bind(&headbv, ptemp.pos, 1);
+        if(hairoption == 0){ //l. s. kennedy
+            if(betweenx(ptemp.pos, -0.25, 0.25) && betweeny(ptemp.pos, 3.6, 4)){
+                ptemp.movable = false;
+                bind(&headbv, ptemp.pos, 1);
+            }
+            ptemp.mass = hairmass;
         }
-        ptemp.mass = hairmass;
+        if(hairoption == 1){ //bob ross
+            if(betweenx(ptemp.pos, -0.55, 0.55) && betweeny(ptemp.pos, 2.55, 3.45) && betweenz(ptemp.pos, -0.35, 0.7)){
+                ptemp.movable = false;
+                bind(&headbv, ptemp.pos, 1);
+            }
+            ptemp.mass = afromass;
+        }
         hairparticles[i] = ptemp;
     }
 }

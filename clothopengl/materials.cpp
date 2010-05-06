@@ -35,8 +35,8 @@ GLfloat purpleDiffuse[]	    = { 0.5, 0.0, 1.0, 1.0 };
 GLfloat purpleDiffuseAlpha[]= { 0.5, 0.0, 1.0, alphavalue };
 GLfloat whiteDiffuse[]	    = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat whiteDiffuseAlpha[]	= { 1.0, 1.0, 1.0, alphavalue };
-GLfloat pinkDiffuse[]	    = { 1.0, 0.7, 0.8, 1.0 };
-GLfloat pinkDiffuseAlpha[]	= { 1.0, 0.7, 0.8, alphavalue };
+GLfloat pinkDiffuse[]	    = { 0.9, 0.7, 0.7, 1.0 };
+GLfloat pinkDiffuseAlpha[]	= { 0.9, 0.7, 0.7, alphavalue };
 
 // a white specular material
 GLfloat whiteSpecular[]	= { 1.0, 1.0, 1.0, 1.0 };

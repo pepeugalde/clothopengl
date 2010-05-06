@@ -12,10 +12,10 @@ extern char title[200];
 
 extern GLfloat bodypos[16];
 
-extern double testx;
-extern double testy;
-extern double testz;
-extern float testballr;
+extern int shirtoption;
+extern int pantsoption;
+extern int hairoption;
+
 
 extern bodyvertex waistbv, chestbv, neckbv, headbv, headtopbv, 
        rshoulderbv, ruarmbv, rlarmbv, rhandbv, rhandtopbv, lshoulderbv, luarmbv, llarmbv, lhandbv, lhandtopbv, 
@@ -55,8 +55,6 @@ extern int totalhairsprings;
 extern spring *shirtsprings;
 extern spring *pantssprings;
 extern spring *hairsprings;
-
-extern Vec3 testvert;
 
 extern Vec3 gravity;
 extern float shirtmass;
