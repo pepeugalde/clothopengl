@@ -7,7 +7,7 @@
  * Enrique Peña 1162110
  *
  * Monito Final
- * v 3.1
+ * v 4
 *******************************************/
 
 #include <GL/glut.h>
@@ -18,13 +18,80 @@
 #include <vector>
 #include <string>
 
+#include "funcdec.h"
 #include "inits.h"
 #include "objLoader.h"
 #include "materials.h"  //arreglos de materiales
 #include "clothfunc.h"  //funciones relativas a cloth
 #include "structs.h"
 
-/////
+/////SWITCHES
+bool smoothswitch      = true;//ajksgfijbgfesabgijbesrigbre
+
+bool capvisswitch      = false;//true;
+bool capalphaswitch    = false;//true;
+
+bool jointvisswitch    = true;
+bool jointalphaswitch  = false;//true;
+
+bool skeletonswitch    = false;//true;
+
+bool skinvisswitch     = true;
+bool skinvertswitch    = false;//true;
+bool skinalphaswitch   = true;
+
+bool shirtvisswitch    = false;//true;
+bool shirtvertswitch   = false;//true;
+bool shirtalphaswitch  = false;//true;
+bool shirtspringswitch = false;//true;
+
+bool pantsvisswitch    = false;//true;
+bool pantsvertswitch   = false;//true;
+bool pantsalphaswitch  = false;//true;
+bool pantsspringswitch = false;//true;
+
+bool hairvisswitch     = false;//true;
+bool hairvertswitch    = false;//true;
+bool hairalphaswitch   = false;//true;
+bool hairspringswitch  = false;//true;
+
+bool gravityswitch     = true;
+
+bool gridswitch        = false;
+bool planeswitch       = false;
+
+bool mouseDown = false;
+
+float angdelta = 2; //cuanto se dobla
+GLfloat anglex = 0; //en x
+GLfloat angley = 0; //en y
+GLfloat anglez = 0; //en z
+
+int segselect = -1;
+float jointsize = 0.2;
+float vertsize = 0.05;
+float particler = 0.05;
+float shirtparticler = 0.15;
+float pantsparticler = 0.1;
+float hairparticler = 0.1;
+
+GLUquadric* q = gluNewQuadric();
+
+/////VARS DE CAMARA
+float xrot = 0.0f;
+float yrot = 0.0f;
+
+float xdiff = 0.0f;
+float ydiff = 0.0f;
+
+float zoom = 12.0;
+
+float speed = 10;
+float eTime = 0;
+float timeDelta = 1;
+
+
+/////////////DEBUG
 Vec3 planex0 = Vec3construct(0,-5,-5);
 Vec3 planex1 = Vec3construct(0,-5,5);
 Vec3 planex2 = Vec3construct(0,5,5);
@@ -83,72 +150,7 @@ void moveplanez(float z){
     planez2.f[2] += z;
     planez3.f[2] += z;
 }
-////
 /////
-
-/////SWITCHES
-bool smoothswitch      = true;
-
-bool capvisswitch      = true;
-bool capalphaswitch    = true;
-
-bool jointvisswitch    = true;
-bool jointalphaswitch  = false;//true;
-
-bool skinvisswitch     = true;
-bool skinvertswitch    = false;//true;
-bool skinalphaswitch   = false;//true;
-
-bool shirtvisswitch    = false;//true;
-bool shirtvertswitch   = false;//true;
-bool shirtalphaswitch  = false;//true;
-bool shirtspringswitch = false;//true;
-
-bool pantsvisswitch    = false;//true;
-bool pantsvertswitch   = false;//true;
-bool pantsalphaswitch  = false;//true;
-bool pantsspringswitch = false;//true;
-
-bool hairvisswitch     = false;//true;
-bool hairvertswitch    = false;//true;
-bool hairalphaswitch   = false;//true;
-bool hairspringswitch  = false;//true;
-
-bool gravityswitch     = true;
-
-bool gridswitch        = false;
-bool planeswitch       = false;
-
-bool mouseDown = false;
-
-float angdelta = 2; //cuanto se dobla
-GLfloat anglex = 0; //en x
-GLfloat angley = 0; //en y
-GLfloat anglez = 0; //en z
-
-int segselect = -1;
-float jointsize = 0.2;
-float vertsize = 0.05;
-float particler = 0.05;
-float shirtparticler = 0.15;
-float pantsparticler = 0.1;
-float hairparticler = 0.1;
-
-GLUquadric* q = gluNewQuadric();
-
-/////VARS DE CAMARA
-float xrot = 0.0f;
-float yrot = 0.0f;
-
-float xdiff = 0.0f;
-float ydiff = 0.0f;
-
-float zoom = 12.0;
-
-
-float speed = 10;
-float eTime = 0;
-float timeDelta = 1;
 
 //------------------FUNCIONES----------------------------
 //distancia 3d entre 2 puntos
@@ -269,7 +271,7 @@ void rotskinz(bodyvertex *bv, Vec3 *pt, float nangz){
 }
 
 //Rota un vertice al rededor del eje X
-void rotBVX(bodyvertex *bv, Vec3 *pt, float angx){
+void rotBVx(bodyvertex *bv, Vec3 *pt, float angx){
     float newy = pt->f[1] + (bv->v.f[1] - pt->f[1]) * cosf(angx * M_PI/180) - (bv->v.f[2] - pt->f[2]) * sinf(angx * M_PI/180);
     float newz = pt->f[2] + (bv->v.f[2] - pt->f[2]) * cosf(angx * M_PI/180) + (bv->v.f[1] - pt->f[1]) * sinf(angx * M_PI/180);
     bv->v.f[1] = newy;
@@ -278,7 +280,7 @@ void rotBVX(bodyvertex *bv, Vec3 *pt, float angx){
 }
 
 //Rota un vertice al rededor del eje Y
-void rotBVY(bodyvertex *bv, Vec3 *pt, float angy){
+void rotBVy(bodyvertex *bv, Vec3 *pt, float angy){
     float newx = pt->f[0] + (bv->v.f[0] - pt->f[0]) * cosf(angy * M_PI/180) - (bv->v.f[2] - pt->f[2]) * sinf(angy * M_PI/180);
     float newz = pt->f[2] + (bv->v.f[2] - pt->f[2]) * cosf(angy * M_PI/180) + (bv->v.f[0] - pt->f[0]) * sinf(angy * M_PI/180);
     bv->v.f[0] = newx;
@@ -287,7 +289,7 @@ void rotBVY(bodyvertex *bv, Vec3 *pt, float angy){
 }
 
 //Rota un vertice al rededor del eje Z
-void rotBVZ(bodyvertex *bv, Vec3 *pt, float angz){
+void rotBVz(bodyvertex *bv, Vec3 *pt, float angz){
     float newx = pt->f[0] + (bv->v.f[0] - pt->f[0]) * cosf(angz * M_PI/180) - (bv->v.f[1] - pt->f[1]) * sinf(angz * M_PI/180);
     float newy = pt->f[1] + (bv->v.f[1] - pt->f[1]) * cosf(angz * M_PI/180) + (bv->v.f[0] - pt->f[0]) * sinf(angz * M_PI/180);
     bv->v.f[0] = newx;
@@ -295,80 +297,110 @@ void rotBVZ(bodyvertex *bv, Vec3 *pt, float angz){
     rotskinz(bv, pt, angz);
 }
 
+//Rota capsulas respecto al punto *pt... jajaja pete
+void rotCapx(capsule *c, Vec3 *pt, float angx){
+    if(c->bv1->hasmoved == false){
+        rotBVx(c->bv1, pt, angx);
+        c->bv1->hasmoved = true;
+    }
+
+    if(c->bv2->hasmoved == false){
+        rotBVx(c->bv2, pt, angx);
+        c->bv2->hasmoved = true;
+    }
+
+    if(c->sib != NULL)
+    	rotCapx(c->sib, pt, angx);
+}
+void rotCapy(capsule *c, Vec3 *pt, float angy){
+    if(c->bv1->hasmoved == false){
+        rotBVy(c->bv1, pt, angy);
+        c->bv1->hasmoved = true;
+    }
+
+    if(c->bv2->hasmoved == false){
+        rotBVy(c->bv2, pt, angy);
+        c->bv2->hasmoved = true;
+    }
+
+    if(c->sib != NULL)
+    	rotCapy(c->sib, pt, angy);
+}
+void rotCapz(capsule *c, Vec3 *pt, float angz){
+    if(c->bv1->hasmoved == false){
+        rotBVz(c->bv1, pt, angz);
+        c->bv1->hasmoved = true;
+    }
+
+    if(c->bv2->hasmoved == false){
+        rotBVz(c->bv2, pt, angz);
+        c->bv2->hasmoved = true;
+    }
+
+    if(c->sib != NULL)
+    	rotCapz(c->sib, pt, angz);
+}
+
 //Rota nodos hijos respecto al punto *pt... jajaja pete
-void rotChildNode(treenode *n, Vec3 *pt, float angx, float angy, float angz){
-    if(n->bv1->hasmoved == false){
-        if(angx != 0)
-            rotBVX(n->bv1, pt, angx);
-        if(angy != 0)
-            rotBVY(n->bv1, pt, angy);
-        if(angz != 0)
-            rotBVZ(n->bv1, pt, angz);
-        n->bv1->hasmoved = true;
-    }
-    
-    if(n->cap->bv1->hasmoved == false){
-        if(angx != 0)
-            rotBVX(n->cap->bv1, pt, angx);
-        if(angy != 0)
-            rotBVY(n->cap->bv1, pt, angy);
-        if(angz != 0)
-            rotBVZ(n->cap->bv1, pt, angz);
-        n->cap->bv1->hasmoved = true;
-    }
-    if(n->cap->bv2->hasmoved == false){
-        if(angx != 0)
-            rotBVX(n->cap->bv2, pt, angx);
-        if(angy != 0)
-            rotBVY(n->cap->bv2, pt, angy);
-        if(angz != 0)
-            rotBVZ(n->cap->bv2, pt, angz);
-        n->cap->bv2->hasmoved = true;
+void rotChildNodex(treenode *n, Vec3 *pt, float angx){
+    if(n->bv->hasmoved == false){
+        rotBVx(n->bv, pt, angx);
+        n->bv->hasmoved = true;
     }
     if(n->child != NULL)
-    	rotChildNode(n->child, pt, angx, angy, angz);
+    	rotChildNodex(n->child, pt, angx);
         
-    if(n->sibling != NULL)
-    	rotChildNode(n->sibling, pt, angx, angy, angz);
+    if(n->sib != NULL)
+    	rotChildNodex(n->sib, pt, angx);
+        
+    rotCapx(n->cap, pt, angx);
+}
+void rotChildNodey(treenode *n, Vec3 *pt, float angy){
+    if(n->bv->hasmoved == false){
+        rotBVy(n->bv, pt, angy);
+        n->bv->hasmoved = true;
+    }
+    if(n->child != NULL)
+    	rotChildNodey(n->child, pt, angy);
+        
+    if(n->sib != NULL)
+    	rotChildNodey(n->sib, pt, angy);
+        
+    rotCapy(n->cap, pt, angy);
+}
+void rotChildNodez(treenode *n, Vec3 *pt, float angz){
+    if(n->bv->hasmoved == false){
+        rotBVz(n->bv, pt, angz);
+        n->bv->hasmoved = true;
+    }
+    if(n->child != NULL)
+    	rotChildNodez(n->child, pt, angz);
+        
+    if(n->sib != NULL)
+    	rotChildNodez(n->sib, pt, angz);
+        
+    rotCapz(n->cap, pt, angz);
 }
 
 //Recibe un nodo, usa el metodo de arriba para 
 //girar hijos respecto al primer vertice de un nodo
-void rotNode(treenode *n, float angx, float angy, float angz){
-//    if(n->bv2->hasmoved == false){
-//        if(angx != 0)
-//            rotBVX(n->bv2, &(n->bv1->v), angx);
-//        if(angy != 0)
-//            rotBVY(n->bv2, &(n->bv1->v), angy);
-//        if(angz != 0)
-//            rotBVZ(n->bv2, &(n->bv1->v), angz);
-//        n->bv2->hasmoved = true;
-//    }
-    if(n->cap->bv1->hasmoved == false){
-        if(angx != 0)
-            rotBVX(n->cap->bv1, &(n->bv1->v), angx);
-        if(angy != 0)
-            rotBVY(n->cap->bv1, &(n->bv1->v), angy);
-        if(angz != 0)
-            rotBVZ(n->cap->bv1, &(n->bv1->v), angz);
-        n->cap->bv1->hasmoved = true;
-    }
-    if(n->cap->bv2->hasmoved == false){
-        if(angx != 0)
-            rotBVX(n->cap->bv2, &(n->bv1->v), angx);
-        if(angy != 0)
-            rotBVY(n->cap->bv2, &(n->bv1->v), angy);
-        if(angz != 0)
-            rotBVZ(n->cap->bv2, &(n->bv1->v), angz);
-        n->cap->bv2->hasmoved = true;
-    }
+void rotNodex(treenode *n, float angx){
+    rotCapx(n->cap, &n->bv->v, angx);
     if(n->child != NULL)
-    	rotChildNode(n->child, &(n->bv1->v), angx, angy, angz);
+    	rotChildNodex(n->child, &(n->bv->v), angx);
+}
+void rotNodey(treenode *n, float angy){
+    rotCapy(n->cap, &n->bv->v, angy);
+    if(n->child != NULL)
+    	rotChildNodey(n->child, &(n->bv->v), angy);
+}
+void rotNodez(treenode *n, float angz){
+    rotCapz(n->cap, &n->bv->v, angz);
+    if(n->child != NULL)
+    	rotChildNodez(n->child, &(n->bv->v), angz);
 }
 
 ////////////DRAW
-
-
 void setMaterials(GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat shininess){
     glMaterialfv(GL_FRONT, GL_AMBIENT,   ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE,   diffuse);
@@ -405,10 +437,10 @@ void drawJoint(Vec3 *v, int id){
 void drawCapsule(capsule *cap){
 //     glLineWidth(5);
 //     glBegin(GL_LINES);
-//         glVertex3f(cap->v1->f[0],cap->v1->f[1],cap->v1->f[2]);
-//         glVertex3f(cap->v2->f[0],cap->v2->f[1],cap->v2->f[2]);
+//         glVertex3f(cap->bv1->v.f[0],cap->bv1->v.f[1],cap->bv1->v.f[2]);
+//         glVertex3f(cap->bv2->v.f[0],cap->bv2->v.f[1],cap->bv2->v.f[2]);
 //     glEnd();
-     
+
      float d = distance3d(cap->bv1->v.f[0], cap->bv1->v.f[1], cap->bv1->v.f[2], 
                           cap->bv2->v.f[0], cap->bv2->v.f[1], cap->bv2->v.f[2]);
      
@@ -444,7 +476,8 @@ void drawCapsule(capsule *cap){
          glutSolidSphere(cap->r,10,10);
          glRotatef(ax, rx, ry, 0.0);
          gluCylinder(q, cap->r, cap->r, d, 20, 1);
-     glPopMatrix();    
+     glPopMatrix();
+
 }
 
 void drawCaps(){
@@ -463,7 +496,8 @@ void drawBV(){
              glTranslatef(bodyverts[i]->v.f[0],bodyverts[i]->v.f[1],bodyverts[i]->v.f[2]);
              glutSolidCube(jointsize+0.1);
          glPopMatrix();
-    }     
+    }
+    
 }
 
 //si picas G se dibuja
@@ -589,18 +623,51 @@ void drawSprings(spring *arr, int total, GLfloat *ambient, GLfloat *diffuse, GLf
      }
 }
 
-void traverse(treenode *node){
-    if(jointvisswitch){
-        drawJoint(&(node->bv1->v), node->id);
+void drawskeleton(treenode *n){
+    treenode *son;
+    son = n->child;
+    if(son != NULL){
+        glBegin(GL_LINES);
+            glColor3f(0.8,0,0);
+           	glVertex3f(n->bv->v.f[0], n->bv->v.f[1], n->bv->v.f[2]);
+            glColor3f(1,0.8,0.8);
+            glVertex3f(son->bv->v.f[0], son->bv->v.f[1], son->bv->v.f[2]);
+        glEnd();
+        drawskeleton(n->child);
+        while(son->sib != NULL){
+            son = son->sib;
+            drawskeleton(son);
+            glBegin(GL_LINES);
+                glColor3f(0,0,0.8);
+               	glVertex3f(n->bv->v.f[0], n->bv->v.f[1], n->bv->v.f[2]);
+                glColor3f(0.8,0.8,1);
+                glVertex3f(son->bv->v.f[0], son->bv->v.f[1], son->bv->v.f[2]);
+            glEnd();
+        }
     }
+    if(n->sib != NULL){
+        glBegin(GL_LINES);
+            glColor3f(0,0.8,0);
+           	glVertex3f(n->bv->v.f[0], n->bv->v.f[1], n->bv->v.f[2]);
+            glColor3f(0.8,1,0.8);
+            glVertex3f(n->sib->bv->v.f[0], n->sib->bv->v.f[1], n->sib->bv->v.f[2]);
+        glEnd();
+        drawskeleton(n->sib);
+    }
+    
+}
+
+void traverse(treenode *node){
+    if(jointvisswitch)
+        drawJoint(&(node->bv->v), node->id);
     
     // primer recorrer los hijos (si hay)
     if(node->child != NULL)
     	traverse(node->child);
         
     // después recorrer los hermanos (si hay)
-    if(node->sibling != NULL)
-    	traverse(node->sibling);
+    if(node->sib != NULL)
+    	traverse(node->sib);
 }
 
 void idle();
@@ -629,14 +696,20 @@ void display(){
    	    glEnable(GL_LIGHTING);
     }
 	
-    //sprintf(title, "x: %f    y: %f    z: %f    m: %f    g: %f", planex0.f[0], planey0.f[1], planez0.f[2], shirtmass, gravity.f[1]);
-    //glutSetWindowTitle(title);
+    sprintf(title, "x: %f    y: %f    z: %f    m: %f    g: %f", planex0.f[0], planey0.f[1], planez0.f[2], shirtmass, gravity.f[1]);
+    glutSetWindowTitle(title);
     ///////
 
     //MONO
-    traverse(&waistn); 
+    traverse(&waistn);
     
-    drawBV();
+    if(skeletonswitch){
+        glDisable(GL_LIGHTING);
+            drawskeleton(&waistn);
+   	    glEnable(GL_LIGHTING);
+    }
+    
+    //drawBV();
     
     if(capvisswitch)
         drawCaps();
@@ -655,29 +728,31 @@ void display(){
         else
             drawObject(shirtdata, zeroMaterial, blueDiffuse, zeroMaterial, noShininess);
 
-//    if(pantsvisswitch)
-//        if(pantsalphaswitch)
-//            drawObject(pantsdata, zeroMaterial, khakhiDiffuseAlpha, zeroMaterial, noShininess);
-//        else
-//            drawObject(pantsdata, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
-//    
-//    if(hairvisswitch)
-//        if(hairalphaswitch)
-//            drawObject(hairdata, zeroMaterial, brownDiffuseAlpha, zeroMaterial, noShininess);
-//        else
-//            drawObject(hairdata, zeroMaterial, brownDiffuse, zeroMaterial, noShininess);
-//    
-//    //VERTICES
-//    if(skinvertswitch)
-//        drawVert(skindata, zeroMaterial, purpleDiffuse, zeroMaterial, noShininess);
+    if(pantsvisswitch)
+        if(pantsalphaswitch)
+            drawObject(pantsdata, zeroMaterial, khakhiDiffuseAlpha, zeroMaterial, noShininess);
+        else
+            drawObject(pantsdata, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
+    
+    if(hairvisswitch)
+        if(hairalphaswitch)
+            drawObject(hairdata, zeroMaterial, brownDiffuseAlpha, zeroMaterial, noShininess);
+        else
+            drawObject(hairdata, zeroMaterial, brownDiffuse, zeroMaterial, noShininess);
+    
+    //VERTICES
+    if(skinvertswitch)
+        drawVert(skindata, zeroMaterial, purpleDiffuse, zeroMaterial, noShininess);
+
     
     //PARTICLES
-//    if(shirtvertswitch)
-//        drawParticles(shirtparticles, totalshirtparticles, zeroMaterial, dblueDiffuse, zeroMaterial, noShininess);
-//    if(pantsvertswitch)
-//        drawParticles(pantsparticles, totalpantsparticles, zeroMaterial, greenDiffuse, zeroMaterial, noShininess);
-//    if(hairvertswitch)
-//        drawParticles(hairparticles, totalhairparticles, zeroMaterial, dgreenDiffuse, zeroMaterial, noShininess);
+    if(shirtvertswitch)
+        drawParticles(shirtparticles, totalshirtparticles, zeroMaterial, dblueDiffuse, zeroMaterial, noShininess);
+    if(pantsvertswitch)
+        drawParticles(pantsparticles, totalpantsparticles, zeroMaterial, greenDiffuse, zeroMaterial, noShininess);
+    if(hairvertswitch)
+        drawParticles(hairparticles, totalhairparticles, zeroMaterial, dgreenDiffuse, zeroMaterial, noShininess);
+
         
     //SPRINGS
     glDisable(GL_LIGHTING);
@@ -742,6 +817,13 @@ void resetVertFlags(){
     for(int i=0;i<NUMVERTS;i++){
         bodyverts[i]->hasmoved = false;
     }
+    for(int i=0;i<NUMVERTS;i++){
+      if(bodyverts[i]->hasmoved){
+      sprintf(title, "FAAAAAIIILLLL");
+      glutSetWindowTitle(title);
+      }
+    }
+    
 }
 
 //saca un punto de una capsula
@@ -835,25 +917,22 @@ void idle(void){
       int i = 0;
       int j = 0;
       
-      float mincoll = 0;
-      int numcap = -1;
-      
       if(gravityswitch){
           //aplica fuerzas a shirt
           for(i=0;i<totalshirtparticles;i++){
               partaddForce(&shirtparticles[i], gravity);
               parttimeStep(&shirtparticles[i]);
           }
-//          //aplica fuerzas a pants
-//          for(i=0;i<totalpantsparticles;i++){
-//              partaddForce(&pantsparticles[i], gravity);
-//              parttimeStep(&pantsparticles[i]);
-//          }
-//          //aplica fuerzas a hair
-//          for(i=0;i<totalhairparticles;i++){
-//              partaddForce(&hairparticles[i], gravity);
-//              parttimeStep(&hairparticles[i]);
-//          }
+          //aplica fuerzas a pants
+          for(i=0;i<totalpantsparticles;i++){
+              partaddForce(&pantsparticles[i], gravity);
+              parttimeStep(&pantsparticles[i]);
+          }
+          //aplica fuerzas a hair
+          for(i=0;i<totalhairparticles;i++){
+              partaddForce(&hairparticles[i], gravity);
+              parttimeStep(&hairparticles[i]);
+          }
       }
       
       for(j=0;j<CONSTRAINT_ITERATIONS;j++){
@@ -873,9 +952,9 @@ void idle(void){
       //checa colisiones de shirt
       parrcollide(shirtparticles, shirtparticler, totalshirtparticles);
       //checa colisiones de pants
-//      parrcollide(pantsparticles, pantsparticler, totalpantsparticles);
+      parrcollide(pantsparticles, pantsparticler, totalpantsparticles);
       //checa colisiones de hair
-//      parrcollide(hairparticles, hairparticler, totalhairparticles);
+      parrcollide(hairparticles, hairparticler, totalhairparticles);
   }
   glutPostRedisplay();
 }
@@ -926,21 +1005,24 @@ void reset(){
 }
 
 void applyrotations(){
-    if(segselect >= 0 && segselect < NUMVERTS){
-        if(anglex != 0) rotNode(nodes[segselect], anglex, 0, 0);
+    if(segselect >= 0 && segselect < NUMNODES){
+        if(anglex != 0) rotNodex(nodes[segselect], anglex);
         resetVertFlags();
-        if(angley != 0) rotNode(nodes[segselect], 0, angley, 0);
+        if(angley != 0) rotNodey(nodes[segselect], angley);
         resetVertFlags();
-        if(anglez != 0) rotNode(nodes[segselect], 0, 0, anglez);
+        if(anglez != 0) rotNodez(nodes[segselect], anglez);
         resetVertFlags();
-     }else if(segselect == 16){
-        if(anglex != 0) rotChildNode(&waistn, &waistn.bv1->v, anglex, 0, 0);
+    }
+    if(segselect == 16){
+        if(anglex != 0) rotChildNodex(&waistn, &waistn.bv->v, anglex);
         resetVertFlags();
-        if(angley != 0) rotChildNode(&waistn, &waistn.bv1->v, 0, angley, 0);
+        if(angley != 0) rotChildNodey(&waistn, &waistn.bv->v, angley);
         resetVertFlags();
-        if(anglez != 0) rotChildNode(&waistn, &waistn.bv1->v, 0, 0, anglez);
+        if(anglez != 0) rotChildNodez(&waistn, &waistn.bv->v, anglez);
         resetVertFlags();
-     }
+
+    }
+
 }
 ///////MOUSE / KEYBOARD
 void key(unsigned char c, int x, int y){
@@ -966,15 +1048,15 @@ void key(unsigned char c, int x, int y){
             glutPostRedisplay();
             break;
         case 'n':
-            shirtmass -= 1;
-            pantsmass -= 1;
-            hairmass  -= 1;
+            segselect = (segselect-1)%NUMNODES; if(segselect== -2)segselect=16;
+            sprintf(title, "seg: %d", segselect);
+            glutSetWindowTitle(title);
             glutPostRedisplay();
             break;
         case 'm':
-            shirtmass += 1;
-            pantsmass += 1;
-            hairmass  += 1;
+            segselect = (segselect+1)%NUMNODES+1;
+            sprintf(title, "seg: %d", segselect);
+            glutSetWindowTitle(title);
             glutPostRedisplay();
             break;
         //SWITCHES
@@ -1082,6 +1164,8 @@ void key(unsigned char c, int x, int y){
         case 'u':
         case 'U':
             segselect=16;
+        case '!':
+            segselect=-1;
             break;
         case 'i':
         case 'I':
@@ -1095,37 +1179,37 @@ void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          anglex = -angdelta;
          moveplanez(-0.05);
-         if(segselect == 0)
+         if(segselect == 17)
              movebodyz(-0.1);
      }
      if(c==GLUT_KEY_DOWN){
          anglex = angdelta;
          moveplanez(0.05);
-         if(segselect == 0)
+         if(segselect == 17)
              movebodyz(0.1);
      }
      if(c==GLUT_KEY_RIGHT){
          angley = -angdelta;
          moveplanex(0.05);
-         if(segselect == 0)
+         if(segselect == 17)
              movebodyx(0.1);
      }
      if(c==GLUT_KEY_LEFT){
          angley = angdelta;
          moveplanex(-0.05);
-         if(segselect == 0)
+         if(segselect == 17)
              movebodyx(-0.1);
      }
      if(c==GLUT_KEY_PAGE_UP){
          anglez = angdelta;
          moveplaney(0.05);
-         if(segselect == 0)
+         if(segselect == 17)
              movebodyy(0.1);           
      }
      if(c==GLUT_KEY_PAGE_DOWN){
          anglez = -angdelta;
          moveplaney(-0.05);
-         if(segselect == 0)
+         if(segselect == 17)
              movebodyy(-0.1);
      }
      
@@ -1176,6 +1260,9 @@ void processMenu(int val){
              break;
         case 4:
              toggleSwitch(&gravityswitch);
+             break;
+        case 5:
+             toggleSwitch(&skeletonswitch);
              break;
         case 11:
              toggleSwitch(&capvisswitch);
@@ -1282,7 +1369,8 @@ int initMenus(){
 	glutSetMenu(mainMenu);
     	glutAddSubMenu("Capsules",           capMenu);
         glutAddSubMenu("Joints",           jointMenu);
-    	glutAddSubMenu("Skin",              skinMenu);
+        glutAddMenuEntry("Toggle Skeleton",         5);
+    	glutAddSubMenu("SKIN",              skinMenu);
     	glutAddSubMenu("   SHIRT",         shirtMenu);
     	glutAddSubMenu("   PANTS",         pantsMenu);
     	glutAddSubMenu("   HAIR",           hairMenu);
@@ -1372,8 +1460,6 @@ void init(){
 	// make sure the normals are unit vectors
 	glEnable(GL_NORMALIZE);
 }
-
-void lol(){}
 
 int main(int argc, char **argv)
 {

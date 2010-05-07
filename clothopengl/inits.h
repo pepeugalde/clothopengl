@@ -4,9 +4,9 @@
 #include "structs.h"
 #include "objLoader.h"
 
-#define NUMVERTS 25
+#define NUMVERTS 30 //28
 #define NUMNODES 16
-#define NUMCAPS  22
+#define NUMCAPS  23 //22
 
 extern char title[200];
 
@@ -18,12 +18,12 @@ extern int hairoption;
 
 
 extern bodyvertex waistbv, chestbv, abdomenbv, neckbv, headbv, headtopbv, 
-                   rshoulderbv, relbowbv, rwristbv, rhandtopbv, lshoulderbv, lelbowbv, lwristbv, lhandtopbv, 
-                   rulegbv, rkneebv, ranklebv, rfoottopbv, lulegbv, lkneebv, lanklebv, lfoottopbv, 
-                   rabdomenbv, labdomenbv, rneckbv, lneckbv;
+                   rshoulderbv, relbowbv, rwristbv, rfingersbv, lshoulderbv, lelbowbv, lwristbv, lfingersbv, 
+                   rulegbv, rkneebv, ranklebv, rtoesbv, lulegbv, lkneebv, lanklebv, ltoesbv, 
+                   rabdomenbv, labdomenbv, rneckbv, lneckbv, rbuttbv, lbuttbv, nosebv, nosetipbv;
 
 extern capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc, 
-               chestc, rchestc, lchestc, waistc, rwaistc, lwaistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
+               chestc, rchestc, lchestc, waistc, rwaistc, lwaistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc, nosec;
 
 extern treenode waistn, abdomenn, neckn, headn, 
         rshouldern, relbown, rwristn, lshouldern, lelbown, lwristn, 
