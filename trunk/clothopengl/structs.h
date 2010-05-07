@@ -18,7 +18,6 @@ typedef struct bodyvertex{
 typedef struct capsule{
     bodyvertex *bv1;
     bodyvertex *bv2;
-    
     float r;
     capsule *sib;
     char name[16];
@@ -29,9 +28,8 @@ igual y se puede simplificar hasta 1... no se*/
 typedef struct treenode{
     capsule *cap;
     int id;
-    bodyvertex *bv1;
-//    bodyvertex *bv2;
-    struct treenode *sibling;
+    bodyvertex *bv;
+    struct treenode *sib;
     struct treenode *child;
 } treenode;
 

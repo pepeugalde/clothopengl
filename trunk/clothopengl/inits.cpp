@@ -19,12 +19,12 @@ float hairmass  = 20;
 float afromass  = 100;
 
 bodyvertex waistbv, chestbv, abdomenbv, neckbv, headbv, headtopbv, 
-           rshoulderbv, relbowbv, rwristbv, rhandtopbv, lshoulderbv, lelbowbv, lwristbv, lhandtopbv, 
-           rulegbv, rkneebv, ranklebv, rfoottopbv, lulegbv, lkneebv, lanklebv, lfoottopbv, 
-           rabdomenbv, labdomenbv, rneckbv, lneckbv;
+           rshoulderbv, relbowbv, rwristbv, rfingersbv, lshoulderbv, lelbowbv, lwristbv, lfingersbv, 
+           rulegbv, rkneebv, ranklebv, rtoesbv, lulegbv, lkneebv, lanklebv, ltoesbv, 
+           rabdomenbv, labdomenbv, rneckbv, lneckbv, rbuttbv, lbuttbv, nosebv, nosetipbv;
 
 capsule headc, neckc, rshoulderc, lshoulderc, ruarmc, luarmc, rlarmc, llarmc, rhandc, lhandc, 
-        chestc, rchestc, lchestc, waistc, rwaistc, lwaistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc;
+        chestc, rchestc, lchestc, waistc, rwaistc, lwaistc, rulegc, lulegc, rllegc, lllegc, rfootc, lfootc, nosec;
 
 treenode waistn, abdomenn, neckn, headn, 
             rshouldern, relbown, rwristn, lshouldern, lelbown, lwristn, 
@@ -69,27 +69,27 @@ void initVertices(){
     //
     
     Vec3 waistv, chestv, abdomenv, neckv, headv, headtopv, 
-     rshoulderv,relbowv, rwristv, rhandtopv, lshoulderv, lelbowv, lwristv, lhandtopv, 
-     rulegv, rkneev, ranklev, rfoottopv, lulegv, lkneev, lanklev, lfoottopv, 
-     rabdomenv, labdomenv, rneckv, lneckv;
+     rshoulderv,relbowv, rwristv, rfingersv, lshoulderv, lelbowv, lwristv, lfingersv, 
+     rulegv, rkneev, ranklev, rtoesv, lulegv, lkneev, lanklev, ltoesv, 
+     rabdomenv, labdomenv, rneckv, lneckv, rbuttv, lbuttv, nosev, nosetipv;
     
     waistv.f[0] = 0;
-    waistv.f[1] = -0.1;
+    waistv.f[1] = -0.15;
     waistv.f[2] = 0;
     waistbv.v = waistv;
     
     chestv.f[0] = 0;
-    chestv.f[1] = 1.8;
-    chestv.f[2] = 0;
+    chestv.f[1] = 1.7;
+    chestv.f[2] = -0.05;
     chestbv.v = chestv;    
     
     abdomenv.f[0] = 0;
-    abdomenv.f[1] = 0.8;
+    abdomenv.f[1] = 0.5;
     abdomenv.f[2] = 0.05;
     abdomenbv.v = abdomenv;
     
     rabdomenv.f[0] = -(labdomenv.f[0] = -0.25);
-    rabdomenv.f[1] = labdomenv.f[1] = 0.6;
+    rabdomenv.f[1] = labdomenv.f[1] = 0.5;
     rabdomenv.f[2] = labdomenv.f[2] = 0.05;
     rabdomenbv.v = rabdomenv;
     labdomenbv.v = labdomenv;
@@ -106,23 +106,23 @@ void initVertices(){
     neckbv.v = neckv;
     
     headv.f[0] = 0;
-    headv.f[1] = 2.8;
+    headv.f[1] = 2.85;
     headv.f[2] = 0.15;
     headbv.v = headv;
     
     headtopv.f[0] = 0;
     headtopv.f[1] = 3.35;
-    headtopv.f[2] = 0.1;
+    headtopv.f[2] = 0.05;
     headtopbv.v = headtopv;
     
     rshoulderv.f[0] = -(lshoulderv.f[0] = -0.7);
-    rshoulderv.f[1] = lshoulderv.f[1]   = 1.9;
+    rshoulderv.f[1] = lshoulderv.f[1]   = 2;
     rshoulderv.f[2] = lshoulderv.f[2]   = -0.2;
     rshoulderbv.v = rshoulderv;
     lshoulderbv.v = lshoulderv;
     
     relbowv.f[0] = -(lelbowv.f[0] = -1.9);
-    relbowv.f[1] = lelbowv.f[1]   = 1.8;
+    relbowv.f[1] = lelbowv.f[1]   = 1.85;
     relbowv.f[2] = lelbowv.f[2]   = -0.35;
     relbowbv.v = relbowv;
     lelbowbv.v = lelbowv;
@@ -131,11 +131,11 @@ void initVertices(){
     rwristv.f[2] = lwristv.f[2]   = 0;
     rwristbv.v = rwristv;
     lwristbv.v = lwristv;
-    rhandtopv.f[0] = -(lhandtopv.f[0] = -3.6);
-    rhandtopv.f[1] = lhandtopv.f[1]   = 1.65;
-    rhandtopv.f[2] = lhandtopv.f[2]   = 0.25;
-    rhandtopbv.v = rhandtopv;
-    lhandtopbv.v = lhandtopv;
+    rfingersv.f[0] = -(lfingersv.f[0] = -3.6);
+    rfingersv.f[1] = lfingersv.f[1]   = 1.65;
+    rfingersv.f[2] = lfingersv.f[2]   = 0.25;
+    rfingersbv.v = rfingersv;
+    lfingersbv.v = lfingersv;
     
     rulegv.f[0] = -(lulegv.f[0] = -0.4);
     rulegv.f[1] = lulegv.f[1]   = -0.1;
@@ -152,11 +152,27 @@ void initVertices(){
     ranklev.f[2] = lanklev.f[2]   = -0.2;
     ranklebv.v = ranklev;
     lanklebv.v = lanklev;
-    rfoottopv.f[0] = -(lfoottopv.f[0] = -0.85);
-    rfoottopv.f[1] = lfoottopv.f[1]   = -4.5;
-    rfoottopv.f[2] = lfoottopv.f[2]   = 0.8;
-    rfoottopbv.v = rfoottopv;
-    lfoottopbv.v = lfoottopv;
+    rtoesv.f[0] = -(ltoesv.f[0] = -0.85);
+    rtoesv.f[1] = ltoesv.f[1]   = -4.5;
+    rtoesv.f[2] = ltoesv.f[2]   = 0.8;
+    rtoesbv.v = rtoesv;
+    ltoesbv.v = ltoesv;
+    
+    rbuttv.f[0] = -(lbuttv.f[0] = -0.3);
+    rbuttv.f[1] = lbuttv.f[1]   = -0.1;
+    rbuttv.f[2] = lbuttv.f[2]   = -0.2;
+    rbuttbv.v = rbuttv;
+    lbuttbv.v = lbuttv;
+    
+///
+    nosev.f[0] = 0;
+    nosev.f[1] = 3;
+    nosev.f[2] = 0.6;
+    nosebv.v = nosev;
+    nosetipv.f[0] = 0;
+    nosetipv.f[1] = 2.95;
+    nosetipv.f[2] = 0.85;
+    nosetipbv.v = nosetipv;
     
     //seleccionables
     bodyverts[1] = &waistbv;
@@ -187,18 +203,24 @@ void initVertices(){
     bodyverts[19] = &lneckbv;
     
     bodyverts[20] = &headtopbv;
-    bodyverts[21] = &rhandtopbv;
-    bodyverts[22] = &lhandtopbv;
-    bodyverts[23] = &rfoottopbv;
-    bodyverts[24] = &lfoottopbv;
+    bodyverts[21] = &rfingersbv;
+    bodyverts[22] = &lfingersbv;
+    bodyverts[23] = &rtoesbv;
+    bodyverts[24] = &ltoesbv;
+    bodyverts[25] = &rbuttbv;
+    bodyverts[26] = &lbuttbv;
+    bodyverts[27] = &chestbv;
+///
+    bodyverts[28] = &nosebv;
+    bodyverts[29] = &nosetipbv;
 }
 
 void initCapsules(){
     waistc.bv1 = &waistbv;
     waistc.bv2 = &abdomenbv;
-    rwaistc.bv1 = &rulegbv;
+    rwaistc.bv1 = &rbuttbv;
     rwaistc.bv2 = &rabdomenbv;
-    lwaistc.bv1 = &lulegbv;
+    lwaistc.bv1 = &lbuttbv;
     lwaistc.bv2 = &labdomenbv;
     
     chestc.bv1 = &abdomenbv;
@@ -208,12 +230,12 @@ void initCapsules(){
     lchestc.bv1 = &labdomenbv;
     lchestc.bv2 = &lneckbv;
     
-    waistc.r = 0.45;
+    waistc.r = 0.5;
     waistc.sib = &rwaistc;
-    rwaistc.r = lwaistc.r = 0.3;
+    rwaistc.r = lwaistc.r = 0.4;
     rwaistc.sib = &lwaistc;
     lwaistc.sib = NULL;
-    chestc.r = 0.5;
+    chestc.r = 0.55;
     chestc.sib = &rchestc;
     rchestc.r = lchestc.r = 0.4;
     rchestc.sib = &lchestc;
@@ -225,7 +247,7 @@ void initCapsules(){
     headc.bv2 = &headtopbv;
     neckc.r = 0.3;
     headc.r = 0.45;
-    neckc.sib = headc.sib = NULL;
+    neckc.sib = headc.sib = &nosec;// NULL;
     
     rshoulderc.bv1 = &neckbv;
     rshoulderc.bv2 = &rshoulderbv;
@@ -234,7 +256,7 @@ void initCapsules(){
     rlarmc.bv1 = &relbowbv;
     rlarmc.bv2 = &rwristbv;
     rhandc.bv1 = &rwristbv;
-    rhandc.bv2 = &rhandtopbv;
+    rhandc.bv2 = &rfingersbv;
     
     lshoulderc.bv1 = &neckbv;
     lshoulderc.bv2 = &lshoulderbv;
@@ -243,9 +265,9 @@ void initCapsules(){
     llarmc.bv1 = &lelbowbv;
     llarmc.bv2 = &lwristbv;
     lhandc.bv1 = &lwristbv;
-    lhandc.bv2 = &lhandtopbv;
+    lhandc.bv2 = &lfingersbv;
     
-    rshoulderc.r = lshoulderc.r = 0.4;
+    rshoulderc.r = lshoulderc.r = 0.35;
     ruarmc.r = luarmc.r = 0.35;
     rlarmc.r = llarmc.r = 0.25;
     rhandc.r = lhandc.r = 0.25;
@@ -257,20 +279,26 @@ void initCapsules(){
     rllegc.bv1 = &rkneebv;
     rllegc.bv2 = &ranklebv;
     rfootc.bv1 = &ranklebv;
-    rfootc.bv2 = &rfoottopbv;
+    rfootc.bv2 = &rtoesbv;
     
     lulegc.bv1 = &lulegbv;
     lulegc.bv2 = &lkneebv;
     lllegc.bv1 = &lkneebv;
     lllegc.bv2 = &lanklebv;
     lfootc.bv1 = &lanklebv;
-    lfootc.bv2 = &lfoottopbv;
+    lfootc.bv2 = &ltoesbv;
     
     rulegc.r = lulegc.r = 0.4;
     rllegc.r = lllegc.r = 0.3;
     rfootc.r = lfootc.r = 0.25;
     rulegc.sib = rllegc.sib = rfootc.sib = NULL;
     lulegc.sib = lllegc.sib = lfootc.sib = NULL;
+    
+///
+    nosec.bv1 = &nosebv;
+    nosec.bv2 = &nosetipbv;
+    nosec.r = 0.1;
+    nosec.sib = NULL;
     
     caps[0] = &waistc;
     caps[1] = &chestc;
@@ -299,155 +327,149 @@ void initCapsules(){
     caps[19] = &lwaistc;
     caps[20] = &rchestc;
     caps[21] = &lchestc;
+///
+    caps[22] = &nosec;
 }
 
 void initNodes(){
     
     //waist
     waistn.cap = &waistc;
-    waistn.bv1 = &waistbv;
+    waistn.bv = &waistbv;
     waistn.id = 1;
-    waistn.sibling = &rulegn;
+    nodes[1] = &waistn;
+    waistn.sib = &rulegn;
     waistn.child = &abdomenn;
     
     //abdomen
     abdomenn.cap = &chestc;
-    abdomenn.bv1 = &abdomenbv;
+    abdomenn.bv = &abdomenbv;
     abdomenn.id = 2;
-    abdomenn.sibling = NULL;
+    nodes[2] = &abdomenn;
+    abdomenn.sib = NULL;
     abdomenn.child = &neckn;
     
     //Neck
     neckn.cap = &neckc;
-    neckn.bv1 = &neckbv;
+    neckn.bv = &neckbv;
     neckn.id = 3;
-    neckn.sibling = &rshouldern;
+    nodes[3] = &neckn;
+    neckn.sib = &rshouldern;
     neckn.child = &headn;
     
     //Head
     headn.cap = &headc;
-    headn.bv1 = &headbv;
+    headn.bv = &headbv;
     headn.id = 4;
-    headn.sibling = NULL;
+    nodes[4] = &headn;
+    headn.sib = NULL;
     headn.child = NULL;
     
     //shoulder
-    rshouldern.cap = &rshoulderc;
-    rshouldern.bv1 = &rshoulderbv;
+    rshouldern.cap = &ruarmc;
+    rshouldern.bv = &rshoulderbv;
     rshouldern.id = 5;
-    rshouldern.sibling = &lshouldern;
+    nodes[5] = &rshouldern;
+    rshouldern.sib = &lshouldern;
     rshouldern.child = &relbown;
     
     //relbow
-    relbown.cap = &ruarmc;
-    relbown.bv1 = &relbowbv;
+    relbown.cap = &rlarmc;
+    relbown.bv = &relbowbv;
     relbown.id = 6;
-    relbown.sibling = NULL;
+    nodes[6] = &relbown;
+    relbown.sib = NULL;
     relbown.child = &rwristn;
     
     //rwrist
-    rwristn.cap = &rlarmc;
-    rwristn.bv1 = &rwristbv;
+    rwristn.cap = &rhandc;
+    rwristn.bv = &rwristbv;
     rwristn.id = 7;
-    rwristn.sibling = NULL;        
+    nodes[7] = &rwristn;
+    rwristn.sib = NULL;        
     rwristn.child = NULL;
     
     //lshoulder
-    lshouldern.cap = &lshoulderc;
-    lshouldern.bv1 = &lshoulderbv;
+    lshouldern.cap = &luarmc;
+    lshouldern.bv = &lshoulderbv;
     lshouldern.id = 8;
-    lshouldern.sibling = NULL;
+    nodes[8] = &lshouldern;
+    lshouldern.sib = NULL;
     lshouldern.child = &lelbown;
     
     //lelbow
-    lelbown.cap = &luarmc;
-    lelbown.bv1 = &lelbowbv;
+    lelbown.cap = &llarmc;
+    lelbown.bv = &lelbowbv;
     lelbown.id = 9;
-    lelbown.sibling = NULL;        
+    nodes[9] = &lelbown;
+    lelbown.sib = NULL;        
     lelbown.child = &lwristn;
     
     //lwrist
-    lwristn.cap = &llarmc;
-    lwristn.bv1 = &lwristbv;
+    lwristn.cap = &lhandc;
+    lwristn.bv = &lwristbv;
     lwristn.id = 0;
-    lwristn.sibling = NULL;        
+    nodes[0] = &lwristn;
+    lwristn.sib = NULL;        
     lwristn.child = NULL;
     
     //ruleg
     rulegn.cap = &rulegc;
-    rulegn.bv1 = &rulegbv;
+    rulegn.bv = &rulegbv;
     rulegn.id = 10;
-    rulegn.sibling = &lulegn;       
+    nodes[10] = &rulegn;
+    rulegn.sib = &lulegn;       
     rulegn.child = &rkneen; 
     
     //rlleg
     rkneen.cap = &rllegc;
-    rkneen.bv1 = &rkneebv;
+    rkneen.bv = &rkneebv;
     rkneen.id = 11;
-    rkneen.sibling = NULL;
+    nodes[11] = &rkneen;
+    rkneen.sib = NULL;
     rkneen.child = &ranklen;
     
     //rankle
     ranklen.cap = &rfootc;
-    ranklen.bv1 = &ranklebv;
+    ranklen.bv = &ranklebv;
     ranklen.id = 12;
-    ranklen.sibling = NULL;
+    nodes[12] = &ranklen;
+    ranklen.sib = NULL;
     ranklen.child = NULL;
     
     //luleg
     lulegn.cap = &lulegc;
-    lulegn.bv1 = &lulegbv;
+    lulegn.bv = &lulegbv;
     lulegn.id = 13;
-    lulegn.sibling = NULL;       
+    nodes[13] = &lulegn;
+    lulegn.sib = NULL;       
     lulegn.child = &lkneen;                      
     
     //llleg
     lkneen.cap = &lllegc;
-    lkneen.bv1 = &lkneebv;
+    lkneen.bv = &lkneebv;
     lkneen.id = 14;
-    lkneen.sibling = NULL;        
+    nodes[14] = &lkneen;
+    lkneen.sib = NULL;        
     lkneen.child = &lanklen;
     
     //lankle
     lanklen.cap = &lfootc;
-    lanklen.bv1 = &lanklebv;
+    lanklen.bv = &lanklebv;
     lanklen.id = 15;
-    lanklen.sibling = NULL;        
-    lanklen.child = NULL;
-    
-    //seleccionables
-    nodes[1] = &waistn;
-    nodes[2] = &abdomenn;
-    nodes[3] = &neckn;
-    nodes[4] = &headn;
-    
-    nodes[5] = &rshouldern;
-    nodes[6] = &relbown;
-    nodes[7] = &rwristn;
-    
-    nodes[8] = &lshouldern;
-    nodes[9] = &lelbown;
-    nodes[0] = &lwristn;
-    
-    nodes[10] = &rulegn;
-    nodes[11] = &rkneen;
-    nodes[12] = &ranklen;
-    
-    nodes[13] = &lulegn;
-    nodes[14] = &lkneen;
     nodes[15] = &lanklen;
+    lanklen.sib = NULL;        
+    lanklen.child = NULL;
 }
 
 //Carga objs a skindata, shirtdata y pantsdata
 void initObj(){
     skindata = new objLoader();
-    skindata->load("human.obj");
+    skindata->load("surprise.obj");//("human.obj");
     shirtdata = new objLoader();
     pantsdata = new objLoader();
     hairdata = new objLoader();
-    shirtdata->load("shirt.obj");
-    pantsdata->load("pants.obj");
-    hairdata->load("hair.obj");
+    
     if(shirtoption == 0)
         shirtdata->load("shirt.obj");
     else
@@ -465,8 +487,6 @@ void initObj(){
 }
 
 void bind(bodyvertex *nbv, Vec3 *nsv, float nw){
-sprintf(title, "bind: %f   %f   %f      %d / %d", nbv->v.f[0], nbv->v.f[1], nbv->v.f[2], numbindings, (skindata->vertexCount + shirtdata->vertexCount + pantsdata->vertexCount + hairdata->vertexCount) * 2);
-glutSetWindowTitle(title);
     binding newbind;
     newbind.bv = nbv;
     newbind.sv = nsv;
@@ -723,7 +743,7 @@ void initParticles(){
             ptemp.movable = false;
         }
         if(betweeny(ptemp.pos, -0.5, 0.4)){
-            //bind(&abdomenbv, ptemp.pos, 1);
+            bind(&abdomenbv, ptemp.pos, 1);
         }
         ptemp.mass = pantsmass;
         pantsparticles[i] = ptemp;
@@ -734,20 +754,21 @@ void initParticles(){
     for(i=0; i < totalhairparticles; i++){
         particle ptemp = particleconstruct(hairdata->vertexList[i]);
         //si esta por el centro, no se cae y se pega a la cabeza
-//        if(hairoption == 0){ //l. s. kennedy
-//            if(betweenx(ptemp.pos, -0.25, 0.25) && betweeny(ptemp.pos, 3.6, 4)){
-//                ptemp.movable = false;
-//                bind(&headbv, ptemp.pos, 1);
-//            }
-//            ptemp.mass = hairmass;
-//        }
-//        if(hairoption == 1){ //bob ross
-//            if(betweenx(ptemp.pos, -0.55, 0.55) && betweeny(ptemp.pos, 2.55, 3.45) && betweenz(ptemp.pos, -0.35, 0.7)){
-//                ptemp.movable = false;
-//                bind(&headbv, ptemp.pos, 1);
-//            }
-//            ptemp.mass = afromass;
-//        }
+        if(hairoption == 0){ //l. s. kennedy
+            if(betweenx(ptemp.pos, -0.25, 0.25) && betweeny(ptemp.pos, 3.6, 4)){
+                ptemp.movable = false;
+                bind(&headbv, ptemp.pos, 1);
+            }
+            ptemp.mass = hairmass;
+        }
+        if(hairoption == 1){ //bob ross
+            if(betweenx(ptemp.pos, -0.55, 0.55) && betweeny(ptemp.pos, 2.55, 3.45) && betweenz(ptemp.pos, -0.35, 0.7)){
+                ptemp.movable = false;
+                bind(&headbv, ptemp.pos, 1);
+            }
+            ptemp.mass = afromass;
+        }
+
         hairparticles[i] = ptemp;
     }
 
