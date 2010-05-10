@@ -41,8 +41,9 @@ extern GLfloat pinkDiffuseAlpha[];
 // a white specular material
 extern GLfloat whiteSpecular[];
 
-// the degrees of shinnines (size of the specular highlight, bigger number means smaller highlight)
+// the degrees of shininess (size of the specular highlight, bigger number means smaller highlight)
 extern GLfloat noShininess;
+extern GLfloat midshininess;
 extern GLfloat highShininess;
 
 #endif

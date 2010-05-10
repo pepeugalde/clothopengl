@@ -26,31 +26,31 @@
 #include "structs.h"
 
 /////SWITCHES
-bool smoothswitch      = true;//ajksgfijbgfesabgijbesrigbre
+bool smoothswitch      = true;
 
 bool capvisswitch      = false;//true;
 bool capalphaswitch    = false;//true;
 
-bool jointvisswitch    = true;
+bool jointvisswitch    = false;//true;
 bool jointalphaswitch  = false;//true;
 
 bool skeletonswitch    = false;//true;
 
 bool skinvisswitch     = true;
 bool skinvertswitch    = false;//true;
-bool skinalphaswitch   = true;
+bool skinalphaswitch   = false;//true;
 
-bool shirtvisswitch    = false;//true;
+bool shirtvisswitch    = true;
 bool shirtvertswitch   = false;//true;
 bool shirtalphaswitch  = false;//true;
 bool shirtspringswitch = false;//true;
 
-bool pantsvisswitch    = false;//true;
+bool pantsvisswitch    = true;
 bool pantsvertswitch   = false;//true;
 bool pantsalphaswitch  = false;//true;
 bool pantsspringswitch = false;//true;
 
-bool hairvisswitch     = false;//true;
+bool hairvisswitch     = true;
 bool hairvertswitch    = false;//true;
 bool hairalphaswitch   = false;//true;
 bool hairspringswitch  = false;//true;
@@ -67,7 +67,7 @@ GLfloat anglex = 0; //en x
 GLfloat angley = 0; //en y
 GLfloat anglez = 0; //en z
 
-int segselect = -1;
+int segselect = 1;
 float jointsize = 0.2;
 float vertsize = 0.05;
 float particler = 0.05;
@@ -86,86 +86,112 @@ float ydiff = 0.0f;
 
 float zoom = 12.0;
 
-float speed = 10;
+float speed = 2;
 float eTime = 0;
 float timeDelta = 1;
 
+float floory = -4.7;
+float roomsize = 15;
+float ceilingy = 20;
 
-/////////////DEBUG
-Vec3 planex0 = Vec3construct(0,-5,-5);
-Vec3 planex1 = Vec3construct(0,-5,5);
-Vec3 planex2 = Vec3construct(0,5,5);
-Vec3 planex3 = Vec3construct(0,5,-5);
+Vec3 floor0 = Vec3construct(-roomsize,floory,-roomsize);
+Vec3 floor1 = Vec3construct(-roomsize,floory,roomsize);
+Vec3 floor2 = Vec3construct(roomsize,floory,roomsize);
+Vec3 floor3 = Vec3construct(roomsize,floory,-roomsize);
+float floorn[3] = {0,1,0};
 
-Vec3 planey0 = Vec3construct(-5,0,-5);
-Vec3 planey1 = Vec3construct(-5,0,5);
-Vec3 planey2 = Vec3construct(5,0,5);
-Vec3 planey3 = Vec3construct(5,0,-5);
+Vec3 lwall0 = Vec3construct(-roomsize,floory,-roomsize);
+Vec3 lwall1 = Vec3construct(-roomsize,floory,roomsize);
+Vec3 lwall2 = Vec3construct(-roomsize,ceilingy,roomsize);
+Vec3 lwall3 = Vec3construct(-roomsize,ceilingy,-roomsize);
+float lwalln[3] = {1,0,0};
 
-Vec3 planez0 = Vec3construct(-5,-5,0);
-Vec3 planez1 = Vec3construct(-5,5,0);
-Vec3 planez2 = Vec3construct(5,5,0);
-Vec3 planez3 = Vec3construct(5,-5,0);
+Vec3 rwall0 = Vec3construct(roomsize,floory,-roomsize);
+Vec3 rwall1 = Vec3construct(roomsize,floory,roomsize);
+Vec3 rwall2 = Vec3construct(roomsize,ceilingy,roomsize);
+Vec3 rwall3 = Vec3construct(roomsize,ceilingy,-roomsize);
+float rwalln[3] = {-1,0,0};
 
-void drawplanex(){
-    glBegin(GL_QUADS);
-        glVertex3f(planex0.f[0], planex0.f[1], planex0.f[2]);
-        glVertex3f(planex1.f[0], planex1.f[1], planex1.f[2]);
-        glVertex3f(planex2.f[0], planex2.f[1], planex2.f[2]);
-        glVertex3f(planex3.f[0], planex3.f[1], planex3.f[2]);
-    glEnd();
-}
-void drawplaney(){
-    glBegin(GL_QUADS);
-        glVertex3f(planey0.f[0], planey0.f[1], planey0.f[2]);
-        glVertex3f(planey1.f[0], planey1.f[1], planey1.f[2]);
-        glVertex3f(planey2.f[0], planey2.f[1], planey2.f[2]);
-        glVertex3f(planey3.f[0], planey3.f[1], planey3.f[2]);
-    glEnd();
-}
-void drawplanez(){
-    glBegin(GL_QUADS);
-        glVertex3f(planez0.f[0], planez0.f[1], planez0.f[2]);
-        glVertex3f(planez1.f[0], planez1.f[1], planez1.f[2]);
-        glVertex3f(planez2.f[0], planez2.f[1], planez2.f[2]);
-        glVertex3f(planez3.f[0], planez3.f[1], planez3.f[2]);
-    glEnd();
-}
+Vec3 fwall0 = Vec3construct(-roomsize,floory,roomsize);
+Vec3 fwall1 = Vec3construct(-roomsize,ceilingy,roomsize);
+Vec3 fwall2 = Vec3construct(roomsize,ceilingy,roomsize);
+Vec3 fwall3 = Vec3construct(roomsize,floory,roomsize);
+float fwalln[3] = {0,0,-1};
 
-void moveplanex(float x){
-    planex0.f[0] += x;
-    planex1.f[0] += x;
-    planex2.f[0] += x;
-    planex3.f[0] += x;
-}
-void moveplaney(float y){
-    planey0.f[1] += y;
-    planey1.f[1] += y;
-    planey2.f[1] += y;
-    planey3.f[1] += y;
-}
-void moveplanez(float z){
-    planez0.f[2] += z;
-    planez1.f[2] += z;
-    planez2.f[2] += z;
-    planez3.f[2] += z;
-}
-/////
+Vec3 bwall0 = Vec3construct(-roomsize,floory,-roomsize);
+Vec3 bwall1 = Vec3construct(-roomsize,ceilingy,-roomsize);
+Vec3 bwall2 = Vec3construct(roomsize,ceilingy,-roomsize);
+Vec3 bwall3 = Vec3construct(roomsize,floory,-roomsize);
+float bwalln[3] = {0,0,1};
+
+Vec3 ceiling0 = Vec3construct(-roomsize,ceilingy,-roomsize);
+Vec3 ceiling1 = Vec3construct(-roomsize,ceilingy,roomsize);
+Vec3 ceiling2 = Vec3construct(roomsize,ceilingy,roomsize);
+Vec3 ceiling3 = Vec3construct(roomsize,ceilingy,-roomsize);
+float ceilingn[3] = {0,-1,0};
+
+///////////////DEBUG
+//Vec3 planex0 = Vec3construct(0,-5,-5);
+//Vec3 planex1 = Vec3construct(0,-5,5);
+//Vec3 planex2 = Vec3construct(0,5,5);
+//Vec3 planex3 = Vec3construct(0,5,-5);
+//
+//Vec3 planey0 = Vec3construct(-5,0,-5);
+//Vec3 planey1 = Vec3construct(-5,0,5);
+//Vec3 planey2 = Vec3construct(5,0,5);
+//Vec3 planey3 = Vec3construct(5,0,-5);
+//
+//Vec3 planez0 = Vec3construct(-5,-5,0);
+//Vec3 planez1 = Vec3construct(-5,5,0);
+//Vec3 planez2 = Vec3construct(5,5,0);
+//Vec3 planez3 = Vec3construct(5,-5,0);
+//
+//void drawplanex(){
+//    glBegin(GL_QUADS);
+//        glVertex3f(planex0.f[0], planex0.f[1], planex0.f[2]);
+//        glVertex3f(planex1.f[0], planex1.f[1], planex1.f[2]);
+//        glVertex3f(planex2.f[0], planex2.f[1], planex2.f[2]);
+//        glVertex3f(planex3.f[0], planex3.f[1], planex3.f[2]);
+//    glEnd();
+//}
+//void drawplaney(){
+//    glBegin(GL_QUADS);
+//        glVertex3f(planey0.f[0], planey0.f[1], planey0.f[2]);
+//        glVertex3f(planey1.f[0], planey1.f[1], planey1.f[2]);
+//        glVertex3f(planey2.f[0], planey2.f[1], planey2.f[2]);
+//        glVertex3f(planey3.f[0], planey3.f[1], planey3.f[2]);
+//    glEnd();
+//}
+//void drawplanez(){
+//    glBegin(GL_QUADS);
+//        glVertex3f(planez0.f[0], planez0.f[1], planez0.f[2]);
+//        glVertex3f(planez1.f[0], planez1.f[1], planez1.f[2]);
+//        glVertex3f(planez2.f[0], planez2.f[1], planez2.f[2]);
+//        glVertex3f(planez3.f[0], planez3.f[1], planez3.f[2]);
+//    glEnd();
+//}
+//
+//void moveplanex(float x){
+//    planex0.f[0] += x;
+//    planex1.f[0] += x;
+//    planex2.f[0] += x;
+//    planex3.f[0] += x;
+//}
+//void moveplaney(float y){
+//    planey0.f[1] += y;
+//    planey1.f[1] += y;
+//    planey2.f[1] += y;
+//    planey3.f[1] += y;
+//}
+//void moveplanez(float z){
+//    planez0.f[2] += z;
+//    planez1.f[2] += z;
+//    planez2.f[2] += z;
+//    planez3.f[2] += z;
+//}
+///////
 
 //------------------FUNCIONES----------------------------
-//distancia 3d entre 2 puntos
-float vDistance(Vec3 *v1, Vec3 *v2){
-    return sqrt(pow((v1->f[0]-v2->f[0]),2) + pow((v1->f[1]-v2->f[1]),2) + pow((v1->f[2]-v2->f[2]),2));
-}
-//distancia 3d entre 2 puntos
-float distance3d(float x1,float y1,float z1,float x2,float y2,float z2){
-    return sqrt(pow((x1-x2),2) + pow((y1-y2),2) + pow((z1-z2),2));
-}
-//distancea 2d entre 2 puntos
-float distance2d(float x1,float y1,float x2,float y2){
-    return sqrt(pow((x1-x2),2) + pow((y1-y2),2));
-}
-
 //Hasta ahorita detecta colision entre un punto y una capsula, 
 //calcula la normal y regresa que tan adentro esta el punto h, 0 si esta fuera
 float colDetect(capsule *cap, Vec3 *h, float hr){
@@ -408,6 +434,46 @@ void setMaterials(GLfloat *ambient, GLfloat *diffuse, GLfloat *specular, GLfloat
 	glMaterialf(GL_FRONT,  GL_SHININESS, shininess);
 }
 
+void drawroom(){
+    glBegin(GL_QUADS);
+        glNormal3fv(floorn);
+        glVertex3f(floor0.f[0], floor0.f[1], floor0.f[2]);
+        glVertex3f(floor1.f[0], floor1.f[1], floor1.f[2]);
+        glVertex3f(floor2.f[0], floor2.f[1], floor2.f[2]);
+        glVertex3f(floor3.f[0], floor3.f[1], floor3.f[2]);
+        
+//        glNormal3fv(lwalln);
+//        glVertex3f(lwall0.f[0], lwall0.f[1], lwall0.f[2]);
+//        glVertex3f(lwall1.f[0], lwall1.f[1], lwall1.f[2]);
+//        glVertex3f(lwall2.f[0], lwall2.f[1], lwall2.f[2]);
+//        glVertex3f(lwall3.f[0], lwall3.f[1], lwall3.f[2]);
+//        
+//        glNormal3fv(rwalln);
+//        glVertex3f(rwall0.f[0], rwall0.f[1], rwall0.f[2]);
+//        glVertex3f(rwall1.f[0], rwall1.f[1], rwall1.f[2]);
+//        glVertex3f(rwall2.f[0], rwall2.f[1], rwall2.f[2]);
+//        glVertex3f(rwall3.f[0], rwall3.f[1], rwall3.f[2]);
+//        
+//        glNormal3fv(fwalln);
+//        glVertex3f(fwall0.f[0], fwall0.f[1], fwall0.f[2]);
+//        glVertex3f(fwall1.f[0], fwall1.f[1], fwall1.f[2]);
+//        glVertex3f(fwall2.f[0], fwall2.f[1], fwall2.f[2]);
+//        glVertex3f(fwall3.f[0], fwall3.f[1], fwall3.f[2]);
+//        
+//        glNormal3fv(bwalln);
+//        glVertex3f(bwall0.f[0], bwall0.f[1], bwall0.f[2]);
+//        glVertex3f(bwall1.f[0], bwall1.f[1], bwall1.f[2]);
+//        glVertex3f(bwall2.f[0], bwall2.f[1], bwall2.f[2]);
+//        glVertex3f(bwall3.f[0], bwall3.f[1], bwall3.f[2]);
+//        
+//        glNormal3fv(ceilingn);
+//        glVertex3f(ceiling0.f[0], ceiling0.f[1], ceiling0.f[2]);
+//        glVertex3f(ceiling1.f[0], ceiling1.f[1], ceiling1.f[2]);
+//        glVertex3f(ceiling2.f[0], ceiling2.f[1], ceiling2.f[2]);
+//        glVertex3f(ceiling3.f[0], ceiling3.f[1], ceiling3.f[2]);
+    glEnd();
+}
+
 //dibuja los joints donde se dobla el mono
 void drawJoint(Vec3 *v, int id){
      if(id == segselect){
@@ -487,17 +553,13 @@ void drawCaps(){
 }
 
 void drawBV(){
-    glMaterialfv(GL_FRONT, GL_AMBIENT,   zeroMaterial);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE,   greenDiffuseAlpha);
-    glMaterialfv(GL_FRONT, GL_SPECULAR,  zeroMaterial);
-    glMaterialf(GL_FRONT,  GL_SHININESS, noShininess);
+    setMaterials(zeroMaterial, greenDiffuseAlpha, zeroMaterial, noShininess);
     for(int i=0;i<NUMVERTS;i++){
          glPushMatrix();
              glTranslatef(bodyverts[i]->v.f[0],bodyverts[i]->v.f[1],bodyverts[i]->v.f[2]);
              glutSolidCube(jointsize+0.1);
          glPopMatrix();
     }
-    
 }
 
 //si picas G se dibuja
@@ -670,7 +732,6 @@ void traverse(treenode *node){
     	traverse(node->sib);
 }
 
-void idle();
 void display(){     
     if (smoothswitch)
 		glShadeModel(GL_SMOOTH); 
@@ -696,7 +757,8 @@ void display(){
    	    glEnable(GL_LIGHTING);
     }
 	
-    sprintf(title, "x: %f    y: %f    z: %f    m: %f    g: %f", planex0.f[0], planey0.f[1], planez0.f[2], shirtmass, gravity.f[1]);
+    //sprintf(title, "x: %f    y: %f    z: %f    g: %f", planex0.f[0], planey0.f[1], planez0.f[2], gravity.f[1]);
+    sprintf(title, "Selected segment: %d     Gravity: %f", segselect, gravity.f[1]);
     glutSetWindowTitle(title);
     ///////
 
@@ -764,20 +826,28 @@ void display(){
             drawSprings(hairsprings, totalhairsprings, zeroMaterial, khakhiDiffuse, zeroMaterial, noShininess);
     glEnable(GL_LIGHTING);
     
+    
+    //ROOM
+    setMaterials(zeroMaterial, greenDiffuseAlpha, zeroMaterial, highShininess);
+    drawroom();
+    
     /////
-    if(planeswitch){
-        glDisable(GL_LIGHTING);
-        glColor4f(1,0,0,0.3);
-        drawplanex();
-        glColor4f(0,1,0,0.3);
-        drawplaney();
-        glColor4f(0,0,1,0.3);
-        drawplanez();
-        glEnable(GL_LIGHTING);
-    }
-    /////
-    //idle();
+//    if(planeswitch){
+//        glDisable(GL_LIGHTING);
+//        glColor4f(1,0,0,0.3);
+//        drawplanex();
+//        glColor4f(0,1,0,0.3);
+//        drawplaney();
+//        glColor4f(0,0,1,0.3);
+//        drawplanez();
+//        glEnable(GL_LIGHTING);
+//    }
+    
    	glutSwapBuffers();
+   	
+    /////
+//    idle();
+
 }
 
 //invierte un Switch
@@ -827,56 +897,6 @@ void resetVertFlags(){
 }
 
 //saca un punto de una capsula
-float disttocap(capsule *cap, Vec3 *h, float hr, Vec3 *N){
-
-    ////dist entre punto uno de cap y *h
-    float D[3];
-    D[0] = h->f[0] - cap->bv1->v.f[0];
-    D[1] = h->f[1] - cap->bv1->v.f[1];
-    D[2] = h->f[2] - cap->bv1->v.f[2];
-    
-    //vector unitario
-    float A[3];
-    A[0] = (cap->bv2->v.f[0] - cap->bv1->v.f[0]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
-    A[1] = (cap->bv2->v.f[1] - cap->bv1->v.f[1]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
-    A[2] = (cap->bv2->v.f[2] - cap->bv1->v.f[2]) / (sqrt((cap->bv2->v.f[0] - cap->bv1->v.f[0])*(cap->bv2->v.f[0] - cap->bv1->v.f[0]) + (cap->bv2->v.f[1] - cap->bv1->v.f[1]) * (cap->bv2->v.f[1]-cap->bv1->v.f[1]) + (cap->bv2->v.f[2]-cap->bv1->v.f[2]) * (cap->bv2->v.f[2]-cap->bv1->v.f[2])));
-    
-    //distancia entre el punto 1 de la cap y la proyeccion de *h
-    float d = D[0] * A[0] + D[1] * A[1] + D[2] * A[2];
-    if(d<0)
-        d = 0;
-    float caplen = vDistance(&(cap->bv1->v), &(cap->bv2->v));
-    if(d>caplen)
-        d = caplen;
-    
-    //punto donde se proyecta *h sobre la linea de la cap
-    float R[3];
-    R[0] = cap->bv1->v.f[0] + (A[0] * d);
-    R[1] = cap->bv1->v.f[1] + (A[1] * d);
-    R[2] = cap->bv1->v.f[2] + (A[2] * d);
-    float b = distance3d(h->f[0],h->f[1],h->f[2], R[0],R[1],R[2]);
-    
-    //que tan adentro de la cap esta *h
-    float depth = 0;
-    
-    //if(b < (cap->r + hr)){
-        depth = b - (cap->r + hr);
-    //}
-    
-    if(depth < 0){
-        N->f[0] = (h->f[0] - R[0]) / b;
-        N->f[1] = (h->f[1] - R[1]) / b;
-        N->f[2] = (h->f[2] - R[2]) / b;
-        
-//        h->f[0] -= N->f[0] * depth;
-//        h->f[1] -= N->f[1] * depth;
-//        h->f[2] -= N->f[2] * depth;
-    }
-      
-    return depth;
-}
-
-//saca un punto de una capsula
 bool handleCollision(capsule *cap, particle *p, float hr){
     Vec3 N = Vec3construct(0,0,0);
     float depth = disttocap(cap, p->pos, hr, &N);
@@ -893,6 +913,11 @@ bool handleCollision(capsule *cap, particle *p, float hr){
 //            p->pos->f[1] = p->old_pos.f[1] + (p->pos->f[1] - p->old_pos.f[1])/3;
 //            p->pos->f[2] = p->old_pos.f[2] + (p->pos->f[2] - p->old_pos.f[2])/3;
 //        }
+        return true;
+    }
+    
+    if(p->pos->f[1] <= floory){
+        p->pos->f[1] = floory;
         return true;
     }
     
@@ -914,6 +939,8 @@ void parrcollide(particle *parr, float pradius, int total){
 void idle(void){
   eTime += timeDelta;
   if(eTime > speed){
+      eTime = 0;
+      
       int i = 0;
       int j = 0;
       
@@ -996,9 +1023,9 @@ void movebodyz(float z){
 
 void reset(){
     initObj();
-    initSkin();
     initVertices();
     initCapsules();
+    initSkin();
     initNodes();
     initParticles();
     initSprings();
@@ -1039,24 +1066,12 @@ void key(unsigned char c, int x, int y){
             zoom += 1;
             glutPostRedisplay();
             break;
-        case ',':
+        case 'n':
             gravity.f[1] -= 0.05;
             glutPostRedisplay();
             break;
-        case '.':
-            gravity.f[1] += 0.05;
-            glutPostRedisplay();
-            break;
-        case 'n':
-            segselect = (segselect-1)%NUMNODES; if(segselect== -2)segselect=16;
-            sprintf(title, "seg: %d", segselect);
-            glutSetWindowTitle(title);
-            glutPostRedisplay();
-            break;
         case 'm':
-            segselect = (segselect+1)%NUMNODES+1;
-            sprintf(title, "seg: %d", segselect);
-            glutSetWindowTitle(title);
+            gravity.f[1] += 0.05;
             glutPostRedisplay();
             break;
         //SWITCHES
@@ -1164,6 +1179,7 @@ void key(unsigned char c, int x, int y){
         case 'u':
         case 'U':
             segselect=16;
+            break;
         case '!':
             segselect=-1;
             break;
@@ -1178,38 +1194,38 @@ void key(unsigned char c, int x, int y){
 void special(int c, int x, int y){
      if(c==GLUT_KEY_UP){
          anglex = -angdelta;
-         moveplanez(-0.05);
-         if(segselect == 17)
+//         moveplanez(-0.05);
+         if(segselect == -1)
              movebodyz(-0.1);
      }
      if(c==GLUT_KEY_DOWN){
          anglex = angdelta;
-         moveplanez(0.05);
-         if(segselect == 17)
+//         moveplanez(0.05);
+         if(segselect == -1)
              movebodyz(0.1);
      }
      if(c==GLUT_KEY_RIGHT){
          angley = -angdelta;
-         moveplanex(0.05);
-         if(segselect == 17)
+//         moveplanex(0.05);
+         if(segselect == -1)
              movebodyx(0.1);
      }
      if(c==GLUT_KEY_LEFT){
          angley = angdelta;
-         moveplanex(-0.05);
-         if(segselect == 17)
+//         moveplanex(-0.05);
+         if(segselect == -1)
              movebodyx(-0.1);
      }
      if(c==GLUT_KEY_PAGE_UP){
          anglez = angdelta;
-         moveplaney(0.05);
-         if(segselect == 17)
+//         moveplaney(0.05);
+         if(segselect == -1)
              movebodyy(0.1);           
      }
      if(c==GLUT_KEY_PAGE_DOWN){
          anglez = -angdelta;
-         moveplaney(-0.05);
-         if(segselect == 17)
+//         moveplaney(-0.05);
+         if(segselect == -1)
              movebodyy(-0.1);
      }
      
@@ -1369,11 +1385,11 @@ int initMenus(){
 	glutSetMenu(mainMenu);
     	glutAddSubMenu("Capsules",           capMenu);
         glutAddSubMenu("Joints",           jointMenu);
-        glutAddMenuEntry("Toggle Skeleton",         5);
     	glutAddSubMenu("SKIN",              skinMenu);
     	glutAddSubMenu("   SHIRT",         shirtMenu);
     	glutAddSubMenu("   PANTS",         pantsMenu);
     	glutAddSubMenu("   HAIR",           hairMenu);
+    	glutAddMenuEntry("Toggle Skeleton",        5);
         glutAddMenuEntry("Toggle Smooth (S)",      1);
     	glutAddMenuEntry("Toggle All Vertices (V)",2);
     	glutAddMenuEntry("Toggle All Alphas (A)",  3);
@@ -1433,13 +1449,18 @@ void init(){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
+//    glEnable(GL_CULL_FACE);
+//    glCullFace(GL_BACK);
+    
+      glClearColor (1, 1, 1, 0.0);
+    
     // define the light color and intensity
-    GLfloat ambientLight[]	= { 0.0, 0.0, 0.0, 1.0 };
+    GLfloat ambientLight[]	= { 0.5, 0.5, 0.5, 1.0 };
     GLfloat diffuseLight[]	= { 1.0, 1.0, 1.0, 1.0 };
     GLfloat specularLight[]	= { 1.0, 1.0, 1.0, 1.0 };
 
 	//  the global ambient light level
-    GLfloat globalAmbientLight[] = { 0.4, 0.4, 0.4, 1.0 };
+    GLfloat globalAmbientLight[] = { 1, 1, 1, 1.0 };
 
 	// set the global ambient light level
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbientLight);
@@ -1467,7 +1488,7 @@ int main(int argc, char **argv)
   glutInitDisplayMode(mode);                    // Inicializar modo de despliegue.
   glutInitWindowSize(500,500);                  // Inicializar tamaño de la ventana
   glutInit(&argc, argv);                        // Inicializar GLUT
-  glutCreateWindow("Proyecto Final!");                 // Crear una ventana con el título indicado.
+  glutCreateWindow("Proyecto Final!");          // Crear una ventana con el título indicado.
   glutDisplayFunc(display);                     // Indicar la función para desplegar.
   glutReshapeFunc(reshape);                     // Indicar la función en caso de cambio de tamaño de la ventana
   glutMouseFunc(mouse);
@@ -1479,10 +1500,10 @@ int main(int argc, char **argv)
   init();
   initMenus();
   initObj();
-  initSkin();
   initVertices();
   initCapsules();
   initNodes();
+  initSkin();
   initParticles();
   initSprings();
   
