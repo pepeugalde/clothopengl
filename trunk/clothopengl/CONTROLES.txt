@@ -1,8 +1,8 @@
 Escoger joints
    1-9, q,w,e,r,t,y
 
-escoger todo el cuerpo para moverlo
-   0
+escoger todo el cuerpo para rotarlo
+   u
    
 rotar y mover
    arriba, abajo, 
@@ -17,11 +17,13 @@ Switches:
  pants:    g
  pelo:     h
  grid:     j
- planos para medir:   k
  capsulas: c
  joints:   j
  vertices/particulas: v
  gravedad: z
  
+Cambiar gravedad:
+  n  (++)
+  m  (--)
  
 Click derecho: menu con todos los switches

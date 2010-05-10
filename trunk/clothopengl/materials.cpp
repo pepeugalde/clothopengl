@@ -43,4 +43,5 @@ GLfloat whiteSpecular[]	= { 1.0, 1.0, 1.0, 1.0 };
 
 // the degrees of shinnines (size of the specular highlight, bigger number means smaller highlight)
 GLfloat noShininess	    =  0.0;
+GLfloat midshininess    = 25.0;
 GLfloat highShininess	= 50.0;

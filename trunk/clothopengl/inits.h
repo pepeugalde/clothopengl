@@ -1,6 +1,11 @@
 #ifndef INITS_H
 #define INITS_H
 
+#include <GL/glut.h>
+#include <stdlib.h>
+#include <string>
+#include <math.h>
+
 #include "structs.h"
 #include "objLoader.h"
 
@@ -69,6 +74,16 @@ void initNodes();
 
 void initObj();
 void bind(Vec3 *nbv, Vec3 *nsv, int pos);
+
+bool betweenx(Vec3 *v, float xlow, float xhigh);
+bool betweeny(Vec3 *v, float ylow, float yhigh);
+bool betweenz(Vec3 *v, float zlow, float zhigh);
+
+float vDistance(Vec3 *v1, Vec3 *v2);
+float distance3d(float x1,float y1,float z1,float x2,float y2,float z2);
+float distance2d(float x1,float y1,float x2,float y2);
+
+float disttocap(capsule *cap, Vec3 *h, float hr, Vec3 *N);
 void initSkin();
 void initParticles();
 bool isDuplicateSpring(spring *array, int total, particle *pa1, particle *pa2);
